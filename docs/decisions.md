@@ -66,3 +66,53 @@ all other stat fields.
 kept a clean sheet, made saves, etc. Encoding it once at the dispatcher keeps
 each per-position function simpler. Tests verify this with a "great stats but
 0 minutes" case.
+
+
+## 2026-06-07 — Phase 1 collector
+
+### Two-stage validation (raw → normalized)
+
+**Decision.** Each endpoint has a `Raw*` model that mirrors the API verbatim
+(camelCase fields) plus a normalized model (`Squad`, `Player`, `Fixture`)
+that the rest of the codebase imports.
+
+**Why.** If FIFA renames a field or changes a type, the raw layer fails loud
+at the boundary instead of silently producing wrong rows downstream. The
+normalized layer is a stable contract — we control its field names.
+
+### Persist raw JSON next to Parquet
+
+**Decision.** Every fetch writes `data/raw/raw/<name>_<UTC-timestamp>.json`
+alongside the normalized `data/raw/<name>_<UTC-date>.parquet`.
+
+**Why.** Cheap insurance. If a normalization bug or schema drift breaks
+parsing, we can re-parse from the original payload without re-fetching
+(and without depending on the API still serving the same data).
+
+### Ownership stored as a [0, 1] fraction
+
+**Decision.** The API delivers `percentSelected` as a percent (1.2 means
+1.2%). The normalized `Player.ownership_fraction` divides by 100.
+
+**Why.** `scoring.py`'s scouting-bonus check already uses `ownership_pct`
+as a fraction (`< 0.05` means "less than 5%"). Aligning the unit at the
+normalization boundary keeps every downstream consumer consistent.
+
+### Endpoints discovered by static analysis, not browser automation
+
+**Decision.** Reverse-engineered the SPA's JS bundle and probed sibling
+paths under the same static-JSON prefix, rather than driving a headless
+browser.
+
+**Why.** Lighter dependency surface (no Playwright + Chromium download)
+and reproducible from the bundle alone. The bundle's `Cr.get(...)` and
+`na.get(...)` call sites named the convention (`<thing>.json`), and the
+three target files turned out to be siblings of the already-known
+`checksums.json` / `countries.json` / `faq.json`.
+
+### `argparse` over `click` / `typer`
+
+**Decision.** CLI uses standard-library `argparse`.
+
+**Why.** No extra dependency for a three-flag command. Easy to extend if
+the collector ever grows subcommands beyond `--only`.

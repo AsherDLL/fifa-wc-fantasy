@@ -12,7 +12,8 @@ and design decisions.
 ## Status
 
 - **Phase 0 — Scoring rules.** Complete. Canonical scoring functions plus tests.
-- Phase 1 — Data collection. Not started.
+- **Phase 1 — Data collection.** Complete. Fetches players, squads, and
+  fixtures from the FIFA Fantasy public JSON endpoints into Parquet.
 - Phase 2 — Feature engineering. Not started.
 - Phase 3 — Prediction models. Not started.
 - Phase 4 — Optimizer. Not started.
@@ -31,3 +32,16 @@ pip install -e ".[dev]"
 ```bash
 pytest
 ```
+
+## Collect data
+
+Fetches the player pool, national squads, and fixtures from
+`play.fifa.com` and writes Parquet files under `data/raw/`:
+
+```bash
+python -m fifa_fantasy.collector              # all three
+python -m fifa_fantasy.collector --only players
+python -m fifa_fantasy.collector --data-dir /tmp/out
+```
+
+See [`docs/api-endpoints.md`](./docs/api-endpoints.md) for the endpoint specs.

@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "name": "Algeria",
+    "group": "j",
+    "abbr": "ALG",
+    "isEliminated": false
+  },
+  {
+    "id": 27,
+    "name": "Korea Republic",
+    "group": "a",
+    "abbr": "KOR",
+    "isEliminated": false
+  },
+  {
+    "id": 28,
+    "name": "Mexico",
+    "group": "a",
+    "abbr": "MEX",
+    "isEliminated": false
+  },
+  {
+    "id": 40,
+    "name": "South Africa",
+    "group": "a",
+    "abbr": "RSA",
+    "isEliminated": false
+  }
+]

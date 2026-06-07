@@ -1,0 +1,338 @@
+[
+  {
+    "id": 1057,
+    "firstName": "Jayden",
+    "lastName": "Adams",
+    "knownName": null,
+    "squadId": 40,
+    "position": "MID",
+    "price": 4,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 3.7,
+    "roundsSelected": {
+      "1": 3.7
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 1058,
+    "firstName": "Teboho",
+    "lastName": "Mokoena",
+    "knownName": "Teboho Mokoena",
+    "squadId": 40,
+    "position": "MID",
+    "price": 4.3,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.2,
+    "roundsSelected": {
+      "1": 0.2
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 1059,
+    "firstName": "Themba",
+    "lastName": "Zwane",
+    "knownName": null,
+    "squadId": 40,
+    "position": "MID",
+    "price": 4.3,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.1,
+    "roundsSelected": {
+      "1": 0.1
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 1,
+    "firstName": "Rayan",
+    "lastName": "A\u00eft-Nouri",
+    "knownName": null,
+    "squadId": 1,
+    "position": "DEF",
+    "price": 4.9,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 1.2,
+    "roundsSelected": {
+      "1": 1.2
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 19
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 2,
+    "firstName": "Ramy",
+    "lastName": "Bensebaini",
+    "knownName": null,
+    "squadId": 1,
+    "position": "DEF",
+    "price": 4.4,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.2,
+    "roundsSelected": {
+      "1": 0.2
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 19
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 3,
+    "firstName": "A\u00efssa",
+    "lastName": "Mandi",
+    "knownName": null,
+    "squadId": 1,
+    "position": "DEF",
+    "price": 3.9,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.1,
+    "roundsSelected": {
+      "1": 0.1
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 19
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 713,
+    "firstName": "Jin-Seob",
+    "lastName": "Park",
+    "knownName": "Park Jin-Seob",
+    "squadId": 27,
+    "position": "MID",
+    "price": 4.9,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0,
+    "roundsSelected": {
+      "1": 0
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 2
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 714,
+    "firstName": "Jin-Gyu",
+    "lastName": "Kim",
+    "knownName": "Kim Jin-Gyu",
+    "squadId": 27,
+    "position": "MID",
+    "price": 4.9,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0,
+    "roundsSelected": {
+      "1": 0
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 2
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 715,
+    "firstName": "Min-Jae",
+    "lastName": "Kim",
+    "knownName": "Kim Min-Jae",
+    "squadId": 27,
+    "position": "DEF",
+    "price": 5,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 2.2,
+    "roundsSelected": {
+      "1": 2.2
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 2
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 738,
+    "firstName": "Obed",
+    "lastName": "Vargas",
+    "knownName": null,
+    "squadId": 28,
+    "position": "MID",
+    "price": 4.7,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.2,
+    "roundsSelected": {
+      "1": 0.2
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 740,
+    "firstName": "Johan",
+    "lastName": "V\u00e1squez",
+    "knownName": null,
+    "squadId": 28,
+    "position": "DEF",
+    "price": 4.7,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 1.9,
+    "roundsSelected": {
+      "1": 1.9
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  },
+  {
+    "id": 741,
+    "firstName": "C\u00e9sar",
+    "lastName": "Montes",
+    "knownName": null,
+    "squadId": 28,
+    "position": "DEF",
+    "price": 4.7,
+    "status": "playing",
+    "matchStatus": null,
+    "percentSelected": 0.5,
+    "roundsSelected": {
+      "1": 0.5
+    },
+    "stats": {
+      "totalPoints": 0,
+      "avgPoints": 0,
+      "form": 0,
+      "lastRoundPoints": 0,
+      "roundPoints": [],
+      "nextFixtureFromActiveRound": null,
+      "nextFixtureFromScheduledRound": 1
+    },
+    "oneToWatch": false,
+    "oneToWatchText": null,
+    "qualificationRoundIds": [],
+    "fifaId": null
+  }
+]
