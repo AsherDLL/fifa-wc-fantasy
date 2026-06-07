@@ -266,3 +266,49 @@ predicted_points. Vice-captain is the second-highest.
 nothing to ownership-tilt against without a sense of variance. Phase 3b's
 quantile regression will let captain selection prefer higher-variance
 players (P90 ceiling) over higher-mean ones; revisit then.
+
+
+## 2026-06-07 — Transfer planner (Option C)
+
+### Slack-variable encoding of the −3 hit
+
+**Decision.** The piecewise penalty `3 · max(0, transfers − free)` is
+modeled by a continuous non-negative slack variable `extra` with the
+constraint `new_picks ≤ free + extra` and a `−3·extra` term in the
+objective.
+
+**Why.** Standard LP trick: maximization pushes `extra` to its lower
+bound (0), unless squeezed by the constraint — in which case it equals
+the overage exactly. No big-M needed, no extra binary variables,
+fractional solutions can't appear at the optimum because `new_picks` is
+already an integer.
+
+### Unlimited-transfer stages short-circuit to solve_squad
+
+**Decision.** When `config.free_transfers is None` (MD1, R32),
+`solve_transfer` calls `solve_squad` and reports the diff against the
+caller's "current squad" with cost = 0.
+
+**Why.** The MILP would correctly produce the same answer with `free =
+∞`, but skipping the slack variable keeps the model trivial and the
+output identical to the existing well-tested code path. The
+TransferSolution shape is preserved so the CLI doesn't branch on stage
+type.
+
+### `--from <json>` flag, not auto-pick latest
+
+**Decision.** The CLI requires explicit `--from <path>` for transfer
+mode. No auto-detection of the latest results file.
+
+**Why.** Multiple machines push to `results/`; auto-picking "latest"
+could grab someone else's recommendation. Explicit input keeps planning
+deterministic and per-user.
+
+### Rolled-over free transfers as a CLI flag
+
+**Decision.** `--rolled-over N` adds N to the free quota; default 0.
+
+**Why.** Fantasy.md lets you carry one unused free transfer between
+group-stage rounds. The system has no memory of what you actually used,
+so the user supplies it. Simpler than tracking transfer history in
+state.

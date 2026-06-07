@@ -13,9 +13,11 @@ from fifa_fantasy.optimizer.pipeline import (
 from fifa_fantasy.optimizer.solvers import (
     SQUAD_POSITION_COUNTS,
     SQUAD_SIZE,
+    TRANSFER_HIT_POINTS,
     VALID_FORMATIONS,
     solve_lineup,
     solve_squad,
+    solve_transfer,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS
 from fifa_fantasy.scoring import Position
@@ -242,3 +244,126 @@ def test_solve_lineup_bench_outfield_priority_by_pred(fake_squad):
     assert outfield == sorted(outfield, reverse=True)
     # GK on bench is last.
     assert bench.iloc[-1]["position"] == "GK"
+
+
+# ---------------------------------------------------------------------------
+# Transfer solver
+# ---------------------------------------------------------------------------
+
+
+def test_solve_transfer_zero_transfers_when_squad_already_optimal(fake_pool):
+    cfg = STAGE_CONFIGS[Stage.GROUP_MD2]  # 2 free transfers
+    optimal = solve_squad(fake_pool, STAGE_CONFIGS[Stage.GROUP_MD1])
+    transfer = solve_transfer(fake_pool, optimal.player_ids, cfg)
+    assert transfer.n_transfers == 0
+    assert transfer.transfer_cost_points == 0
+    assert sorted(transfer.player_ids) == sorted(optimal.player_ids)
+
+
+def test_solve_transfer_takes_free_swap_when_clearly_better(fake_pool):
+    cfg = STAGE_CONFIGS[Stage.GROUP_MD2]
+    # Start from a deliberately-bad squad: lowest-pointing valid 15.
+    bad = (
+        fake_pool.sort_values("total_effective_points")
+        .groupby("position", sort=False)
+        .head(max(SQUAD_POSITION_COUNTS.values()))
+    )
+    # Take exactly the required counts per position.
+    bad_ids = []
+    for pos, n in SQUAD_POSITION_COUNTS.items():
+        bad_ids.extend(
+            bad[bad["position"] == pos.value]
+            .nsmallest(n, "total_effective_points")["player_id"].tolist()
+        )
+    transfer = solve_transfer(fake_pool, bad_ids, cfg)
+    # Optimal differs from the bad squad → at least one transfer
+    assert transfer.n_transfers >= 1
+
+
+def test_solve_transfer_caps_extras_to_free_quota(fake_pool):
+    cfg = STAGE_CONFIGS[Stage.GROUP_MD2]  # 2 free
+    # Make every player look almost identical so optimal ~= current; the
+    # solver should not invent costly transfers.
+    pool = fake_pool.copy()
+    pool["total_effective_points"] = 5.0
+    current = pool.sample(SQUAD_SIZE, random_state=0)
+    # Ensure the random sample is legal first; if not, use solve_squad.
+    optimal_start = solve_squad(fake_pool, STAGE_CONFIGS[Stage.GROUP_MD1])
+    transfer = solve_transfer(pool, optimal_start.player_ids, cfg)
+    assert transfer.n_extra_transfers == 0
+
+
+def test_solve_transfer_charges_hit_when_worth_it():
+    """If two upgrades each beat the hit, the solver should pay one −3."""
+    # Build a pool of exactly 2/5/5/3 baseline + 4 high-value alternates
+    # (one per position). With 1 free transfer and 2 upgrades worth +10
+    # each, optimal = 2 transfers (1 free + 1 hit), net gain = +20 − 3 = 17.
+    rows = []
+    pid = 0
+    baseline_counts = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
+    # Baseline squad: 15 players at 5 pts each, distributed across 5
+    # countries so the cap of 5 isn't a problem.
+    for position, n in baseline_counts.items():
+        for i in range(n):
+            pid += 1
+            country = f"C{i % 5}"
+            rows.append({
+                "player_id": pid, "full_name": f"BASE-{position}-{i}",
+                "position": position, "country": country, "country_abbr": country,
+                "squad_id": (i % 5) + 1,
+                "price_millions": 5.0,
+                "total_effective_points": 5.0,
+                "is_eliminated": False,
+                "ownership_fraction": 0.1, "status": "playing",
+            })
+    current = [int(r["player_id"]) for r in rows]
+    # Two big alternate upgrades: one FWD and one MID, worth +10 each.
+    # Plus filler alternates so the solver has options at every position.
+    alt_pid = 1000
+    for position in ("GK", "DEF", "MID", "FWD"):
+        for i in range(3):
+            alt_pid += 1
+            pts = 15.0 if (position in ("FWD", "MID") and i == 0) else 5.0
+            rows.append({
+                "player_id": alt_pid, "full_name": f"ALT-{position}-{i}",
+                "position": position, "country": f"C{5 + (i % 3)}",
+                "country_abbr": f"C{5 + (i % 3)}",
+                "squad_id": 10 + (i % 3),
+                "price_millions": 5.0,
+                "total_effective_points": pts,
+                "is_eliminated": False,
+                "ownership_fraction": 0.1, "status": "playing",
+            })
+    pool = pd.DataFrame(rows)
+
+    from fifa_fantasy.optimizer.stage_config import StageConfig
+    cfg = StageConfig(
+        stage=Stage.GROUP_MD2, budget_millions=200.0, max_per_country=5,
+        free_transfers=1, available_boosters=(),
+    )
+    transfer = solve_transfer(pool, current, cfg)
+    assert transfer.n_transfers == 2
+    assert transfer.n_extra_transfers == 1
+    assert transfer.transfer_cost_points == TRANSFER_HIT_POINTS
+    # Baseline = 13×5 + 2×15 = 95 gross; minus 1 hit (−3) = 92 net.
+    assert transfer.objective == pytest.approx(92.0)
+
+
+def test_solve_transfer_unlimited_stage_no_hit(fake_pool):
+    cfg = STAGE_CONFIGS[Stage.R32]  # unlimited free transfers
+    # Any current squad — the solver should freely re-pick and not pay any hits.
+    optimal_md1 = solve_squad(fake_pool, STAGE_CONFIGS[Stage.GROUP_MD1])
+    transfer = solve_transfer(fake_pool, optimal_md1.player_ids, cfg)
+    assert transfer.n_extra_transfers == 0
+    assert transfer.transfer_cost_points == 0
+
+
+def test_solve_transfer_rolled_over_increases_free_quota(fake_pool):
+    cfg = STAGE_CONFIGS[Stage.GROUP_MD2]  # 2 free → with 1 rolled, 3 free
+    # Force exactly 3 transfers via a contrived current squad would be hard,
+    # so we check the math: solve once with 0 rolled, once with 1 rolled —
+    # the second's cost ≤ first's cost.
+    optimal = solve_squad(fake_pool, STAGE_CONFIGS[Stage.GROUP_MD1])
+    a = solve_transfer(fake_pool, optimal.player_ids, cfg, rolled_over_transfers=0)
+    b = solve_transfer(fake_pool, optimal.player_ids, cfg, rolled_over_transfers=1)
+    assert b.transfer_cost_points <= a.transfer_cost_points

@@ -1,9 +1,13 @@
-"""MILP solvers for squad selection and starting XI.
+"""MILP solvers for squad selection, transfers, and starting XI.
 
-Both use PuLP with the bundled CBC backend. Inputs are pandas DataFrames
-with player-level effective_points and round-level fixture context. The
-squad solver returns 15 selected player_ids; the lineup solver returns 11
-starters + 4 bench in priority order + captain/vice picks.
+All use PuLP with the bundled CBC backend. Inputs are pandas DataFrames
+with player-level effective_points and round-level fixture context.
+
+- `solve_squad`    fresh 15-player selection under stage constraints
+- `solve_transfer` 15-player selection given an existing squad + a free
+                   transfer quota; pays a configurable hit per extra
+                   transfer above the quota
+- `solve_lineup`   starting XI + formation + captain pick within a chosen squad
 """
 
 from __future__ import annotations
@@ -24,6 +28,9 @@ SQUAD_POSITION_COUNTS: dict[Position, int] = {
     Position.MID: 5,
     Position.FWD: 3,
 }
+
+# Fantasy.md: -3 points per additional transfer above the free quota.
+TRANSFER_HIT_POINTS = 3
 
 # Each formation: (DEF, MID, FWD) — GK is always 1.
 VALID_FORMATIONS: dict[str, tuple[int, int, int]] = {
@@ -110,6 +117,148 @@ def solve_squad(
     return SquadSolution(
         player_ids=chosen,
         objective=float(pulp.value(prob.objective)),
+        budget_used=budget_used,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Transfer solver (15 players given an existing squad + free transfer quota)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class TransferSolution:
+    player_ids: list[int]
+    transfers_in: list[int]
+    transfers_out: list[int]
+    n_transfers: int
+    n_extra_transfers: int
+    transfer_cost_points: int
+    objective: float  # net of the hit
+    gross_objective: float  # before subtracting the hit
+    budget_used: float
+
+
+def solve_transfer(
+    players: pd.DataFrame,
+    current_squad_ids: list[int],
+    config: StageConfig,
+    rolled_over_transfers: int = 0,
+    exclude_eliminated: bool = True,
+    verbose: bool = False,
+) -> TransferSolution:
+    """Pick the best new 15-player squad given the current squad.
+
+    Objective: maximize Σ total_effective_points · x[p]  −  3 · extra
+    where `extra` = max(0, transfers_in − (free_transfers + rolled_over)).
+
+    Stages with unlimited free transfers (`config.free_transfers is None`)
+    short-circuit to `solve_squad` and report the diff against the current
+    squad — same shape of result so the caller doesn't branch.
+    """
+    if config.free_transfers is None:
+        fresh = solve_squad(players, config, exclude_eliminated, verbose)
+        return _diff_to_transfer_solution(
+            fresh.player_ids,
+            current_squad_ids,
+            objective_gross=fresh.objective,
+            budget_used=fresh.budget_used,
+            free_transfers=10**9,  # treat as unlimited
+        )
+
+    if exclude_eliminated:
+        players = players[~players["is_eliminated"].astype(bool)].reset_index(drop=True)
+    if len(players) < SQUAD_SIZE:
+        raise ValueError(f"only {len(players)} candidates; need {SQUAD_SIZE}")
+
+    free = config.free_transfers + rolled_over_transfers
+    current_set = set(current_squad_ids)
+
+    prob = pulp.LpProblem("transfer", pulp.LpMaximize)
+    x = {
+        int(r.player_id): pulp.LpVariable(f"x_{int(r.player_id)}", cat="Binary")
+        for r in players.itertuples()
+    }
+    extra = pulp.LpVariable("extra_transfers", lowBound=0, cat="Continuous")
+
+    # Same hard constraints as solve_squad.
+    prob += pulp.lpSum(x.values()) == SQUAD_SIZE
+    for position, count in SQUAD_POSITION_COUNTS.items():
+        ids = [int(r.player_id) for r in players.itertuples() if r.position == position.value]
+        prob += pulp.lpSum(x[i] for i in ids) == count, f"pos_{position.value}"
+    prob += (
+        pulp.lpSum(
+            x[int(r.player_id)] * float(r.price_millions) for r in players.itertuples()
+        )
+        <= config.budget_millions,
+        "budget",
+    )
+    for country, group in players.groupby("country", sort=False):
+        ids = [int(pid) for pid in group["player_id"]]
+        prob += pulp.lpSum(x[i] for i in ids) <= config.max_per_country, f"nat_{country}"
+
+    # Transfers-in = players in new squad that weren't in old squad.
+    new_picks = pulp.lpSum(
+        x[int(r.player_id)] for r in players.itertuples()
+        if int(r.player_id) not in current_set
+    )
+    prob += new_picks <= free + extra, "transfer_quota"
+
+    prob += (
+        pulp.lpSum(
+            x[int(r.player_id)] * float(r.total_effective_points)
+            for r in players.itertuples()
+        )
+        - TRANSFER_HIT_POINTS * extra
+    )
+
+    status = prob.solve(pulp.PULP_CBC_CMD(msg=int(verbose)))
+    if pulp.LpStatus[status] != "Optimal":
+        raise RuntimeError(f"transfer solver failed: status={pulp.LpStatus[status]}")
+
+    chosen = sorted(int(pid) for pid, var in x.items() if var.value() > 0.5)
+    budget_used = float(
+        players[players["player_id"].isin(chosen)]["price_millions"].sum()
+    )
+    gross = float(
+        sum(
+            float(r.total_effective_points)
+            for r in players.itertuples()
+            if int(r.player_id) in set(chosen)
+        )
+    )
+    return _diff_to_transfer_solution(
+        chosen,
+        current_squad_ids,
+        objective_gross=gross,
+        budget_used=budget_used,
+        free_transfers=free,
+    )
+
+
+def _diff_to_transfer_solution(
+    new_squad: list[int],
+    current_squad: list[int],
+    *,
+    objective_gross: float,
+    budget_used: float,
+    free_transfers: int,
+) -> TransferSolution:
+    new_set, old_set = set(new_squad), set(current_squad)
+    transfers_in = sorted(new_set - old_set)
+    transfers_out = sorted(old_set - new_set)
+    n_transfers = len(transfers_in)
+    n_extra = max(0, n_transfers - free_transfers)
+    cost = TRANSFER_HIT_POINTS * n_extra
+    return TransferSolution(
+        player_ids=new_squad,
+        transfers_in=transfers_in,
+        transfers_out=transfers_out,
+        n_transfers=n_transfers,
+        n_extra_transfers=n_extra,
+        transfer_cost_points=cost,
+        objective=objective_gross - cost,
+        gross_objective=objective_gross,
         budget_used=budget_used,
     )
 
