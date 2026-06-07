@@ -1,9 +1,10 @@
 # Scoring Rules (Canonical Reference)
 
-Source: official FIFA World Cup 2026 Fantasy rules
-(<https://play.fifa.com/fantasy/help/rules>). This document mirrors what
-`src/fifa_fantasy/scoring.py` encodes — if they ever diverge, the code is wrong
-or this doc is stale. The tests in `tests/test_scoring.py` pin every value below.
+Source: [`docs/Fantasy.md`](./Fantasy.md), the verbatim official FIFA World Cup
+2026 Fantasy guidelines from <https://play.fifa.com/fantasy/help/guidelines>.
+This document is a code-aligned table view of what `src/fifa_fantasy/scoring.py`
+encodes — if they ever diverge, the code is wrong or this doc is stale. The
+tests in `tests/test_scoring.py` pin every value below.
 
 ## All positions
 
