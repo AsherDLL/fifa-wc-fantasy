@@ -206,3 +206,63 @@ with documented reasoning.
 replaced by Phase 3b. Adding a YAML config and a loader would be more
 machinery than the predictor itself. When the constants need tuning, edit
 the file and re-run.
+
+
+## 2026-06-07 — Phase 4 optimizer
+
+### MILP via PuLP/CBC
+
+**Decision.** Both the squad and the lineup are modeled as MILPs and
+solved with PuLP's bundled CBC backend.
+
+**Why.** With 1,481 binary squad variables plus 7 formation indicators
+plus 15 lineup variables, the model is tiny by MILP standards and CBC
+solves it in <1 s. Greedy heuristics can't simultaneously honour the
+budget, position counts, and nationality cap without a repair step that
+risks suboptimality. MILP gives provable optimality for the fixed inputs
+we feed it.
+
+### Scouting bonus injected at the optimizer, not the predictor
+
+**Decision.** `apply_scouting_bonus` lives in `optimizer/pipeline.py`,
+not `model/baseline.py`.
+
+**Why.** The bonus depends on ownership, which is a market signal
+external to the scoring function. Keeping it out of the predictor lets
+the predictor speak purely to expected match performance; the optimizer
+combines that with ownership to compute the effective objective. Also
+keeps the LightGBM models (Phase 3b) free of differential reasoning —
+they predict points, we add the +2 if applicable.
+
+### Horizon-summed squad, round-specific lineup
+
+**Decision.** The 15-player squad is selected to maximise the sum of
+effective points across the horizon (e.g. MD1+MD2+MD3 for the
+pre-tournament selection); the lineup is solved only for the first round
+in the horizon.
+
+**Why.** Mirrors the game: you pick a squad once per "phase" (subject to
+the transfer quota), and you set a lineup per round. Optimising squad
+selection per-round and then summing would over-penalise rotation
+candidates; this approach picks a roster that performs across the whole
+horizon.
+
+### Bench priority: outfield by descending predicted_points, GK last
+
+**Decision.** `bench_ids` returns the outfield bench sorted by
+predicted_points desc, then the spare GK.
+
+**Why.** Matches the game's auto-sub rule (Fantasy.md): outfield bench
+slots 1–3 sub in order; the GK substitute only ever replaces the other
+GK. Encoding the order at the optimizer level means the consumer just
+takes the list as-is.
+
+### Captain = highest predicted_points, no ownership-tilt
+
+**Decision.** Captain is the starter with the highest single-round
+predicted_points. Vice-captain is the second-highest.
+
+**Why.** Phase 3a is a point estimate, not a distribution; there's
+nothing to ownership-tilt against without a sense of variance. Phase 3b's
+quantile regression will let captain selection prefer higher-variance
+players (P90 ceiling) over higher-mean ones; revisit then.

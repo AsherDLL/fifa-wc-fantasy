@@ -20,7 +20,9 @@ and design decisions.
   position-coef × price × matchup × home, gives the optimizer something
   concrete to consume before training data exists.
 - Phase 3b — LightGBM models. Not started (needs Euro 2024 training data).
-- Phase 4 — Optimizer. Not started.
+- **Phase 4 — Optimizer.** Complete. PuLP/CBC MILPs for the 15-player
+  squad and the starting XI + formation, stage-aware. CLI emits a JSON
+  recommendation.
 - Phase 5 — Live decision support. Not started.
 
 ## Setup
@@ -74,3 +76,16 @@ python -m fifa_fantasy.model
 ```
 
 See [`docs/baseline.md`](./docs/baseline.md) for the formula and tuning notes.
+
+## Recommend a squad
+
+Runs the Phase 4 squad + lineup MILPs and writes
+`data/processed/recommendation_<STAGE>_<UTC-date>.json`:
+
+```bash
+python -m fifa_fantasy.optimizer                   # default GROUP_MD1
+python -m fifa_fantasy.optimizer --stage R16
+```
+
+See [`docs/optimizer.md`](./docs/optimizer.md) for the MILP formulation
+and stage-config table.
