@@ -1,0 +1,54 @@
+{
+  "stage": "GROUP_MD1",
+  "horizon_rounds": [
+    1,
+    2,
+    3
+  ],
+  "budget_used": 100.0,
+  "budget_total": 100.0,
+  "total_horizon_points": 263.86831197884715,
+  "squad_player_ids": [
+    47,
+    471,
+    520,
+    533,
+    542,
+    916,
+    1093,
+    1105,
+    1338,
+    1429,
+    1430,
+    1431,
+    1710,
+    1711,
+    2000
+  ],
+  "lineup": {
+    "round_id": 1,
+    "formation": "3-4-3",
+    "starter_ids": [
+      520,
+      533,
+      542,
+      916,
+      1093,
+      1105,
+      1338,
+      1431,
+      1710,
+      1711,
+      2000
+    ],
+    "bench_ids_priority_order": [
+      471,
+      1430,
+      1429,
+      47
+    ],
+    "captain_id": 1338,
+    "vice_captain_id": 1093,
+    "expected_points": 58.19997035812839
+  }
+}

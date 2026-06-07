@@ -20,10 +20,12 @@ import pandas as pd
 from fifa_fantasy.collector.schemas import Stage
 
 from .pipeline import aggregate_to_player, apply_scouting_bonus
+from .report import render_markdown
 from .solvers import solve_lineup, solve_squad
 from .stage_config import DEFAULT_ROUND_HORIZON, STAGE_CONFIGS
 
 DEFAULT_DIR = Path("data/processed")
+DEFAULT_RESULTS_DIR = Path("results")
 
 
 def _latest(dir_: Path, prefix: str) -> Path:
@@ -47,7 +49,8 @@ def main() -> None:
     parser.add_argument("--stage", default=Stage.GROUP_MD1.value,
                         choices=[s.value for s in Stage])
     parser.add_argument("--predictions-dir", type=Path, default=DEFAULT_DIR)
-    parser.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
+    parser.add_argument("--out-dir", type=Path, default=DEFAULT_RESULTS_DIR,
+                        help="where to write the recommendation JSON + markdown report")
     args = parser.parse_args()
 
     stage = Stage(args.stage)
@@ -93,7 +96,8 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    out_path = args.out_dir / f"recommendation_{stage.value}_{date}.json"
+    json_path = args.out_dir / f"recommendation_{stage.value}_{date}.json"
+    md_path = args.out_dir / f"recommendation_{stage.value}_{date}.md"
     payload = {
         "stage": stage.value,
         "horizon_rounds": list(horizon),
@@ -111,8 +115,29 @@ def main() -> None:
             "expected_points": lineup.objective,
         },
     }
-    out_path.write_text(json.dumps(payload, indent=2))
-    print(f"\nrecommendation written → {out_path}")
+    json_path.write_text(json.dumps(payload, indent=2))
+
+    md_path.write_text(render_markdown(
+        stage=stage.value,
+        horizon_rounds=list(horizon),
+        budget_used=squad.budget_used,
+        budget_total=config.budget_millions,
+        total_horizon_points=squad.objective,
+        formation=lineup.formation,
+        xi_expected_points=lineup.objective,
+        squad_player_ids=squad.player_ids,
+        starter_ids=lineup.starter_ids,
+        bench_ids_priority_order=lineup.bench_ids,
+        captain_id=lineup.captain_id,
+        vice_captain_id=lineup.vice_captain_id,
+        players=predictions[["player_id", "full_name", "position", "country",
+                             "country_abbr", "price_millions",
+                             "ownership_fraction"]].drop_duplicates("player_id"),
+        round_predictions=squad_in_round,
+        target_round=first_round,
+    ))
+    print(f"\nrecommendation written → {json_path}")
+    print(f"report written         → {md_path}")
 
 
 if __name__ == "__main__":
