@@ -14,7 +14,8 @@ and design decisions.
 - **Phase 0 — Scoring rules.** Complete. Canonical scoring functions plus tests.
 - **Phase 1 — Data collection.** Complete. Fetches players, squads, and
   fixtures from the FIFA Fantasy public JSON endpoints into Parquet.
-- Phase 2 — Feature engineering. Not started.
+- **Phase 2 — Feature engineering.** Complete. Builds a per-(player, round)
+  feature table joining players × fixtures × squad-strength proxies.
 - Phase 3 — Prediction models. Not started.
 - Phase 4 — Optimizer. Not started.
 - Phase 5 — Live decision support. Not started.
@@ -45,3 +46,17 @@ python -m fifa_fantasy.collector --data-dir /tmp/out
 ```
 
 See [`docs/api-endpoints.md`](./docs/api-endpoints.md) for the endpoint specs.
+
+## Build features
+
+Reads the latest `data/raw/{players,squads,fixtures}_*.parquet` snapshots
+and writes a single per-(player, round) feature table to
+`data/processed/features_<UTC-date>.parquet`:
+
+```bash
+python -m fifa_fantasy.features
+python -m fifa_fantasy.features --raw-dir data/raw --out-dir data/processed
+```
+
+See [`docs/features.md`](./docs/features.md) for the column dictionary and
+the squad-strength rationale.

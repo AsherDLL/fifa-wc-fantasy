@@ -116,3 +116,49 @@ three target files turned out to be siblings of the already-known
 
 **Why.** No extra dependency for a three-flag command. Easy to extend if
 the collector ever grows subcommands beyond `--only`.
+
+
+## 2026-06-07 — Phase 2 features
+
+### Squad strength = top-N price average
+
+**Decision.** The headline squad-strength proxy is the mean price of the
+top `n=11` most expensive players in each squad's pool entry, with rank 1
+= strongest.
+
+**Why.** Total price unfairly rewards squads with bigger pool entries
+(some have 55 listed, others 30). Whole-roster mean penalises squads
+whose deep bench enters at cheap prices. Top-11 mean approximates
+starting-XI quality without any tactical input. Empirically the top of
+the ranking matches consensus (England, France, Spain, Portugal,
+Argentina).
+
+### Rest days at the squad level, merged back
+
+**Decision.** `days_since_prev_match` and `days_to_next_match` are
+computed on a deduplicated `(squad_id, round_id, kickoff)` schedule
+table, then merged onto the per-player rows.
+
+**Why.** They're a squad-level property. Computing them on the wide
+table (12+ rows per squad-round) made `groupby().diff()` see the same
+kickoff repeated and return 0 instead of the real gap. Caught by a unit
+test before we ever ran live.
+
+### `fixture_status` rename
+
+**Decision.** The fixture's `status` column is renamed to
+`fixture_status` inside `flatten_fixtures` to avoid a `_x`/`_y` suffix
+collision with the player-availability `status` column when merging.
+
+**Why.** Both columns are real and meaningful; we want both to survive
+the merge without ambiguity.
+
+### Inner-join on `squad_id`
+
+**Decision.** The feature table is an inner join of players and fixtures
+on `squad_id`. Eliminated teams (no fixture in a given round) simply
+produce no rows for that round.
+
+**Why.** The downstream optimizer only needs rows for players in
+playable matchups; missing rows are unambiguous. No need to invent
+sentinel rows.
