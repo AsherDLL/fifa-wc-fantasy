@@ -12,12 +12,25 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import socket
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 
 from fifa_fantasy.collector.schemas import Stage
+
+
+def _hostname() -> str:
+    """Filesystem-safe hostname for prefixing result filenames.
+
+    Different users running the system push results to the same repo; the
+    prefix prevents same-stage, same-day collisions and makes "who ran
+    this" greppable.
+    """
+    raw = socket.gethostname() or "unknown"
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", raw)
 
 from .pipeline import aggregate_to_player, apply_scouting_bonus
 from .report import render_markdown
@@ -96,10 +109,13 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    json_path = args.out_dir / f"recommendation_{stage.value}_{date}.json"
-    md_path = args.out_dir / f"recommendation_{stage.value}_{date}.md"
+    prefix = f"{_hostname()}_recommendation_{stage.value}_{date}"
+    json_path = args.out_dir / f"{prefix}.json"
+    md_path = args.out_dir / f"{prefix}.md"
     payload = {
         "stage": stage.value,
+        "host": _hostname(),
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "horizon_rounds": list(horizon),
         "budget_used": squad.budget_used,
         "budget_total": config.budget_millions,
