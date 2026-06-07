@@ -162,3 +162,47 @@ produce no rows for that round.
 **Why.** The downstream optimizer only needs rows for players in
 playable matchups; missing rows are unambiguous. No need to invent
 sentinel rows.
+
+
+## 2026-06-07 — Phase 3a baseline predictor
+
+### Heuristic over a trained model for the first pass
+
+**Decision.** Phase 3a ships a non-trained, deterministic predictor:
+position-coef × price × matchup-factor × home-factor, zeroed for
+unavailable players. The LightGBM models from the sketch are deferred to
+Phase 3b.
+
+**Why.** No labelled data exists yet — the World Cup hasn't started. A
+heuristic gets the optimizer end-to-end before kickoff and lets us
+sanity-check the full pipeline. The market's price IS a reasonable
+expected-points signal (the game's pricing model encodes it explicitly).
+
+### Multiplicative matchup + home, not additive
+
+**Decision.** Fixture difficulty and home advantage modulate the base
+prediction multiplicatively, not by adding flat bonuses.
+
+**Why.** A 0.5 pt home bonus would dominate a cheap defender's prediction
+and barely move a premium forward's. The multiplicative form scales the
+adjustment with the base, which is the right shape for "fixture helps
+better players more."
+
+### tanh, not linear, for strength-diff
+
+**Decision.** The strength-diff multiplier uses `tanh(diff / scale)`
+rather than a raw linear factor.
+
+**Why.** Caps the matchup effect at ±alpha so an unrealistically large
+strength gap doesn't multiply a prediction by 3×. Smooth and
+differentiable — won't surprise anyone debugging it later.
+
+### Constants live in module-level globals, not a config file
+
+**Decision.** The eight tuning constants are at the top of `baseline.py`
+with documented reasoning.
+
+**Why.** It's an intentionally non-overengineered baseline that will be
+replaced by Phase 3b. Adding a YAML config and a loader would be more
+machinery than the predictor itself. When the constants need tuning, edit
+the file and re-run.

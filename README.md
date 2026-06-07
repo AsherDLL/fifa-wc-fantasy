@@ -16,7 +16,10 @@ and design decisions.
   fixtures from the FIFA Fantasy public JSON endpoints into Parquet.
 - **Phase 2 — Feature engineering.** Complete. Builds a per-(player, round)
   feature table joining players × fixtures × squad-strength proxies.
-- Phase 3 — Prediction models. Not started.
+- **Phase 3a — Baseline predictor.** Complete. Heuristic
+  position-coef × price × matchup × home, gives the optimizer something
+  concrete to consume before training data exists.
+- Phase 3b — LightGBM models. Not started (needs Euro 2024 training data).
 - Phase 4 — Optimizer. Not started.
 - Phase 5 — Live decision support. Not started.
 
@@ -60,3 +63,14 @@ python -m fifa_fantasy.features --raw-dir data/raw --out-dir data/processed
 
 See [`docs/features.md`](./docs/features.md) for the column dictionary and
 the squad-strength rationale.
+
+## Predict points
+
+Runs the Phase 3a baseline predictor over the latest feature table and
+writes `data/processed/predictions_<UTC-date>.parquet`:
+
+```bash
+python -m fifa_fantasy.model
+```
+
+See [`docs/baseline.md`](./docs/baseline.md) for the formula and tuning notes.
