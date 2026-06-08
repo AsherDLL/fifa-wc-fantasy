@@ -59,6 +59,16 @@ class RawSquad(BaseModel):
     isEliminated: bool
 
 
+class RawPlayerStats(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    totalPoints: int = 0
+    avgPoints: float = 0.0
+    form: float = 0.0
+    lastRoundPoints: int = 0
+    roundPoints: list[int] = []
+
+
 class RawPlayer(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -73,6 +83,7 @@ class RawPlayer(BaseModel):
     percentSelected: float
     oneToWatch: bool = False
     oneToWatchText: str | None = None
+    stats: RawPlayerStats = RawPlayerStats()
 
 
 class RawFixture(BaseModel):
@@ -129,11 +140,15 @@ class Player(BaseModel):
     country: str
     country_abbr: str
     price_millions: float
-    ownership_fraction: float  # 0.0–1.0 (API returns percent; we divide by 100)
-    status: str  # raw API value: "playing", "transferred", …
+    ownership_fraction: float  # 0.0-1.0 (API returns percent; we divide by 100)
+    status: str  # raw API value: "playing", "transferred", ...
     is_eliminated: bool
     one_to_watch: bool = False
     one_to_watch_text: str | None = None
+    total_points: int = 0
+    last_round_points: int = 0
+    form: float = 0.0
+    round_points: list[int] = []
 
 
 class Fixture(BaseModel):

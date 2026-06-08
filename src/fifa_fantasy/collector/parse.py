@@ -74,6 +74,10 @@ def parse_players(
                 is_eliminated=squad.is_eliminated,
                 one_to_watch=raw.oneToWatch,
                 one_to_watch_text=raw.oneToWatchText,
+                total_points=raw.stats.totalPoints,
+                last_round_points=raw.stats.lastRoundPoints,
+                form=raw.stats.form,
+                round_points=list(raw.stats.roundPoints),
             )
         )
     return players

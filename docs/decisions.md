@@ -405,3 +405,60 @@ silently fall back to the full-weight price signal.
 
 Why. The strength upgrade should never blow up the pipeline if the CSV
 is partially populated or out of date. Tests pin this behaviour.
+
+
+## 2026-06-08 Phase 5 live decision support
+
+### Captain switch threshold is E[candidate], not 2 * E[candidate]
+
+Decision. The pre-round playbook and the live recommendation both use
+`threshold = predicted_points` of the next-best unplayed starter.
+
+Why. The captain bonus is the captain's points counted ONCE extra,
+not twice. Switching captains exchanges the captain bonus from the
+current captain (whose match has ended with observed score X) to the
+next captain (unobserved, expected E). EV gain from switching =
+E - X; the switch wins iff X < E. An earlier draft used 2 * E by
+mistake, which would make the system stick too often. Tests pin the
+correct threshold.
+
+### Initial captain is the highest-E starter in the earliest kickoff window
+
+Decision. The playbook chooses the initial captain in the earliest
+kickoff window, even if a later window holds a higher-E starter.
+
+Why. Captain switches always exchange a known score for an expected
+score, so option value accrues to captains whose match is observed
+before the others. By Jensen's inequality, the expected captain bonus
+under the switching chain is greater than or equal to E[any single
+starter's score]. Initial captain in a later window forfeits this
+option and is strictly weaker in expectation.
+
+### Live mode is detected, not flagged
+
+Decision. The live CLI sniffs `match_status` across the squad and
+flips to live mode automatically if any starter's match is completed.
+
+Why. The same JSON snapshot serves pre-round and live use; there is no
+ambiguity to resolve via a flag. The CLI title still indicates the
+detected mode so the report is self-documenting.
+
+### Sub advisor enumerates valid swaps; no DNP probability model
+
+Decision. For each finished starter and each unplayed bench player, the
+advisor builds the swapped XI and checks the formation table. If valid
+and the EV gain is positive, the swap is a candidate.
+
+Why. DNP probabilities require historical data we do not have. v1 lists
+all positive-EV candidates with a single warning that any manual change
+cancels auto-subs. The user decides.
+
+### LiveState is a frozen dataclass over already-loaded Parquet
+
+Decision. The live module does not refetch from the network. It reads
+the latest Parquet snapshots under `data/raw/` and
+`data/processed/`. The user runs `python -m fifa_fantasy.collector`
+between kickoff windows for fresh data.
+
+Why. Keeps the live module deterministic and offline-testable. The
+collector is the single network surface for the project.
