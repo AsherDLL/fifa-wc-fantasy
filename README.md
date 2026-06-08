@@ -40,11 +40,15 @@ pytest
 | `python -m fifa_fantasy.collector` | `play.fifa.com/json/fantasy/*` | `data/raw/{players,squads,fixtures}_<UTC-date>.parquet` plus verbatim JSON under `data/raw/raw/` |
 | `python -m fifa_fantasy.features` | latest Parquet under `data/raw/` plus `data/static/fifa_rankings.csv` | `data/processed/features_<UTC-date>.parquet` |
 | `python -m fifa_fantasy.model` | latest features Parquet | `data/processed/predictions_<UTC-date>.parquet` |
-| `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON) | `results/<host>_recommendation_<STAGE>_<UTC-date>.{json,md}` |
-| `python -m fifa_fantasy.live` | a recommendation JSON, latest collector and predictions Parquet | `results/<host>_live_<STAGE>_R<n>_<UTC-time>.md` |
+| `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON via `--from`) | `results/<host>_recommendation_<STAGE>_<UTC-timestamp>.{json,md}` |
+| `python -m fifa_fantasy.live` | a recommendation JSON, latest collector and predictions Parquet | `results/<host>_live_<STAGE>_R<n>_<UTC-timestamp>.md` |
 
-All five compose. The wrapper `./scripts/daily-snapshot.sh` runs the
-first four in order with sensible defaults and a yesterday-vs-today diff.
+The JSON output is the structured payload (squad, lineup, captain,
+transfer block when in transfer mode). The markdown output is the
+15-player squad table only. Both files share the same UTC-timestamped
+filename stem so reruns on the same day coexist.
+
+The wrapper `./scripts/daily-snapshot.sh` chains the first four tools.
 
 # Runbook
 
@@ -88,10 +92,8 @@ Run **once per day** (cron friendly):
 ./scripts/daily-snapshot.sh
 ```
 
-That executes collector, features, predictor, optimizer in order; auto-
-finds yesterday's recommendation under `results/` and emits a diff plus
-an alternatives / sensitivity section. Tilt toward premium attackers
-with `PREMIUM_BOOST=0.4 ./scripts/daily-snapshot.sh`.
+That executes collector, features, predictor, optimizer in order. Tilt
+toward premium attackers with `PREMIUM_BOOST=0.4 ./scripts/daily-snapshot.sh`.
 
 Run **once before lockout** (within an hour of the first MD1 kickoff):
 

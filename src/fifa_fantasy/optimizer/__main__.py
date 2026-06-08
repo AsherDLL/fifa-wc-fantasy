@@ -2,14 +2,15 @@
 
     python -m fifa_fantasy.optimizer                                # MD1 (fresh)
     python -m fifa_fantasy.optimizer --stage GROUP_MD2 \\
-        --from results/<host>_recommendation_GROUP_MD1_<date>.json  # transfer
-    python -m fifa_fantasy.optimizer --stage GROUP_MD2 \\
-        --from <prev>.json --rolled-over 1                          # +rolled FT
+        --from results/<host>_recommendation_GROUP_MD1_<ts>.json    # transfer
 
-Without `--from`, the optimizer performs a fresh selection over the stage's
-horizon (rounds in `DEFAULT_ROUND_HORIZON`). With `--from <previous JSON>`,
-it solves the transfer MILP — same constraints plus a −3 hit per extra
-transfer above the stage's free quota.
+Outputs per run, both into --out-dir (default `results/`):
+
+  <host>_recommendation_<STAGE>_<UTC-timestamp>.json
+  <host>_recommendation_<STAGE>_<UTC-timestamp>.md
+
+The JSON carries the full payload (squad, lineup, captain, transfer
+block if any) for a UI to consume. The markdown is the squad table only.
 """
 
 from __future__ import annotations
@@ -25,8 +26,6 @@ import pandas as pd
 
 from fifa_fantasy.collector.schemas import Stage
 
-from .alternatives import render_alternatives_markdown
-from .compare import diff as diff_recommendation, render_diff_markdown
 from .pipeline import aggregate_to_player, apply_scouting_bonus
 from .report import render_markdown
 from .solvers import (
@@ -72,10 +71,6 @@ def main() -> None:
                         help="rolled-over free transfers from the prior round")
     parser.add_argument("--predictions-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_RESULTS_DIR)
-    parser.add_argument("--compare-to", dest="compare_to", type=Path, default=None,
-                        help="diff against this previous recommendation JSON")
-    parser.add_argument("--report-alternatives", action="store_true",
-                        help="add captain candidates / squad depth / swap-risk section")
     args = parser.parse_args()
 
     stage = Stage(args.stage)
@@ -108,50 +103,15 @@ def main() -> None:
         net_objective = squad.objective
         budget_used = squad.budget_used
 
-    print(f"Stage: {stage.value}   horizon: {list(horizon)}")
-    print(f"Budget: ${budget_used:.1f}M / ${config.budget_millions:.1f}M  "
-          f"(remaining ${config.budget_millions - budget_used:.1f}M)")
-    if transfer is not None:
-        free = (config.free_transfers or 0) + args.rolled_over
-        free_label = "unlimited" if config.free_transfers is None else str(free)
-        print(f"Transfers: {transfer.n_transfers} made  /  {free_label} free  "
-              f"→  {transfer.n_extra_transfers} hit(s)  =  "
-              f"-{transfer.transfer_cost_points} pts")
-        print(f"Horizon points: gross {gross_objective:.2f}, net {net_objective:.2f}")
-    else:
-        print(f"Total horizon points: {gross_objective:.2f}")
-
     squad_in_round = _select_round(predictions, first_round, chosen_ids)
     lineup = solve_lineup(squad_in_round)
 
-    starters = squad_in_round[squad_in_round["player_id"].isin(lineup.starter_ids)]
-    bench = squad_in_round.set_index("player_id").loc[lineup.bench_ids].reset_index()
-    captain = squad_in_round[squad_in_round["player_id"] == lineup.captain_id].iloc[0]
-    vice = squad_in_round[squad_in_round["player_id"] == lineup.vice_captain_id].iloc[0]
-
-    print()
-    print(f"=== Starting XI ({lineup.formation}) for round {first_round} "
-          f"— expected {lineup.objective:.2f} pts ===")
-    print(starters.sort_values(["position", "predicted_points"], ascending=[True, False])[
-        ["full_name", "country_abbr", "position", "price_millions", "is_home",
-         "opponent_abbr", "predicted_points"]
-    ].round(2).to_string(index=False))
-    print()
-    print("=== Bench (auto-sub priority order) ===")
-    print(bench[
-        ["full_name", "country_abbr", "position", "price_millions", "predicted_points"]
-    ].round(2).to_string(index=False))
-    print()
-    print(f"Captain:      {captain.full_name} ({captain.country_abbr}, "
-          f"E={captain.predicted_points:.2f} → {2*captain.predicted_points:.2f} doubled)")
-    print(f"Vice-captain: {vice.full_name} ({vice.country_abbr}, E={vice.predicted_points:.2f})")
-
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    # Full UTC timestamp (sortable; reruns on the same day do not overwrite).
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     prefix = f"{_hostname()}_recommendation_{stage.value}_{ts}"
     json_path = args.out_dir / f"{prefix}.json"
     md_path = args.out_dir / f"{prefix}.md"
+
     payload: dict = {
         "stage": stage.value,
         "host": _hostname(),
@@ -160,6 +120,7 @@ def main() -> None:
         "budget_used": budget_used,
         "budget_total": config.budget_millions,
         "total_horizon_points": gross_objective,
+        "net_horizon_points": net_objective,
         "squad_player_ids": chosen_ids,
         "lineup": {
             "round_id": first_round,
@@ -184,7 +145,6 @@ def main() -> None:
             "n_transfers": transfer.n_transfers,
             "n_extra_transfers": transfer.n_extra_transfers,
             "transfer_cost_points": transfer.transfer_cost_points,
-            "net_horizon_points": transfer.objective,
         }
     json_path.write_text(json.dumps(payload, indent=2))
 
@@ -194,14 +154,7 @@ def main() -> None:
         md_player_cols.append("one_to_watch")
     players_for_report = predictions[md_player_cols].drop_duplicates("player_id")
 
-    body = render_markdown(
-        stage=stage.value,
-        horizon_rounds=list(horizon),
-        budget_used=budget_used,
-        budget_total=config.budget_millions,
-        total_horizon_points=gross_objective,
-        formation=lineup.formation,
-        xi_expected_points=lineup.objective,
+    md_path.write_text(render_markdown(
         squad_player_ids=chosen_ids,
         starter_ids=lineup.starter_ids,
         bench_ids_priority_order=lineup.bench_ids,
@@ -210,44 +163,10 @@ def main() -> None:
         players=players_for_report,
         round_predictions=squad_in_round,
         target_round=first_round,
-        transfer=transfer,
-    )
+    ))
 
-    if args.report_alternatives:
-        body += render_alternatives_markdown(
-            squad_round=squad_in_round,
-            starter_ids=lineup.starter_ids,
-            captain_id=lineup.captain_id,
-        )
-
-    if args.compare_to is not None:
-        d = diff_recommendation(
-            previous_path=args.compare_to,
-            new_squad_ids=chosen_ids,
-            new_starter_ids=lineup.starter_ids,
-            new_captain_id=lineup.captain_id,
-            new_formation=lineup.formation,
-            new_xi_expected=lineup.objective,
-        )
-        body += render_diff_markdown(d, players_for_report)
-        print()
-        print(f"--- diff vs {args.compare_to.name} ---")
-        if not (d.squad_in or d.squad_out or d.captain_changed
-                or d.formation_changed):
-            print("  no changes")
-        else:
-            if d.squad_in or d.squad_out:
-                print(f"  squad: OUT {len(d.squad_out)}, IN {len(d.squad_in)}")
-            if d.captain_changed:
-                print("  captain changed")
-            if d.formation_changed:
-                print(f"  formation {d.previous_formation} → {d.new_formation}")
-            sign = "+" if d.md1_expected_delta >= 0 else ""
-            print(f"  R{first_round} expected delta: {sign}{d.md1_expected_delta:.2f}")
-
-    md_path.write_text(body)
-    print(f"\nrecommendation written → {json_path}")
-    print(f"report written         → {md_path}")
+    print(f"json  {json_path}")
+    print(f"md    {md_path}")
 
 
 if __name__ == "__main__":

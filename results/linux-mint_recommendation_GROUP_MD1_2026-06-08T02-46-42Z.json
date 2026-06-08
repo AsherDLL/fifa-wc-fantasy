@@ -1,0 +1,57 @@
+{
+  "stage": "GROUP_MD1",
+  "host": "linux-mint",
+  "generated_at_utc": "2026-06-08T02:46:42+00:00",
+  "horizon_rounds": [
+    1,
+    2,
+    3
+  ],
+  "budget_used": 99.9,
+  "budget_total": 100.0,
+  "total_horizon_points": 301.96690154026254,
+  "net_horizon_points": 301.96690154026254,
+  "squad_player_ids": [
+    45,
+    57,
+    494,
+    505,
+    523,
+    526,
+    1086,
+    1093,
+    1338,
+    1431,
+    1598,
+    1709,
+    1710,
+    1711,
+    2000
+  ],
+  "lineup": {
+    "round_id": 1,
+    "formation": "3-4-3",
+    "starter_ids": [
+      57,
+      523,
+      526,
+      1086,
+      1093,
+      1338,
+      1431,
+      1598,
+      1710,
+      1711,
+      2000
+    ],
+    "bench_ids_priority_order": [
+      505,
+      494,
+      1709,
+      45
+    ],
+    "captain_id": 1338,
+    "vice_captain_id": 1093,
+    "expected_points": 63.95248368021289
+  }
+}
