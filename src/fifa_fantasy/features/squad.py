@@ -1,8 +1,18 @@
-"""Per-squad strength features derived from the player pool prices.
+"""Per-squad strength features.
 
-Pricing already encodes market expectations of expected points, so squad
-strength can be approximated from price aggregates without any match data
-— useful before any games have been played.
+Two independent signals are computed and stored side by side so the
+downstream consumer can pick or blend them:
+
+1. `squad_top_n_avg_price`: mean price of the squad's top-N most expensive
+   players in the FIFA Fantasy pool. Encodes the game's own pricing model,
+   which roughly tracks club-league quality.
+2. `rank_points` and `rank_position`: FIFA Men's World Ranking (loaded
+   from `data/static/fifa_rankings.csv`). Tracks recent national-team
+   results, which the price proxy does not.
+
+When the rankings file is missing or a country has no entry, the rank
+columns are left as NaN and the heuristic falls back to the price-only
+signal.
 """
 
 from __future__ import annotations
@@ -16,6 +26,7 @@ def squad_strength(
     players: pd.DataFrame,
     squads: pd.DataFrame,
     top_n: int = DEFAULT_TOP_N,
+    rankings: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Return one row per squad with strength proxies.
 
@@ -54,4 +65,16 @@ def squad_strength(
         agg["squad_top_n_avg_price"].rank(ascending=False, method="min").astype("int64")
     )
 
-    return squads.merge(agg.reset_index(), on="squad_id", how="left")
+    out = squads.merge(agg.reset_index(), on="squad_id", how="left")
+
+    if rankings is not None and not rankings.empty:
+        out = out.merge(
+            rankings.rename(columns={"rank_points": "squad_rank_points",
+                                     "rank_position": "squad_rank_position"}),
+            left_on="name", right_on="country", how="left",
+        ).drop(columns=["country"])
+    else:
+        out["squad_rank_points"] = pd.NA
+        out["squad_rank_position"] = pd.NA
+
+    return out

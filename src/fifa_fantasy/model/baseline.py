@@ -1,20 +1,29 @@
-"""Heuristic baseline predictor — no training, no labels.
+"""Heuristic baseline predictor.
 
 Goal: produce a sensible `predicted_points` per (player, round) row so the
-optimizer (Phase 4) has something to consume before the LightGBM models in
-Phase 3b are trained. The formula is:
+optimizer has something to consume before any matches are played. Formula:
 
-    base   = points_per_price_unit[position] * price_millions
-    matchup = 1 + alpha * tanh(strength_diff / scale)
+    base    = points_per_price_unit[position] * price_millions
+    matchup = 1 + alpha * tanh(combined_diff)
     home    = 1 + beta * is_home
     premium = premium_boost * max(0, price_millions - PREMIUM_PRICE_THRESHOLD)
 
     predicted_points = base * matchup * home + premium
 
-and zeroed for any player whose `status` is not "playing" or whose squad is
-eliminated. `premium_boost = 0` (default) reproduces the original heuristic;
-positive values add a linear-above-threshold term that tilts the optimizer
-toward £10M+ players whose ceiling the linear-in-price base under-weights.
+`combined_diff` blends two signals:
+    z_price = strength_diff / STRENGTH_DIFF_SCALE        (squad top-11 price gap)
+    z_rank  = rank_diff     / RANK_DIFF_SCALE            (FIFA world ranking gap)
+    combined_diff = price_weight * z_price + rank_weight * z_rank
+
+If `rank_diff` is missing (no FIFA ranking row for the country), the rank
+weight is dropped for that row and the price signal carries the full
+matchup adjustment. Default weights give the FIFA ranking the heavier
+share since national-team form tracks national-team output better than
+club-league price does.
+
+Zeroed for any player whose `status` is not "playing" or whose squad is
+eliminated. `premium_boost = 0` (default) preserves the original behaviour;
+positive values tilt the optimizer toward premium-priced players.
 """
 
 from __future__ import annotations
@@ -35,8 +44,22 @@ POINTS_PER_PRICE_UNIT: dict[Position, float] = {
 
 # Strength-diff is the difference of top-11 average prices (~ ±3 in practice).
 # tanh(x / 2) saturates by |x|=5 so the matchup adjustment caps at ±alpha.
+# Strength signals. The price-based `strength_diff` ranges roughly +/-3 across
+# the field; the FIFA ranking `rank_diff` is in ranking points (roughly
+# +/-700 across the field). Scales normalize both to a comparable z-like range
+# before blending.
 STRENGTH_DIFF_SCALE = 2.0
-STRENGTH_DIFF_ALPHA = 0.25  # ±25% at saturation
+RANK_DIFF_SCALE = 250.0
+
+# Blend weights for the two strength signals. Default tilts toward the FIFA
+# ranking since it tracks national-team form, where the price proxy tracks
+# club-league quality. Both signals normalize to roughly +/-1 at saturation.
+PRICE_SIGNAL_WEIGHT = 0.35
+RANK_SIGNAL_WEIGHT = 0.65
+
+# Matchup saturation. Bumped to +/-40% so a top-vs-bottom matchup carries real
+# weight; the previous 25% was too conservative.
+STRENGTH_DIFF_ALPHA = 0.40
 HOME_ADVANTAGE_BETA = 0.05  # +5% for the home side
 
 # Premium-tier knob (off by default). Adds `premium_boost * max(0, price - threshold)`
@@ -54,6 +77,28 @@ def _position_coef(value: object) -> float:
     return POINTS_PER_PRICE_UNIT[Position(value)]
 
 
+def _combined_matchup_z(features: pd.DataFrame) -> np.ndarray:
+    """Blend the price-based and ranking-based strength signals.
+
+    NaN-safe for `rank_diff`: rows without a FIFA ranking get the full
+    matchup weight on the price signal so they degrade gracefully.
+    """
+    z_price = features["strength_diff"].astype(float).to_numpy() / STRENGTH_DIFF_SCALE
+    rank_raw = pd.to_numeric(features.get("rank_diff"), errors="coerce") \
+        if "rank_diff" in features.columns else pd.Series(
+            [pd.NA] * len(features), dtype="Float64"
+        )
+    z_rank = rank_raw.to_numpy(dtype=float) / RANK_DIFF_SCALE  # NaN preserved
+    has_rank = ~pd.isna(rank_raw).to_numpy()
+
+    blended = np.where(
+        has_rank,
+        PRICE_SIGNAL_WEIGHT * z_price + RANK_SIGNAL_WEIGHT * z_rank,
+        z_price,  # fall back to full-weight price when rank is missing
+    )
+    return blended
+
+
 def heuristic_predict(
     features: pd.DataFrame,
     premium_boost: float = DEFAULT_PREMIUM_BOOST,
@@ -61,11 +106,11 @@ def heuristic_predict(
     """Add a `predicted_points` column to a copy of `features`.
 
     Players whose `status` != "playing" or whose squad is eliminated are
-    predicted at 0. Otherwise the formula in the module docstring applies.
+    predicted at 0. Otherwise the module-docstring formula applies.
 
     `premium_boost` adds `premium_boost * max(0, price - 9.0)` to the
-    prediction. Defaults to 0.0 (preserves original behaviour). Values
-    around 0.3–0.6 tilt the optimizer toward £10M+ players.
+    prediction. Defaults to 0.0 (preserves prior behaviour); positive
+    values tilt the optimizer toward 9M+ players.
     """
     out = features.copy()
 
@@ -73,9 +118,8 @@ def heuristic_predict(
     price = out["price_millions"].astype(float)
     base = coef * price
 
-    matchup = 1.0 + STRENGTH_DIFF_ALPHA * np.tanh(
-        out["strength_diff"].astype(float) / STRENGTH_DIFF_SCALE
-    )
+    combined_z = _combined_matchup_z(out)
+    matchup = 1.0 + STRENGTH_DIFF_ALPHA * np.tanh(combined_z)
     home = 1.0 + HOME_ADVANTAGE_BETA * out["is_home"].astype(int)
 
     raw = base * matchup * home

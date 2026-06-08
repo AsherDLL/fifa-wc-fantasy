@@ -7,47 +7,47 @@ output in `data/processed/predictions_*.parquet`.
 
 - **Stage**: GROUP_MD1
 - **Horizon optimized**: rounds [1, 2, 3]
-- **Budget**: $100.0M of $100.0M used
+- **Budget**: $99.9M of $100.0M used
 - **Formation**: 3-4-3
-- **R1 starting-XI expected**: 58.20 pts
-- **R1 with captain doubling**: 65.11 pts
-- **Total horizon expected**: 263.87 pts
+- **R1 starting-XI expected**: 63.95 pts
+- **R1 with captain doubling**: 72.00 pts
+- **Total horizon expected**: 301.97 pts
 
 ## Squad of 15
 
 | Role | Player | Cty | Pos | Price | Own% | Opp | R1 E[pts] |
 |---|---|---|---|---|---|---|---|
-| Start | Alexander Nübel | GER | GK | $4.7M | 0.5% | vs CUW | 2.99 |
-| Bench 4 | Juan Musso | ARG | GK | $4.3M | 0.1% | vs ALG | 2.60 |
-| Start | Nuno Mendes | POR | DEF | $5.8M | 43.1% | vs COD | 3.93 |
-| Start | Antonio Rüdiger | GER | DEF | $5.5M | 10.5% | vs CUW | 3.85 |
-| Start | Joshua Kimmich | GER | DEF | $5.5M | 30.0% | vs CUW | 3.85 |
-| Bench 2 | Jules Koundé | FRA | DEF | $5.4M | 7.3% | vs SEN | 3.67 |
-| Bench 3 | Dayot Upamecano | FRA | DEF | $5.3M | 4.7% | vs SEN | 3.60 |
-| Start | Nico Williams | ESP | MID | $7.8M | 3.9% | vs CPV | 5.99 |
-| Start | Eberechi Eze | ENG | MID | $8.0M | 1.5% | vs CRO | 5.97 |
-| Start | Bradley Barcola | FRA | MID | $8.0M | 1.5% | vs SEN | 5.93 |
-| Start | Dani Olmo | ESP | MID | $7.7M | 3.1% | vs CPV | 5.91 |
-| Bench 1 | Marcus Rashford | ENG | MID | $7.5M | 2.1% | vs CRO | 5.60 |
-| Captain (C) | Lautaro Martínez | ARG | FWD | $8.8M | 4.0% | vs ALG | 6.91 |
-| Vice (V) | Ferran Torres | ESP | FWD | $7.8M | 3.4% | vs CPV | 6.49 |
-| Start | Ollie Watkins | ENG | FWD | $7.9M | 1.5% | vs CRO | 6.39 |
+| Start | Manuel Neuer | GER | GK | $5.0M | 12.7% | vs CUW | 3.61 |
+| Bench 4 | Emiliano Martínez | ARG | GK | $5.0M | 22.1% | vs ALG | 3.52 |
+| Start | Aymeric Laporte | ESP | DEF | $5.5M | 4.8% | vs CPV | 4.38 |
+| Start | Jonathan Tah | GER | DEF | $5.3M | 4.4% | vs CUW | 4.21 |
+| Start | Nico Schlotterbeck | GER | DEF | $5.3M | 3.8% | vs CUW | 4.21 |
+| Bench 2 | Dayot Upamecano | FRA | DEF | $5.3M | 4.7% | vs SEN | 3.90 |
+| Bench 3 | Reece James | ENG | DEF | $5.2M | 4.2% | vs CRO | 3.63 |
+| Start | Nico Williams | ESP | MID | $7.8M | 3.9% | vs CPV | 6.78 |
+| Start | Bradley Barcola | FRA | MID | $8.0M | 1.5% | vs SEN | 6.43 |
+| Start | Enzo Fernández | ARG | MID | $7.5M | 3.5% | vs ALG | 6.33 |
+| Start | Eberechi Eze | ENG | MID | $8.0M | 1.5% | vs CRO | 6.09 |
+| Bench 1 | Désiré Doué | FRA | MID | $7.5M | 3.3% | vs SEN | 6.03 |
+| Captain (C) | Lautaro Martínez | ARG | FWD | $8.8M | 4.0% | vs ALG | 8.05 |
+| Vice (V) | Ferran Torres | ESP | FWD | $7.8M | 3.4% | vs CPV | 7.34 |
+| Start | Ollie Watkins | ENG | FWD | $7.9M | 1.5% | vs CRO | 6.52 |
 
 ## Captain
 
 - Captain: **Lautaro Martínez** (ARG,
-  $8.8M), E[pts]=6.91
-  → doubled to **13.83**.
+  $8.8M), E[pts]=8.05
+  → doubled to **16.10**.
 - Vice-captain: **Ferran Torres** (ESP),
-  E[pts]=6.49. Activates only if the captain plays 0 minutes
+  E[pts]=7.34. Activates only if the captain plays 0 minutes
   AND no manual changes are made during the round.
 
 ## Bench (auto-sub priority)
 
-1. **Marcus Rashford** (ENG, MID)
-2. **Jules Koundé** (FRA, DEF)
-3. **Dayot Upamecano** (FRA, DEF)
-4. **Juan Musso** (ARG, GK) — only subs in if starting GK plays 0 minutes
+1. **Désiré Doué** (FRA, MID)
+2. **Dayot Upamecano** (FRA, DEF)
+3. **Reece James** (ENG, DEF)
+4. **Emiliano Martínez** (ARG, GK) — only subs in if starting GK plays 0 minutes
 
 ## Alternatives & sensitivity
 
@@ -55,25 +55,53 @@ output in `data/processed/predictions_*.parquet`.
 
 | Rank | Player | Cty | Pos | E[pts] | Gap to #1 |
 |---|---|---|---|---|---|
-| 1 | Lautaro Martínez | ARG | FWD | 6.91 | — |
-| 2 | Ferran Torres | ESP | FWD | 6.49 | -0.43 |
-| 3 | Ollie Watkins | ENG | FWD | 6.39 | -0.53 |
+| 1 | Lautaro Martínez | ARG | FWD | 8.05 | — |
+| 2 | Ferran Torres | ESP | FWD | 7.34 | -0.71 |
+| 3 | Nico Williams | ESP | MID | 6.78 | -1.27 |
 
 ### Squad depth (target-round E[pts])
-- **GK**: ★ Alexander Nübel (GER, 2.99);   Juan Musso (ARG, 2.60)
-- **DEF**: ★ Nuno Mendes (POR, 3.93); ★ Antonio Rüdiger (GER, 3.85); ★ Joshua Kimmich (GER, 3.85);   Jules Koundé (FRA, 3.67);   Dayot Upamecano (FRA, 3.60)
-- **MID**: ★ Nico Williams (ESP, 5.99); ★ Eberechi Eze (ENG, 5.97); ★ Bradley Barcola (FRA, 5.93); ★ Dani Olmo (ESP, 5.91);   Marcus Rashford (ENG, 5.60)
-- **FWD**: ★ Lautaro Martínez (ARG, 6.91) (C); ★ Ferran Torres (ESP, 6.49); ★ Ollie Watkins (ENG, 6.39)
+- **GK**: ★ Manuel Neuer (GER, 3.61);   Emiliano Martínez (ARG, 3.52)
+- **DEF**: ★ Aymeric Laporte (ESP, 4.38); ★ Jonathan Tah (GER, 4.21); ★ Nico Schlotterbeck (GER, 4.21);   Dayot Upamecano (FRA, 3.90);   Reece James (ENG, 3.63)
+- **MID**: ★ Nico Williams (ESP, 6.78); ★ Bradley Barcola (FRA, 6.43); ★ Enzo Fernández (ARG, 6.33); ★ Eberechi Eze (ENG, 6.09);   Désiré Doué (FRA, 6.03)
+- **FWD**: ★ Lautaro Martínez (ARG, 8.05) (C); ★ Ferran Torres (ESP, 7.34); ★ Ollie Watkins (ENG, 6.52)
 
 ### Bench → starter swap risk (lower gap = riskier pick)
-- **GK**: weakest starter Alexander Nübel (2.99) vs best bench Juan Musso (2.60) — gap **+0.39**
-- **DEF**: weakest starter Antonio Rüdiger (3.85) vs best bench Jules Koundé (3.67) — gap **+0.18**
-- **MID**: weakest starter Dani Olmo (5.91) vs best bench Marcus Rashford (5.60) — gap **+0.31**
+- **GK**: weakest starter Manuel Neuer (3.61) vs best bench Emiliano Martínez (3.52) — gap **+0.09**
+- **DEF**: weakest starter Jonathan Tah (4.21) vs best bench Dayot Upamecano (3.90) — gap **+0.31**
+- **MID**: weakest starter Eberechi Eze (6.09) vs best bench Désiré Doué (6.03) — gap **+0.07**
 
 ## Changes from linux-mint_recommendation_GROUP_MD1_2026-06-07.json
 
 ### Squad
+- **OUT**: **Juan Musso** (ARG, GK, $4.3M)
+- **OUT**: **Marcus Rashford** (ENG, MID, $7.5M)
+- **OUT**: **Antonio Rüdiger** (GER, DEF, $5.5M)
+- **OUT**: **Alexander Nübel** (GER, GK, $4.7M)
+- **OUT**: **Joshua Kimmich** (GER, DEF, $5.5M)
+- **OUT**: **Nuno Mendes** (POR, DEF, $5.8M)
+- **OUT**: **Dani Olmo** (ESP, MID, $7.7M)
 - **OUT**: **William Saliba** (FRA, DEF, $5.3M)
+- **OUT**: **Jules Koundé** (FRA, DEF, $5.4M)
+- **IN**:  **Emiliano Martínez** (ARG, GK, $5.0M)
+- **IN**:  **Enzo Fernández** (ARG, MID, $7.5M)
 - **IN**:  **Dayot Upamecano** (FRA, DEF, $5.3M)
+- **IN**:  **Désiré Doué** (FRA, MID, $7.5M)
+- **IN**:  **Jonathan Tah** (GER, DEF, $5.3M)
+- **IN**:  **Nico Schlotterbeck** (GER, DEF, $5.3M)
+- **IN**:  **Aymeric Laporte** (ESP, DEF, $5.5M)
+- **IN**:  **Manuel Neuer** (GER, GK, $5.0M)
+- **IN**:  **Reece James** (ENG, DEF, $5.2M)
 
-**Target-round expected delta: +0.00 pts**
+### Starting XI
+- benched: **Antonio Rüdiger** (GER, DEF, $5.5M)
+- benched: **Alexander Nübel** (GER, GK, $4.7M)
+- benched: **Joshua Kimmich** (GER, DEF, $5.5M)
+- benched: **Nuno Mendes** (POR, DEF, $5.8M)
+- benched: **Dani Olmo** (ESP, MID, $7.7M)
+- started: **Enzo Fernández** (ARG, MID, $7.5M)
+- started: **Jonathan Tah** (GER, DEF, $5.3M)
+- started: **Nico Schlotterbeck** (GER, DEF, $5.3M)
+- started: **Aymeric Laporte** (ESP, DEF, $5.5M)
+- started: **Manuel Neuer** (GER, GK, $5.0M)
+
+**Target-round expected delta: +5.75 pts**

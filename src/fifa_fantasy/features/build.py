@@ -22,6 +22,8 @@ STRENGTH_COLUMNS = [
     "squad_avg_price",
     "squad_top_n_avg_price",
     "squad_top_n_rank",
+    "squad_rank_points",
+    "squad_rank_position",
 ]
 
 
@@ -130,6 +132,12 @@ def build_player_round_features(
     grid = _attach_opponent_strength(grid, squad_strength)
     grid["strength_diff"] = (
         grid["squad_top_n_avg_price"] - grid["opp_squad_top_n_avg_price"]
+    )
+    # FIFA ranking signal: NaN-tolerant subtract so missing rankings fall back
+    # naturally to the price-based strength_diff in the heuristic.
+    grid["rank_diff"] = (
+        pd.to_numeric(grid["squad_rank_points"], errors="coerce")
+        - pd.to_numeric(grid["opp_squad_rank_points"], errors="coerce")
     )
     grid = _attach_rest_days(grid)
     return grid.reset_index(drop=True)

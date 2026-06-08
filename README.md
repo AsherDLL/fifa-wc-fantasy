@@ -20,9 +20,12 @@ and design decisions.
   position-coef × price × matchup × home, gives the optimizer something
   concrete to consume before training data exists.
 - Phase 3b — LightGBM models. Not started (needs Euro 2024 training data).
-- **Phase 4 — Optimizer.** Complete. PuLP/CBC MILPs for the 15-player
-  squad, transfer planning (−3 per extra), and starting XI + formation,
+- **Phase 4 - Optimizer.** Complete. PuLP/CBC MILPs for the 15-player
+  squad, transfer planning (-3 per extra), and starting XI + formation,
   all stage-aware. CLI emits a JSON + markdown recommendation.
+- **Phase 4.7 - Strength signals.** Complete. Blends FIFA World Ranking
+  with the price-based squad proxy so opponent strength is first-class
+  in the matchup multiplier. Static snapshot under `data/static/`.
 - Phase 5 — Live decision support. Not started.
 
 ## Setup

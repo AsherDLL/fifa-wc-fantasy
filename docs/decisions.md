@@ -357,3 +357,51 @@ yesterday's path itself and falls back gracefully if absent.
 **Why.** Bash is the right shape for a chain-of-commands wrapper. Cron
 calls it directly without a Python startup. Anyone reading it sees
 exactly what runs.
+
+
+## 2026-06-08 Phase 4.7 strength signal upgrade
+
+### Static FIFA ranking CSV, not a live endpoint
+
+Decision. The FIFA Men's World Ranking lives in
+`data/static/fifa_rankings.csv`, a hand-maintained snapshot the user
+refreshes from `https://www.fifa.com/en/rankings/men` when wanted.
+
+Why. The official rankings page is a JS-rendered SPA whose backing
+endpoint is gated behind a CMS entry id we could not derive cleanly from
+the bundle. Probed candidate paths all returned the SPA shell. A static
+snapshot with a documented source URL is the lowest-overhead honest
+option; the loader is defensive (empty frame on missing file) so the
+pipeline degrades to price-only behaviour automatically.
+
+### Blend, do not replace, the price signal
+
+Decision. The matchup multiplier consumes a weighted blend of the price
+and ranking z-scores rather than substituting one for the other.
+
+Why. The two signals capture different information: price tracks
+club-league quality and the game's pricing model, ranking tracks
+national-team form. Either alone has blind spots (price under-weights
+Morocco's WC 2022 run; ranking under-weights a federation that had a
+weak qualifying run). The blend defaults to 65/35 in favour of ranking
+since national-team output is what we predict.
+
+### Rank weight defaults to 0.65, alpha to 0.40
+
+Decision. The prior alpha of 0.25 was too gentle; the matchup signal
+barely moved picks. New alpha is 0.40 with the ranking signal carrying
+the bigger share of the blend.
+
+Why. The user flagged opponent strength as first-class. With the prior
+values, the Phase 3a heuristic's near-linear-in-price shape dominated;
+European players (richer pricing) dominated picks regardless of fixture.
+After the change, defenders facing weak attacks (Spain v Cabo Verde,
+Germany v Curaçao) jump into the squad as expected.
+
+### NaN-safe fallback to price-only on missing rankings
+
+Decision. Rows where `rank_diff` is NaN (no entry for the country)
+silently fall back to the full-weight price signal.
+
+Why. The strength upgrade should never blow up the pipeline if the CSV
+is partially populated or out of date. Tests pin this behaviour.

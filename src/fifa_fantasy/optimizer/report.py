@@ -72,7 +72,7 @@ def render_markdown(
         r = round_idx.loc[pid]
         name = p["full_name"]
         if has_otw and bool(p.get("one_to_watch", False)):
-            name = name + " ⭐"
+            name = name + " [OTW]"
         rows.append({
             "_pos_sort": POSITION_ORDER[p["position"]],
             "_md_pred": float(r["predicted_points"]),
