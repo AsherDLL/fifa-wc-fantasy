@@ -9,6 +9,17 @@ Design background is in [`fifa-fantasy-project-sketch.md`](./fifa-fantasy-projec
 [`docs/`](./docs) holds the rules reference, scoring contract, design
 decisions and operational notes.
 
+## Practical recommendation for MD1 lockout (June 11)
+
+Keep using the heuristic backend (the default) for the MD1 squad
+submission. The defender-heavy GBM pick is interesting but unproven:
+the model has learned EPL patterns that may or may not transfer to the
+WC. Once MD1 results are in, the right move is to append our own
+labels to the training set and retrain on `EPL + WC_so_far`. That is a
+30-minute exercise on June 19 once the third group game finishes for
+some teams; the live retrain pipeline below automates the append-and-
+refit loop.
+
 ## Status
 
 | Phase | What it does | State |
@@ -24,11 +35,53 @@ decisions and operational notes.
 | 4.7 Strength | FIFA World Ranking blended into the matchup multiplier | done |
 | 5 Live tools | Captain playbook, captain switcher, sub advisor | done |
 
-## Setup
+## Setup (run the existing bundle)
+
+The repo ships with a 2026-06-08 pre-tournament data snapshot, the FPL
+training Parquet, and 16 trained LightGBM models. A fresh clone can
+generate a recommendation without scraping or training:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+python -m fifa_fantasy.optimizer                  # uses the bundled predictions; writes results/
+python -m fifa_fantasy.optimizer --stage GROUP_MD1   # explicit stage
+python -m fifa_fantasy.model --backend gbm        # rerun the GBM if you want
+```
+
+To refresh against the live FIFA Fantasy API:
+
+```bash
+./scripts/daily-snapshot.sh
+```
+
+To re-scrape EPL and retrain the GBM:
+
+```bash
+python -m fifa_fantasy.training --season 2024-25  # ~1 minute
+python -m fifa_fantasy.model.train                # ~10 seconds
+```
+
+To retrain on EPL plus realised WC labels (works only after at least
+one round of WC matches has finished):
+
+```bash
+python -m fifa_fantasy.model.train --include-wc
+```
+
+To browse all generated recommendations as a static HTML page (no
+server, just a file you open in any browser):
+
+```bash
+python -m fifa_fantasy.web
+open results/index.html       # or just double-click it
+```
+
+Dev install (tests included) uses the same pyproject extras as before:
+
+```bash
 pip install -e ".[dev]"
 pytest
 ```
@@ -39,18 +92,29 @@ pytest
 |---|---|---|
 | `python -m fifa_fantasy.collector` | `play.fifa.com/json/fantasy/*` | `data/raw/{players,squads,fixtures}_<UTC-date>.parquet` plus verbatim JSON under `data/raw/raw/` |
 | `python -m fifa_fantasy.features` | latest Parquet under `data/raw/` plus `data/static/fifa_rankings.csv` | `data/processed/features_<UTC-date>.parquet` |
-| `python -m fifa_fantasy.model [--backend heuristic\|gbm]` | latest features Parquet (and `data/models/` for `--backend gbm`) | `data/processed/predictions_<UTC-date>.parquet` |
+| `python -m fifa_fantasy.model [--backend heuristic\|gbm]` | latest features Parquet (and `data/models/` for `--backend gbm`) | `data/processed/predictions_<UTC-date>.parquet` (with a `model_backend` column) |
 | `python -m fifa_fantasy.training` | `fantasy.premierleague.com/api` | `data/training/fpl_player_gameweek_<season>.parquet` |
-| `python -m fifa_fantasy.model.train` | latest training Parquet | `data/models/gbm_<position>_<head>.txt` |
-| `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON via `--from`) | `results/<host>_recommendation_<STAGE>_<UTC-timestamp>.{json,md}` |
+| `python -m fifa_fantasy.model.train [--include-wc]` | latest EPL training Parquet (plus `data/raw/` for WC labels) | `data/models/gbm_<position>_<head>.txt` |
+| `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON via `--from`) | `results/<host>_recommendation_<backend>_<STAGE>_<UTC-timestamp>.{json,md}` |
 | `python -m fifa_fantasy.live` | a recommendation JSON, latest collector and predictions Parquet | `results/<host>_live_<STAGE>_R<n>_<UTC-timestamp>.md` |
+| `python -m fifa_fantasy.web` | every JSON under `results/` | `results/index.html` (static; open in a browser) |
 
-The JSON output is the structured payload (squad, lineup, captain,
-transfer block when in transfer mode). The markdown output is the
-15-player squad table only. Both files share the same UTC-timestamped
-filename stem so reruns on the same day coexist.
+Output filenames make every dimension visible: the host that ran the
+pipeline, the model backend that produced the predictions
+(`heuristic` or `gbm`), the tournament stage (`GROUP_MD1`, `R32`, ...),
+and a UTC timestamp. Two files per run (json + md) carry the same
+data: the JSON is the structured payload for `python -m fifa_fantasy.web`
+or any other consumer; the markdown is a human-readable squad table
+with a fact-only title line. Both are intentionally LLM-free; the only
+content is what the optimizer produced.
 
-The wrapper `./scripts/daily-snapshot.sh` chains the first four tools.
+See [`docs/tournament.md`](./docs/tournament.md) for what `MD1`, `MD2`,
+`R32` and friends mean (matchdays in the group stage and knockout
+rounds; `MD` here stands for "matchday", not for the file extension
+`.md`).
+
+The wrapper `./scripts/daily-snapshot.sh` chains collector, features,
+model and optimizer in order.
 
 # Runbook
 

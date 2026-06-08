@@ -1,10 +1,10 @@
-"""Render a recommendation as a markdown squad table.
+"""Render a recommendation as a minimal markdown report.
 
-The output is intentionally minimal: a single ASCII markdown table
-containing only the 15-player squad. Captain/vice/bench-position info is
-in the Role column. Anything richer (diffs, alternatives, captain
-narrative) belongs in the JSON next to the markdown so a UI can decide
-what to render.
+Each file starts with a fact-only title line listing the backend, stage,
+and generation timestamp, followed by the squad table. If the run was
+transfer-mode (`--from`), an IN/OUT section is appended below the table.
+
+No prose, no analysis, no narrative. Just data the optimizer produced.
 """
 
 from __future__ import annotations
@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+
+from .solvers import TransferSolution
 
 POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
 
@@ -27,6 +29,9 @@ def _format_table(rows: list[dict[str, Any]], cols: list[str]) -> str:
 
 def render_markdown(
     *,
+    stage: str,
+    backend: str,
+    generated_at_utc: str,
     squad_player_ids: list[int],
     starter_ids: list[int],
     bench_ids_priority_order: list[int],
@@ -35,8 +40,9 @@ def render_markdown(
     players: pd.DataFrame,
     round_predictions: pd.DataFrame,
     target_round: int,
+    transfer: TransferSolution | None = None,
 ) -> str:
-    """Return the squad table as a markdown string."""
+    """Squad table plus, optionally, an IN/OUT section for transfer mode."""
     if "player_id" in players.columns and players.index.name != "player_id":
         players = players.set_index("player_id")
     round_idx = round_predictions.set_index("player_id")
@@ -74,8 +80,37 @@ def render_markdown(
             f"R{target_round} E[pts]": f"{float(r['predicted_points']):.2f}",
         })
     rows.sort(key=lambda x: (x["_pos_sort"], -x["_md_pred"]))
-    return _format_table(
+    table = _format_table(
         rows,
         ["Role", "Player", "Cty", "Pos", "Price", "Own%", "Opp",
          f"R{target_round} E[pts]"],
-    ) + "\n"
+    )
+
+    title = (
+        f"# Recommendation\n\n"
+        f"- stage: {stage}\n"
+        f"- backend: {backend}\n"
+        f"- generated_at_utc: {generated_at_utc}\n"
+    )
+
+    transfer_section = ""
+    if transfer is not None and (transfer.transfers_in or transfer.transfers_out):
+        def _line(pid: int) -> str:
+            p = players.loc[pid]
+            return (f"- {p['full_name']} ({p['country_abbr']}, "
+                    f"{p['position']}, ${float(p['price_millions']):.1f}M)")
+
+        in_lines = [_line(pid) for pid in transfer.transfers_in] or ["- (none)"]
+        out_lines = [_line(pid) for pid in transfer.transfers_out] or ["- (none)"]
+        transfer_section = (
+            "\n\n## Transfers from previous squad\n\n"
+            f"- transfers_made: {transfer.n_transfers}\n"
+            f"- extra_above_free_quota: {transfer.n_extra_transfers}\n"
+            f"- hit_points: -{transfer.transfer_cost_points}\n"
+            "\n### IN\n\n"
+            + "\n".join(in_lines)
+            + "\n\n### OUT\n\n"
+            + "\n".join(out_lines)
+        )
+
+    return title + "\n" + table + transfer_section + "\n"

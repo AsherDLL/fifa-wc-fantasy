@@ -55,6 +55,11 @@ def main() -> None:
         predictions = gbm_predict(features, models)
         backend_label = "gbm"
 
+    # Stamp the backend name into the predictions table so downstream
+    # tools (optimizer filename, web report) can read which model produced
+    # this snapshot without an extra sidecar file.
+    predictions["model_backend"] = backend_label
+
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     path = args.out_dir / f"predictions_{date}.parquet"

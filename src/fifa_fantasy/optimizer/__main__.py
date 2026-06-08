@@ -79,6 +79,11 @@ def main() -> None:
     first_round = horizon[0]
 
     predictions = pd.read_parquet(_latest(args.predictions_dir, "predictions"))
+    backend = (
+        str(predictions["model_backend"].iloc[0])
+        if "model_backend" in predictions.columns and len(predictions) > 0
+        else "unknown"
+    )
     predictions = apply_scouting_bonus(predictions)
     player_table = aggregate_to_player(predictions, horizon)
 
@@ -108,12 +113,84 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-    prefix = f"{_hostname()}_recommendation_{stage.value}_{ts}"
+    # Filename includes the model backend so heuristic vs gbm outputs do
+    # not get mixed up. Pattern:
+    #   <host>_recommendation_<backend>_<stage>_<UTC-timestamp>.{json,md}
+    prefix = f"{_hostname()}_recommendation_{backend}_{stage.value}_{ts}"
     json_path = args.out_dir / f"{prefix}.json"
     md_path = args.out_dir / f"{prefix}.md"
 
+    # Build the rich "squad" array consumed by the web UI: one entry per
+    # squad member with name, country, position, price, ownership, role,
+    # opponent context, predicted_points, and (when available) GBM
+    # quantile bands. The flat squad_player_ids / starter_ids fields are
+    # kept for backward-compatible consumers.
+    squad_in_round_idx = squad_in_round.set_index("player_id")
+    full_players = predictions[
+        [c for c in predictions.columns
+         if c in ("player_id", "full_name", "first_name", "last_name",
+                  "known_name", "position", "country", "country_abbr",
+                  "squad_id", "price_millions", "ownership_fraction",
+                  "status", "is_eliminated", "one_to_watch",
+                  "one_to_watch_text", "total_points", "last_round_points",
+                  "form")]
+    ].drop_duplicates("player_id").set_index("player_id")
+
+    starter_set = set(lineup.starter_ids)
+    bench_pos = {pid: i + 1 for i, pid in enumerate(lineup.bench_ids)}
+    quantile_cols = [c for c in ("predicted_q10", "predicted_q50", "predicted_q90")
+                     if c in predictions.columns]
+
+    def _role(pid: int) -> str:
+        if pid == lineup.captain_id:
+            return "Captain"
+        if pid == lineup.vice_captain_id:
+            return "Vice"
+        if pid in starter_set:
+            return "Start"
+        return f"Bench {bench_pos[pid]}"
+
+    squad_array = []
+    for pid in chosen_ids:
+        meta = full_players.loc[pid]
+        ctx = squad_in_round_idx.loc[pid]
+        entry = {
+            "player_id": pid,
+            "full_name": meta["full_name"],
+            "first_name": meta.get("first_name"),
+            "last_name": meta.get("last_name"),
+            "known_name": meta.get("known_name"),
+            "position": meta["position"],
+            "country": meta["country"],
+            "country_abbr": meta["country_abbr"],
+            "squad_id": int(meta["squad_id"]),
+            "price_millions": float(meta["price_millions"]),
+            "ownership_fraction": float(meta["ownership_fraction"]),
+            "status": meta.get("status"),
+            "is_eliminated": bool(meta.get("is_eliminated", False)),
+            "one_to_watch": bool(meta.get("one_to_watch", False)),
+            "one_to_watch_text": meta.get("one_to_watch_text"),
+            "form": float(meta["form"]) if "form" in meta and meta["form"] is not None else None,
+            "role": _role(pid),
+            "in_starting_xi": pid in starter_set,
+            "bench_priority": bench_pos.get(pid),
+            "opponent_abbr": ctx["opponent_abbr"],
+            "is_home": bool(ctx["is_home"]),
+            "predicted_points": float(ctx["predicted_points"]),
+        }
+        # Optional quantile bands when the GBM backend was used.
+        for q in quantile_cols:
+            preds_q_row = predictions[
+                (predictions["round_id"] == first_round)
+                & (predictions["player_id"] == pid)
+            ]
+            if not preds_q_row.empty and q in preds_q_row.columns:
+                entry[q] = float(preds_q_row[q].iloc[0])
+        squad_array.append(entry)
+
     payload: dict = {
         "stage": stage.value,
+        "model_backend": backend,
         "host": _hostname(),
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "horizon_rounds": list(horizon),
@@ -122,6 +199,7 @@ def main() -> None:
         "total_horizon_points": gross_objective,
         "net_horizon_points": net_objective,
         "squad_player_ids": chosen_ids,
+        "squad": squad_array,
         "lineup": {
             "round_id": first_round,
             "formation": lineup.formation,
@@ -155,6 +233,9 @@ def main() -> None:
     players_for_report = predictions[md_player_cols].drop_duplicates("player_id")
 
     md_path.write_text(render_markdown(
+        stage=stage.value,
+        backend=backend,
+        generated_at_utc=payload["generated_at_utc"],
         squad_player_ids=chosen_ids,
         starter_ids=lineup.starter_ids,
         bench_ids_priority_order=lineup.bench_ids,
@@ -163,6 +244,7 @@ def main() -> None:
         players=players_for_report,
         round_predictions=squad_in_round,
         target_round=first_round,
+        transfer=transfer,
     ))
 
     print(f"json  {json_path}")

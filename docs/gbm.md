@@ -62,6 +62,64 @@ squad_top_n_avg_price, opp_squad_top_n_avg_price
 `rank_diff` (FIFA World Ranking gap) is computed at inference but not
 present in EPL training, so the column is dropped from the model input.
 
+## Why the GBM picks look aggressive (read first)
+
+The GBM has learned from EPL that mid-priced players for budget teams
+in a winning matchup score well per dollar. The canonical EPL pattern
+is a 6.5M Brighton forward facing a relegation side: the player is
+cheap by FPL standards, the team is mid-table, the opponent is weak,
+and the resulting points-per-pound is excellent. Transferring that
+pattern to the WC pool produces cheap-defender-heavy picks (Norway and
+Sweden back lines, Chris Wood at vice) that read aggressive next to
+the heuristic's consensus picks.
+
+Three concrete reasons the EPL-to-WC transfer is fragile:
+
+1. **Volume bias toward cheap players in EPL training data.** The EPL
+   pool has many more cheap players (4.0M-5.5M) than expensive ones,
+   and those cheap players are mostly defenders for mid-table teams.
+   The model sees a lot of rows where "cheap defender + favourable
+   strength_diff" actually scored well, and learns to lean on that.
+2. **Different fixture-difficulty distribution.** Top-versus-bottom
+   matchups in EPL (Man City vs Sheffield United, etc.) are far more
+   lopsided than the worst WC group-stage matchups, where every team
+   has at least qualified. So the WC strength_diff range is narrower
+   than the EPL range the model trained on, and the model extrapolates
+   modestly outside its training distribution.
+3. **No rotation signal.** EPL fantasy has heavy rotation (cup
+   competitions, midweek games), and the model implicitly uses price
+   as a proxy for "definitely starts". At the WC every fit starter
+   starts; that proxy is much weaker, so cheap-defender-with-good-
+   matchup picks that rely on the rotation signal lose grounding.
+
+Whether the transfer is right or wrong depends on whether WC group-
+stage scoring patterns look like EPL. We will know within a week.
+
+## If it stays bad, possible pivots
+
+These are options I would consider if MD1 results show the GBM
+underperforming the heuristic by a meaningful margin (say >5 pts):
+
+- **Append WC labels and refit.** First move once MD1 finishes.
+  `python -m fifa_fantasy.model.train --include-wc` will pull realised
+  per-(player, round) points and concatenate them with the EPL rows.
+  Two MDs of WC data is small but every WC sample is right-domain.
+- **Structural Poisson goals model.** No training data needed. Use
+  rankings + price to estimate team xG; split by player role (penalty
+  taker, set piece taker, etc.). Beats LightGBM when training data is
+  distributionally far from inference. Has no opt-in CLI yet; would
+  ship as `--backend poisson`.
+- **Tighter EPL-to-WC feature alignment.** Currently the only signal
+  difference is `rank_diff` (present at inference, absent in training).
+  We could compute a synthetic "club rank" feature in EPL (using FPL
+  team strength) and a "team rank" feature in WC (using FIFA ranking)
+  and route them through the same column. Modest expected lift.
+- **Restrict the GBM to a narrower decision.** Instead of replacing
+  the heuristic, use the GBM only for the captain pick (where the
+  quantile q90 head matters most) and keep heuristic for the
+  15-player selection. Lowest risk if the GBM ranks players sensibly
+  even when absolute values are off.
+
 ## Caveats
 
 The EPL-to-WC transfer is imperfect on at least two axes:
