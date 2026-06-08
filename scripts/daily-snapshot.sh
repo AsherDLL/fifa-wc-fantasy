@@ -26,7 +26,10 @@ PREMIUM_BOOST="${PREMIUM_BOOST:-0.0}"
 RESULTS_DIR="results"
 
 YESTERDAY="$(date -u -d 'yesterday' +%Y-%m-%d 2>/dev/null || date -u -v-1d +%Y-%m-%d)"
-PREVIOUS="${RESULTS_DIR}/${HOST}_recommendation_${STAGE}_${YESTERDAY}.json"
+# Glob covers both legacy date-only filenames and new
+# YYYY-MM-DDThh-mm-ssZ timestamped filenames. Pick the lexicographically
+# largest (most recent) match if any.
+PREVIOUS="$(ls -1 "${RESULTS_DIR}/${HOST}_recommendation_${STAGE}_${YESTERDAY}"*.json 2>/dev/null | sort -r | head -1)"
 
 echo "==> daily snapshot: host=${HOST} stage=${STAGE} premium_boost=${PREMIUM_BOOST}"
 
@@ -35,11 +38,11 @@ echo "==> daily snapshot: host=${HOST} stage=${STAGE} premium_boost=${PREMIUM_BO
 "$VENV_PY" -m fifa_fantasy.model --premium-boost "$PREMIUM_BOOST"
 
 OPT_ARGS=(--stage "$STAGE" --report-alternatives)
-if [[ -f "$PREVIOUS" ]]; then
+if [[ -n "$PREVIOUS" && -f "$PREVIOUS" ]]; then
     echo "==> diffing against $PREVIOUS"
     OPT_ARGS+=(--compare-to "$PREVIOUS")
 else
-    echo "==> no previous snapshot at $PREVIOUS; skipping diff"
+    echo "==> no previous snapshot for ${YESTERDAY}; skipping diff"
 fi
 
 "$VENV_PY" -m fifa_fantasy.optimizer "${OPT_ARGS[@]}"

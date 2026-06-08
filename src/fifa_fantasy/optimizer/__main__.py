@@ -147,8 +147,9 @@ def main() -> None:
     print(f"Vice-captain: {vice.full_name} ({vice.country_abbr}, E={vice.predicted_points:.2f})")
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    prefix = f"{_hostname()}_recommendation_{stage.value}_{date}"
+    # Full UTC timestamp (sortable; reruns on the same day do not overwrite).
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+    prefix = f"{_hostname()}_recommendation_{stage.value}_{ts}"
     json_path = args.out_dir / f"{prefix}.json"
     md_path = args.out_dir / f"{prefix}.md"
     payload: dict = {
