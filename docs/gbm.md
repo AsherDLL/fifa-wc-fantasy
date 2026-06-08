@@ -97,28 +97,57 @@ stage scoring patterns look like EPL. We will know within a week.
 
 ## If it stays bad, possible pivots
 
-These are options I would consider if MD1 results show the GBM
-underperforming the heuristic by a meaningful margin (say >5 pts):
+These are options to consider if MD1 results show the GBM
+underperforming the heuristic by a meaningful margin.
 
-- **Append WC labels and refit.** First move once MD1 finishes.
-  `python -m fifa_fantasy.model.train --include-wc` will pull realised
-  per-(player, round) points and concatenate them with the EPL rows.
-  Two MDs of WC data is small but every WC sample is right-domain.
-- **Structural Poisson goals model.** No training data needed. Use
-  rankings + price to estimate team xG; split by player role (penalty
-  taker, set piece taker, etc.). Beats LightGBM when training data is
-  distributionally far from inference. Has no opt-in CLI yet; would
-  ship as `--backend poisson`.
-- **Tighter EPL-to-WC feature alignment.** Currently the only signal
-  difference is `rank_diff` (present at inference, absent in training).
-  We could compute a synthetic "club rank" feature in EPL (using FPL
-  team strength) and a "team rank" feature in WC (using FIFA ranking)
-  and route them through the same column. Modest expected lift.
-- **Restrict the GBM to a narrower decision.** Instead of replacing
-  the heuristic, use the GBM only for the captain pick (where the
-  quantile q90 head matters most) and keep heuristic for the
-  15-player selection. Lowest risk if the GBM ranks players sensibly
-  even when absolute values are off.
+### Other data sources we could train on
+
+The EPL FPL is the only practical large-volume FIFA-style fantasy
+source the project currently uses. Other sources, with rough
+feasibility:
+
+| Source | Volume | Match with FIFA scoring | Accessibility |
+|---|---|---|---|
+| Premier League FPL (current) | ~30k rows / season | very close | open API at `fantasy.premierleague.com/api`, easy |
+| Premier League FPL prior seasons | ~30k rows / season | same | open API exposes only the current season directly; older seasons via community-maintained mirrors (e.g. github.com/vaastav/Fantasy-Premier-League) |
+| Euro 2024 fantasy (UEFA) | ~3-4k rows | scoring rubric differs slightly | gated SPA, no documented endpoint; would need browser automation |
+| WC 2022 fantasy (FIFA) | ~3k rows | exact match | archived; the public Fantasy endpoint does not serve archived seasons |
+| Champions League fantasy (UEFA) | small, intermittent | scoring differs | gated SPA |
+| Bundesliga, La Liga, Serie A fantasy | varies by provider | scoring differs | each requires its own scraper |
+| FBref per-match player stats (no fantasy points) | very large | needs synthetic fantasy point engineering from raw stats | open, but rate-limited |
+| Understat per-match xG | very large | same caveat | open, but rate-limited |
+
+The most realistic upgrade is **multi-season EPL FPL** via the
+community-maintained mirror. That would more than double the training
+volume and let us cross-validate properly with a held-out season.
+
+### Other model classes
+
+The GBM module is `lightgbm.train`. Alternatives:
+
+- **XGBoost or CatBoost.** Same flavour as LightGBM; expected lift on
+  this data is small.
+- **Random Forest.** Less variance, similar bias to LightGBM with
+  fewer levers. Cheap to try as a sanity check.
+- **Linear regression with engineered features.** A ridge or elastic-
+  net with hand-built interaction terms (price x is_home, position x
+  strength_diff, etc.) is more interpretable. Often surprisingly
+  competitive on tabular fantasy data.
+- **Bayesian regression with informative priors.** Could put priors
+  on the position-specific coefficients (matching the heuristic), then
+  let data update them. Lower-risk drift from the heuristic.
+- **Structural model.** The `poisson` backend is one example: encode
+  the football itself (team xG, per-position goal/assist share, clean
+  sheet probability) instead of learning it. Already shipped.
+
+### Practical recommendation
+
+Wait for MD1 to finish. Run
+`python -m fifa_fantasy.model.train --include-wc` to append WC labels
+to the EPL training set and refit. If two refit cycles (after MD1,
+after MD2) do not close the gap to the heuristic, switch the GBM
+training source to multi-season EPL or shelve it and rely on the
+heuristic and Poisson backends.
 
 ## Caveats
 

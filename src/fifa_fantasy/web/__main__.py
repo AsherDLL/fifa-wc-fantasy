@@ -18,6 +18,12 @@ TEMPLATES_DIR = ROOT / "templates"
 DEFAULT_RESULTS = Path("results")
 
 
+STAGE_ORDER = {
+    "GROUP_MD1": 1, "GROUP_MD2": 2, "GROUP_MD3": 3,
+    "R32": 4, "R16": 5, "QF": 6, "SF": 7, "FINAL": 8,
+}
+
+
 def _list_recommendations(results_dir: Path) -> list[dict]:
     items = []
     for path in sorted(results_dir.glob("*.json"), reverse=True):
@@ -31,6 +37,29 @@ def _list_recommendations(results_dir: Path) -> list[dict]:
         payload["__md_filename__"] = path.with_suffix(".md").name
         items.append(payload)
     return items
+
+
+def _group_by_stage(items: list[dict]) -> list[dict]:
+    """Return a list of {stage, items} groups in canonical round order.
+
+    Within a stage, items are sorted by generated_at_utc descending so the
+    most recent recommendation for that stage is at the top.
+    """
+    by_stage: dict[str, list[dict]] = {}
+    for item in items:
+        stage = item.get("stage") or "UNKNOWN"
+        by_stage.setdefault(stage, []).append(item)
+
+    groups = []
+    for stage in sorted(by_stage.keys(),
+                        key=lambda s: STAGE_ORDER.get(s, 99)):
+        ordered = sorted(
+            by_stage[stage],
+            key=lambda x: x.get("generated_at_utc", ""),
+            reverse=True,
+        )
+        groups.append({"stage": stage, "items": ordered})
+    return groups
 
 
 def _list_live_reports(results_dir: Path) -> list[dict]:
@@ -50,13 +79,18 @@ def main() -> None:
     args = parser.parse_args()
 
     recs = _list_recommendations(args.results_dir)
+    grouped = _group_by_stage(recs)
     lives = _list_live_reports(args.results_dir)
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(["html"]),
     )
     template = env.get_template("report.html.jinja")
-    html = template.render(recommendations=recs, live_reports=lives)
+    html = template.render(
+        groups=grouped,
+        total_recommendations=len(recs),
+        live_reports=lives,
+    )
 
     out = args.out or (args.results_dir / "index.html")
     out.write_text(html)

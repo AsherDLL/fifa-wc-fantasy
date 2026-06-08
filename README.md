@@ -46,6 +46,42 @@ filename, the JSON `model_backend` field, and the first lines of the
 markdown report. There is no ambiguity about which approach produced a
 given recommendation.
 
+## Round-by-round command reference
+
+Exactly which optimizer command to run for each round of the tournament,
+keyed to Fantasy.md's transfer rules. Replace `<prev>` with the path of
+the most recent recommendation JSON from the previous round.
+
+| Round | Command |
+|---|---|
+| Before MD1 (initial squad) | `python -m fifa_fantasy.optimizer` |
+| Before MD2 | `python -m fifa_fantasy.optimizer --stage GROUP_MD2 --from <prev>` |
+| Before MD2 with one rolled-over transfer | `python -m fifa_fantasy.optimizer --stage GROUP_MD2 --from <prev> --rolled-over 1` |
+| Before MD3 | `python -m fifa_fantasy.optimizer --stage GROUP_MD3 --from <prev>` |
+| Before R32 (knockout reset, unlimited transfers) | `python -m fifa_fantasy.optimizer --stage R32` |
+| Before R16 | `python -m fifa_fantasy.optimizer --stage R16 --from <prev>` |
+| Before QF | `python -m fifa_fantasy.optimizer --stage QF --from <prev>` |
+| Before SF | `python -m fifa_fantasy.optimizer --stage SF --from <prev>` |
+| Before FINAL | `python -m fifa_fantasy.optimizer --stage FINAL --from <prev>` |
+
+In every case, refresh the underlying data first by running
+`./scripts/daily-snapshot.sh`, which chains collector + features +
+model + optimizer. The `--from` flag is what activates transfer-mode
+planning (with the -3 hit penalty per transfer above the free quota);
+omitting it solves a fresh selection, which is correct only for MD1
+and R32 because those are the two stages with unlimited transfers.
+
+The `model_backend` you used to predict propagates automatically into
+the output filename and JSON. To compare backends side by side:
+
+```bash
+python -m fifa_fantasy.model --backend heuristic && python -m fifa_fantasy.optimizer
+python -m fifa_fantasy.model --backend poisson   && python -m fifa_fantasy.optimizer
+python -m fifa_fantasy.model --backend gbm       && python -m fifa_fantasy.optimizer
+python -m fifa_fantasy.web
+xdg-open results/index.html
+```
+
 ## Browsing results
 
 After running the optimizer one or more times, generate a static HTML

@@ -7,8 +7,10 @@
   body { font-family: -apple-system, system-ui, sans-serif; max-width: 1200px;
          margin: 2rem auto; padding: 0 1rem; color: #111; }
   h1 { font-size: 1.3rem; margin-bottom: 0.3rem; font-weight: 600; }
-  h2 { font-size: 1.05rem; margin-top: 2rem; font-weight: 600;
-       border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  h2 { font-size: 1.1rem; margin-top: 2.5rem; font-weight: 600;
+       padding: 8px 12px; background: #2c3e50; color: white; border-radius: 4px; }
+  h3 { font-size: 1.0rem; margin-top: 1.5rem; font-weight: 600;
+       border-bottom: 1px solid #ddd; padding-bottom: 4px; }
   .meta { color: #555; font-size: 0.85rem; margin-bottom: 1rem; }
   table { border-collapse: collapse; width: 100%; font-size: 0.88rem;
           margin-bottom: 1rem; }
@@ -22,99 +24,110 @@
   .otw { color: #b07300; font-size: 0.78rem; margin-left: 4px; }
   .badge { display: inline-block; padding: 1px 6px; border-radius: 3px;
            font-size: 0.72rem; background: #efefef; margin-left: 6px; }
+  .badge.heuristic { background: #d4edda; color: #155724; }
+  .badge.gbm { background: #f8d7da; color: #721c24; }
+  .badge.poisson { background: #d1ecf1; color: #0c5460; }
   .links { font-size: 0.85rem; margin-top: 0.3rem; }
   .links a { color: #06c; text-decoration: none; margin-right: 1rem; }
   .transfer { margin-top: 0.4rem; font-size: 0.85rem; }
-  .transfer h3 { font-size: 0.85rem; margin: 0.5rem 0 0.2rem 0; }
+  .transfer h4 { font-size: 0.85rem; margin: 0.5rem 0 0.2rem 0; }
   .empty { color: #999; font-style: italic; }
+  .stage-header { display: flex; justify-content: space-between; align-items: center; }
+  .stage-count { font-size: 0.85rem; color: #ccc; font-weight: normal; }
 </style>
 </head>
 <body>
 
 <h1>FIFA Fantasy WC 2026 results</h1>
-<div class="meta">{{ recommendations|length }} recommendation(s), {{ live_reports|length }} live report(s)</div>
+<div class="meta">{{ total_recommendations }} recommendation(s) across {{ groups|length }} stage(s),
+                  {{ live_reports|length }} live report(s)</div>
 
-{% if not recommendations %}
+{% if not groups %}
   <p class="empty">No recommendations found. Run <code>python -m fifa_fantasy.optimizer</code>.</p>
 {% endif %}
 
-{% for r in recommendations %}
-  <h2>{{ r.stage }}
-    <span class="badge">{{ r.model_backend or 'backend?' }}</span>
-    <span class="badge">{{ r.host }}</span>
+{% for group in groups %}
+  <h2>
+    <span class="stage-header">
+      <span>{{ group.stage }}</span>
+      <span class="stage-count">{{ group['items']|length }} run(s)</span>
+    </span>
   </h2>
-  <div class="meta">
-    generated {{ r.generated_at_utc }};
-    budget {{ "%.1f"|format(r.budget_used) }} / {{ "%.1f"|format(r.budget_total) }}M;
-    formation {{ r.lineup.formation }};
-    R{{ r.lineup.round_id }} expected {{ "%.2f"|format(r.lineup.expected_points) }};
-    horizon expected {{ "%.2f"|format(r.total_horizon_points) }}.
-  </div>
-  <div class="links">
-    <a href="{{ r.__filename__ }}">json</a>
-    <a href="{{ r.__md_filename__ }}">md</a>
-  </div>
 
-  <details>
-  <summary>squad table ({{ r.squad|length }} players)</summary>
-  <table>
-  <thead>
-  <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-      <th>Price</th><th>Own%</th><th>Opp</th><th>R{{ r.lineup.round_id }} E[pts]</th></tr>
-  </thead>
-  <tbody>
-  {%- for p in r.squad %}
-    {%- set sort_pos = {'GK': 0, 'DEF': 1, 'MID': 2, 'FWD': 3}.get(p.position, 9) %}
-  {%- endfor %}
-  {%- set sorted_squad = r.squad|sort(attribute='predicted_points', reverse=True)|sort(attribute='position') %}
-  {%- for p in sorted_squad %}
-    {%- set cls = '' %}
-    {%- if p.role == 'Captain' %}{% set cls = 'captain' %}{% endif %}
-    {%- if p.role == 'Vice' %}{% set cls = 'vice' %}{% endif %}
-    {%- if not p.in_starting_xi %}{% set cls = cls ~ ' bench' %}{% endif %}
-    <tr class="{{ cls }}">
-      <td>{% if p.role == 'Captain' %}Captain (C){% elif p.role == 'Vice' %}Vice (V){% else %}{{ p.role }}{% endif %}</td>
-      <td>{{ p.full_name }}{% if p.one_to_watch %}<span class="otw">[OTW]</span>{% endif %}</td>
-      <td>{{ p.country_abbr }}</td>
-      <td>{{ p.position }}</td>
-      <td>${{ "%.1f"|format(p.price_millions) }}M</td>
-      <td>{{ "%.1f"|format(p.ownership_fraction * 100) }}%</td>
-      <td>{% if p.is_home %}vs {{ p.opponent_abbr }}{% else %}@ {{ p.opponent_abbr }}{% endif %}</td>
-      <td>{{ "%.2f"|format(p.predicted_points) }}</td>
-    </tr>
-  {%- endfor %}
-  </tbody>
-  </table>
-  </details>
+  {% for r in group['items'] %}
+    <h3>
+      {{ r.model_backend or 'backend?' }}
+      <span class="badge {{ r.model_backend }}">{{ r.model_backend }}</span>
+      <span class="badge">{{ r.host }}</span>
+      <span class="badge">{{ r.generated_at_utc }}</span>
+    </h3>
+    <div class="meta">
+      budget {{ "%.1f"|format(r.budget_used) }} / {{ "%.1f"|format(r.budget_total) }}M;
+      formation {{ r.lineup.formation }};
+      R{{ r.lineup.round_id }} expected {{ "%.2f"|format(r.lineup.expected_points) }};
+      horizon expected {{ "%.2f"|format(r.total_horizon_points) }}.
+    </div>
+    <div class="links">
+      <a href="{{ r.__filename__ }}">json</a>
+      <a href="{{ r.__md_filename__ }}">md</a>
+    </div>
 
-  {% if r.transfer %}
-  <div class="transfer">
-    <strong>Transfers from previous squad:</strong>
-    {{ r.transfer.n_transfers }} made, {{ r.transfer.n_extra_transfers }} above quota, hit {{ r.transfer.transfer_cost_points }} pts.
-    <h3>IN</h3>
-    <ul>
-    {%- for pid in r.transfer.transfers_in %}
-      {%- set matches = r.squad | selectattr('player_id', 'equalto', pid) | list %}
-      {%- if matches %}
-        {%- set ent = matches[0] %}
-        <li>{{ ent.full_name }} ({{ ent.country_abbr }}, {{ ent.position }}, ${{ "%.1f"|format(ent.price_millions) }}M)</li>
+    <details>
+    <summary>squad table ({{ r.squad|length }} players)</summary>
+    <table>
+    <thead>
+    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
+        <th>Price</th><th>Own%</th><th>Opp</th><th>R{{ r.lineup.round_id }} E[pts]</th></tr>
+    </thead>
+    <tbody>
+    {%- set sorted_squad = r.squad|sort(attribute='predicted_points', reverse=True)|sort(attribute='position') %}
+    {%- for p in sorted_squad %}
+      {%- set cls = '' %}
+      {%- if p.role == 'Captain' %}{% set cls = 'captain' %}{% endif %}
+      {%- if p.role == 'Vice' %}{% set cls = 'vice' %}{% endif %}
+      {%- if not p.in_starting_xi %}{% set cls = cls ~ ' bench' %}{% endif %}
+      <tr class="{{ cls }}">
+        <td>{% if p.role == 'Captain' %}Captain (C){% elif p.role == 'Vice' %}Vice (V){% else %}{{ p.role }}{% endif %}</td>
+        <td>{{ p.full_name }}{% if p.one_to_watch %}<span class="otw">[OTW]</span>{% endif %}</td>
+        <td>{{ p.country_abbr }}</td>
+        <td>{{ p.position }}</td>
+        <td>${{ "%.1f"|format(p.price_millions) }}M</td>
+        <td>{{ "%.1f"|format(p.ownership_fraction * 100) }}%</td>
+        <td>{% if p.is_home %}vs {{ p.opponent_abbr }}{% else %}@ {{ p.opponent_abbr }}{% endif %}</td>
+        <td>{{ "%.2f"|format(p.predicted_points) }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+    </table>
+    </details>
+
+    {% if r.transfer %}
+    <div class="transfer">
+      <strong>Transfers from previous squad:</strong>
+      {{ r.transfer.n_transfers }} made, {{ r.transfer.n_extra_transfers }} above quota, hit {{ r.transfer.transfer_cost_points }} pts.
+      <h4>IN</h4>
+      <ul>
+      {%- for d in r.transfer.transfers_in_detail %}
+        <li>{{ d.full_name }} ({{ d.country_abbr }}, {{ d.position }}, ${{ "%.1f"|format(d.price_millions) }}M)</li>
       {%- else %}
-        <li>player_id {{ pid }}</li>
-      {%- endif %}
-    {%- else %}
-      <li class="empty">none</li>
-    {%- endfor %}
-    </ul>
-    <h3>OUT</h3>
-    <ul>
-    {%- for pid in r.transfer.transfers_out %}
-      <li>player_id {{ pid }}</li>
-    {%- else %}
-      <li class="empty">none</li>
-    {%- endfor %}
-    </ul>
-  </div>
-  {% endif %}
+        <li class="empty">none</li>
+      {%- endfor %}
+      </ul>
+      <h4>OUT</h4>
+      <ul>
+      {%- for d in r.transfer.transfers_out_detail %}
+        {%- if d.full_name %}
+          <li>{{ d.full_name }} ({{ d.country_abbr }}, {{ d.position }}, ${{ "%.1f"|format(d.price_millions) }}M)</li>
+        {%- else %}
+          <li>player_id {{ d.player_id }}</li>
+        {%- endif %}
+      {%- else %}
+        <li class="empty">none</li>
+      {%- endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  {% endfor %}
 {% endfor %}
 
 {% if live_reports %}
