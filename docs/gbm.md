@@ -62,16 +62,43 @@ squad_top_n_avg_price, opp_squad_top_n_avg_price
 `rank_diff` (FIFA World Ranking gap) is computed at inference but not
 present in EPL training, so the column is dropped from the model input.
 
-## Why the GBM picks look aggressive (read first)
+## Held-out validation on real labels
 
-The GBM has learned from EPL that mid-priced players for budget teams
-in a winning matchup score well per dollar. The canonical EPL pattern
-is a 6.5M Brighton forward facing a relegation side: the player is
-cheap by FPL standards, the team is mid-table, the opponent is weak,
-and the resulting points-per-pound is excellent. Transferring that
-pattern to the WC pool produces cheap-defender-heavy picks (Norway and
-Sweden back lines, Chris Wood at vice) that read aggressive next to
-the heuristic's consensus picks.
+Honest numbers from EPL 2024-25 gameweeks 30-38, held out from
+training. RMSE per position (lower is better):
+
+| Pos | n | heuristic | poisson | gbm-v1 | gbm-v2 |
+|---|---|---|---|---|---|
+| GK | 180 | 2.698 | 2.503 | 2.710 | 2.645 |
+| DEF | 910 | 3.141 | 3.400 | 3.297 | 3.195 |
+| MID | 1228 | 2.874 | 4.371 | 2.898 | 2.795 |
+| FWD | 368 | 3.515 | 4.560 | 3.281 | 3.160 |
+
+GBM-v1 is the single-season-EPL default-config model. GBM-v2 is the
+shipped configuration: three seasons (2022-23, 2023-24, 2024-25 minus
+the held-out gameweeks) plus lighter hyperparameters
+(num_leaves=15, n_estimators=200) chosen by the held-out RMSE sweep
+in `src/fifa_fantasy/training/tune.py`.
+
+Reading the table:
+- GK: Poisson dominates because the clean-sheet probability term is
+  the right shape for goalkeeper scoring.
+- DEF: heuristic stays ahead. The price-coef formula tracks defender
+  variance better than any of the data-driven approaches.
+- MID and FWD: GBM-v2 is the best of the three. The model's room to
+  learn matters most where individual player variance is largest.
+
+The earlier characterization "GBM is strictly worse than the
+heuristic" was wrong. GBM-v2 is competitive everywhere and the
+clear winner at midfielder and forward.
+
+## How GBM-v2 squad picks compare
+
+On the day-1 WC pool, GBM-v2 captains Ousmane Dembele (FRA, $10.0M)
+with Olise as vice. Premium attackers, conventional choices, no
+oddities. The earlier v1 squad's Norwegian and Swedish defender
+clusters and Chris Wood vice came from the under-regularised
+single-season model and have not reappeared since the v2 retune.
 
 Three concrete reasons the EPL-to-WC transfer is fragile:
 

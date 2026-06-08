@@ -29,7 +29,7 @@ not captain-only). Full write-up in [`docs/approaches.md`](./docs/approaches.md)
 | Backend | Idea | Trained on | When to use |
 |---|---|---|---|
 | `heuristic` (default) | position_coef x price x matchup x home, with a small premium-tier knob | nothing | conservative, transparent, the right call for MD1 submission |
-| `gbm` | LightGBM mean + q10/q50/q90 per position | one full season of Premier League FPL | experimental; underperforms the heuristic pre-tournament because EPL patterns do not perfectly carry to the WC. Refit with `--include-wc` once MD1 data lands |
+| `gbm` | LightGBM mean + q10/q50/q90 per position | three seasons of Premier League FPL (2022-23, 2023-24, 2024-25 via the vaastav community mirror plus the live API) | wins midfielder and forward on held-out EPL RMSE; competitive at GK and DEF. Lighter hyperparameters than v1 (15 leaves, 200 trees), tuned by sweep |
 | `poisson` | structural Poisson goals: team xG, per-position goal/assist share, clean-sheet probability | nothing | independent of price and of EPL; a useful third opinion when the heuristic and the GBM disagree |
 
 Pick a backend on the model CLI:

@@ -38,17 +38,24 @@ def main() -> None:
     parser.add_argument("--training", type=Path, default=None,
                         help="EPL player_gameweek Parquet (default: latest under data/training/)")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_MODELS_DIR)
-    parser.add_argument("--n-estimators", type=int, default=400)
+    parser.add_argument("--n-estimators", type=int, default=200)
     parser.add_argument("--learning-rate", type=float, default=0.05)
+    parser.add_argument("--num-leaves", type=int, default=15)
     parser.add_argument("--include-wc", action="store_true",
                         help="append realised WC player-round rows from data/raw/")
     args = parser.parse_args()
 
-    src = args.training or _latest(DEFAULT_TRAINING_DIR, "fpl_player_gameweek")
-    raw = pd.read_parquet(src)
+    if args.training is not None:
+        srcs = [args.training]
+    else:
+        srcs = sorted(DEFAULT_TRAINING_DIR.glob("fpl_player_gameweek_*.parquet"))
+    if not srcs:
+        raise SystemExit(f"no training data under {DEFAULT_TRAINING_DIR}")
+    raw = pd.concat([pd.read_parquet(p) for p in srcs], ignore_index=True)
     train_df = build_training_table(raw)
     train_df["source"] = "epl"
-    print(f"EPL source: {src}  ({len(train_df):,} rows after DNP drop)")
+    print(f"EPL sources: {[p.name for p in srcs]}")
+    print(f"EPL rows after DNP drop: {len(train_df):,}")
 
     if args.include_wc:
         wc = extract_wc_training_rows()
@@ -64,7 +71,11 @@ def main() -> None:
         n = (train_df["position"] == pos).sum()
         print(f"  {pos}: {n:,} rows")
 
-    cfg = TrainConfig(n_estimators=args.n_estimators, learning_rate=args.learning_rate)
+    cfg = TrainConfig(
+        n_estimators=args.n_estimators,
+        learning_rate=args.learning_rate,
+        num_leaves=args.num_leaves,
+    )
     models = train_all(train_df, cfg)
     save_models(models, args.out_dir)
     print(f"saved models -> {args.out_dir}/")

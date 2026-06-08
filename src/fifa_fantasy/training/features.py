@@ -73,5 +73,17 @@ def build_training_table(player_gameweek: pd.DataFrame) -> pd.DataFrame:
     df["strength_diff"] = (
         df["squad_top_n_avg_price"] - df["opp_squad_top_n_avg_price"]
     )
+
+    # Ownership: vaastav 2022-23 / 2023-24 dumps lack ownership; the
+    # live-API 2024-25 file may have it as a pre-divided fraction. Anything
+    # missing gets a neutral 0.10. EPL absolute ownership is in the same
+    # ballpark as WC absolute ownership, so this is reasonable.
+    if "ownership_fraction" in df.columns:
+        df["ownership_fraction"] = pd.to_numeric(
+            df["ownership_fraction"], errors="coerce"
+        ).fillna(0.10)
+    else:
+        df["ownership_fraction"] = 0.10
+
     df["target"] = df["total_points"].astype(int)
     return df.reset_index(drop=True)

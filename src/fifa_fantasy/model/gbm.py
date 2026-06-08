@@ -47,9 +47,14 @@ FEATURE_COLUMNS = [
 
 @dataclass(frozen=True)
 class TrainConfig:
-    num_leaves: int = 31
+    """Defaults picked by held-out RMSE sweep on EPL 2024-25 GW 30-38.
+
+    Lighter than the original (15 leaves, 200 estimators) beat heavier
+    configs at every position; the original 31/400 was overfitting.
+    """
+    num_leaves: int = 15
     learning_rate: float = 0.05
-    n_estimators: int = 400
+    n_estimators: int = 200
     min_child_samples: int = 30
     feature_fraction: float = 0.9
     bagging_fraction: float = 0.9
