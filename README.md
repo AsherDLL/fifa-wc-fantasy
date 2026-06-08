@@ -18,7 +18,7 @@ decisions and operational notes.
 | 1b Live stats | total/last-round/form/round_points in the same Parquet | done |
 | 2 Features | Per-(player, round) table with rest days and matchup signal | done |
 | 3a Predictor | Heuristic, price-coef x matchup x home, with optional premium tilt | done |
-| 3b Predictor | LightGBM quantile regressors (needs Euro 2024 data) | not started |
+| 3b Predictor | LightGBM mean + q10/q50/q90 per position, trained on one EPL FPL season | done (opt-in via `--backend gbm`) |
 | 4 Optimizer | PuLP MILPs: squad, transfer with -3 hit, lineup + captain | done |
 | 4.5 Polish | `--compare-to`, `--report-alternatives`, `oneToWatch` flag | done |
 | 4.7 Strength | FIFA World Ranking blended into the matchup multiplier | done |
@@ -39,7 +39,9 @@ pytest
 |---|---|---|
 | `python -m fifa_fantasy.collector` | `play.fifa.com/json/fantasy/*` | `data/raw/{players,squads,fixtures}_<UTC-date>.parquet` plus verbatim JSON under `data/raw/raw/` |
 | `python -m fifa_fantasy.features` | latest Parquet under `data/raw/` plus `data/static/fifa_rankings.csv` | `data/processed/features_<UTC-date>.parquet` |
-| `python -m fifa_fantasy.model` | latest features Parquet | `data/processed/predictions_<UTC-date>.parquet` |
+| `python -m fifa_fantasy.model [--backend heuristic\|gbm]` | latest features Parquet (and `data/models/` for `--backend gbm`) | `data/processed/predictions_<UTC-date>.parquet` |
+| `python -m fifa_fantasy.training` | `fantasy.premierleague.com/api` | `data/training/fpl_player_gameweek_<season>.parquet` |
+| `python -m fifa_fantasy.model.train` | latest training Parquet | `data/models/gbm_<position>_<head>.txt` |
 | `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON via `--from`) | `results/<host>_recommendation_<STAGE>_<UTC-timestamp>.{json,md}` |
 | `python -m fifa_fantasy.live` | a recommendation JSON, latest collector and predictions Parquet | `results/<host>_live_<STAGE>_R<n>_<UTC-timestamp>.md` |
 

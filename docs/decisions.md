@@ -462,3 +462,60 @@ between kickoff windows for fresh data.
 
 Why. Keeps the live module deterministic and offline-testable. The
 collector is the single network surface for the project.
+
+
+## 2026-06-08 Phase 3b LightGBM predictor
+
+### EPL FPL as donor data, not Euro 2024 / WC 2022
+
+Decision. Training data comes from one completed season of the
+Premier League fantasy game (`fantasy.premierleague.com/api`). The
+original sketch mentioned Euro 2024, but UEFA's fantasy game is a
+different platform with different scoring; FIFA does not publish
+archived per-player histories for prior WCs through the public Fantasy
+endpoint.
+
+Why. The Premier League FPL endpoint is well documented, freely
+accessible, returns one row per (player, gameweek) with the same point
+components as the WC game, and is large enough on its own (around
+29,000 player-gameweek rows per season) to train per-position models.
+Transfer to WC is imperfect (see docs/gbm.md), which is the trade-off
+for shipping a real ML predictor before kickoff.
+
+### Per-position models with mean + three quantile heads
+
+Decision. Each of the four positions trains four LightGBM Boosters:
+mean regression, q10, q50, q90. Inference returns all four columns,
+the optimizer consumes only `predicted_points` (mean) for now.
+
+Why. The sketch called for quantile output to feed downstream captain
+and substitution decisions; q10/q90 capture the ceiling/floor without
+which captain selection is a coin flip on point estimates alone. Even
+though the optimizer's first pass uses the mean, the quantile columns
+are written to the same Parquet so a future captain heuristic can read
+them without retraining.
+
+### Heuristic stays the default; GBM is opt-in
+
+Decision. `python -m fifa_fantasy.model` defaults to `--backend
+heuristic`. The GBM is only used when explicitly asked.
+
+Why. The EPL-to-WC transfer is imperfect and the GBM produces a
+defender-heavy squad with cheap selections that differ sharply from
+the consensus picks. Until WC group-stage scoring confirms or denies
+the EPL pattern, the safer pre-tournament default is the heuristic
+that already shows on the recommendation people are using.
+
+### Limit training features to columns present in both data sets
+
+Decision. The training table is restricted to `price_millions`,
+`is_home`, `strength_diff`, `squad_top_n_avg_price`,
+`opp_squad_top_n_avg_price`. FIFA-specific signals (`rank_diff`,
+`ownership_fraction`) are not used by the GBM yet.
+
+Why. EPL FPL has no FIFA World Ranking and ownership data shifts
+during the season in ways that do not match international fantasy.
+Including features that are present only at inference would force the
+model to learn signal it cannot validate during training, increasing
+overfit risk. Adding them later once WC data exists is simpler than
+removing them.
