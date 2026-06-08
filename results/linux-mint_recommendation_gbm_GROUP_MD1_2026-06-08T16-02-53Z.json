@@ -1,8 +1,9 @@
 {
   "stage": "GROUP_MD1",
   "model_backend": "gbm",
+  "model_version": "v2",
   "host": "linux-mint",
-  "generated_at_utc": "2026-06-08T06:40:37+00:00",
+  "generated_at_utc": "2026-06-08T16:02:53+00:00",
   "horizon_rounds": [
     1,
     2,

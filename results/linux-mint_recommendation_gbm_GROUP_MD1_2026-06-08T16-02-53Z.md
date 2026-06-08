@@ -2,7 +2,7 @@
 
 - stage: GROUP_MD1
 - backend: gbm
-- generated_at_utc: 2026-06-08T06:41:06+00:00
+- generated_at_utc: 2026-06-08T16:02:53+00:00
 
 | Role | Player | Cty | Pos | Price | Own% | Opp | R1 E[pts] |
 |---|---|---|---|---|---|---|---|

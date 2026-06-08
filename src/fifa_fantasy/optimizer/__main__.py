@@ -84,6 +84,11 @@ def main() -> None:
         if "model_backend" in predictions.columns and len(predictions) > 0
         else "unknown"
     )
+    model_version = (
+        str(predictions["model_version"].iloc[0])
+        if "model_version" in predictions.columns and len(predictions) > 0
+        else ""
+    )
     predictions = apply_scouting_bonus(predictions)
     player_table = aggregate_to_player(predictions, horizon)
 
@@ -191,6 +196,7 @@ def main() -> None:
     payload: dict = {
         "stage": stage.value,
         "model_backend": backend,
+        "model_version": model_version,
         "host": _hostname(),
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "horizon_rounds": list(horizon),

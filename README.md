@@ -20,6 +20,37 @@ labels to the training set and retrain on `EPL + WC_so_far`. That is a
 some teams; the live retrain pipeline below automates the append-and-
 refit loop.
 
+## Validation: how the three approaches compare on real labels
+
+The last 9 gameweeks of the 2024-25 Premier League fantasy season were
+held out from training. All three approaches were evaluated on the
+same held-out rows; the GBM never saw them while training. The numbers
+below are root mean squared error (RMSE) per player position; lower
+means more accurate predictions.
+
+| Position | n (rows held out) | heuristic | poisson | gbm-v1 | gbm-v2 |
+|---|---|---|---|---|---|
+| GK | 180 | 2.698 | **2.503** | 2.710 | 2.645 |
+| DEF | 910 | **3.141** | 3.400 | 3.297 | 3.195 |
+| MID | 1228 | 2.874 | 4.371 | 2.898 | **2.795** |
+| FWD | 368 | 3.515 | 4.560 | 3.281 | **3.160** |
+
+Each backend wins one or two positions. Poisson is the right choice
+for goalkeepers; the heuristic is the right choice for defenders; the
+GBM (the v2 build, with three seasons of EPL data and tuned
+hyperparameters) is the right choice for midfielders and forwards.
+
+Reproduce locally with:
+
+```bash
+python -m fifa_fantasy.training.validate_main
+```
+
+See [`docs/algorithms-explained.md`](./docs/algorithms-explained.md) for
+a beginner-friendly explanation of what every term in that table means
+(EPL, GW, RMSE, held-out), what each predictor actually does, and how
+they differ from each other and from neural networks.
+
 ## Approaches available
 
 Three predictor backends. Each maps the per-(player, round) feature

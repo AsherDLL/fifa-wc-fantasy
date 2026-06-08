@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 
 from .baseline import DEFAULT_PREMIUM_BOOST, heuristic_predict
-from .gbm import DEFAULT_MODELS_DIR, load_models, predict as gbm_predict
+from .gbm import DEFAULT_MODELS_DIR, GBM_VERSION, load_models, predict as gbm_predict
 from .poisson import poisson_predict
 
 DEFAULT_DIR = Path("data/processed")
@@ -61,8 +61,15 @@ def main() -> None:
 
     # Stamp the backend name into the predictions table so downstream
     # tools (optimizer filename, web report) can read which model produced
-    # this snapshot without an extra sidecar file.
+    # this snapshot without an extra sidecar file. For the GBM, also
+    # stamp the version so legacy outputs can be told apart from current
+    # ones.
     predictions["model_backend"] = backend_label
+    # Only the GBM has versioned artefacts. Other backends are formulas
+    # and do not need a version stamp.
+    predictions["model_version"] = (
+        GBM_VERSION if backend_label == "gbm" else ""
+    )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")

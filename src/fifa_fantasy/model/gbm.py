@@ -36,6 +36,13 @@ POSITIONS = ("GK", "DEF", "MID", "FWD")
 HEADS = ("mean", "q10", "q50", "q90")
 QUANTILES = {"q10": 0.10, "q50": 0.50, "q90": 0.90}
 
+# Version string written to predictions and recommendation outputs so
+# legacy v1 results (single season, default hyperparameters) can be told
+# apart from current v2 results (three seasons, tuned hyperparameters).
+# Bump this any time the training data or hyperparameters change in a
+# way that changes the squad picks.
+GBM_VERSION = "v2"
+
 FEATURE_COLUMNS = [
     "price_millions",
     "is_home",
