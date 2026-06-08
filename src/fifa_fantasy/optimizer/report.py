@@ -41,6 +41,7 @@ def render_markdown(
     round_predictions: pd.DataFrame,
     target_round: int,
     transfer: TransferSolution | None = None,
+    transfers_out_detail: list[dict] | None = None,
 ) -> str:
     """Squad table plus, optionally, an IN/OUT section for transfer mode."""
     if "player_id" in players.columns and players.index.name != "player_id":
@@ -95,13 +96,28 @@ def render_markdown(
 
     transfer_section = ""
     if transfer is not None and (transfer.transfers_in or transfer.transfers_out):
-        def _line(pid: int) -> str:
+        out_lookup = {
+            int(d["player_id"]): d
+            for d in (transfers_out_detail or [])
+            if "player_id" in d
+        }
+
+        def _line_in(pid: int) -> str:
             p = players.loc[pid]
             return (f"- {p['full_name']} ({p['country_abbr']}, "
                     f"{p['position']}, ${float(p['price_millions']):.1f}M)")
 
-        in_lines = [_line(pid) for pid in transfer.transfers_in] or ["- (none)"]
-        out_lines = [_line(pid) for pid in transfer.transfers_out] or ["- (none)"]
+        def _line_out(pid: int) -> str:
+            d = out_lookup.get(int(pid))
+            if d is not None and d.get("full_name"):
+                price = d.get("price_millions")
+                price_s = f", ${float(price):.1f}M" if price is not None else ""
+                return (f"- {d['full_name']} ({d.get('country_abbr', '?')}, "
+                        f"{d.get('position', '?')}{price_s})")
+            return f"- player_id {pid}"
+
+        in_lines = [_line_in(pid) for pid in transfer.transfers_in] or ["- (none)"]
+        out_lines = [_line_out(pid) for pid in transfer.transfers_out] or ["- (none)"]
         transfer_section = (
             "\n\n## Transfers from previous squad\n\n"
             f"- transfers_made: {transfer.n_transfers}\n"

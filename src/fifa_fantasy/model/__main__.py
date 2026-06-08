@@ -18,6 +18,7 @@ import pandas as pd
 
 from .baseline import DEFAULT_PREMIUM_BOOST, heuristic_predict
 from .gbm import DEFAULT_MODELS_DIR, load_models, predict as gbm_predict
+from .poisson import poisson_predict
 
 DEFAULT_DIR = Path("data/processed")
 
@@ -33,7 +34,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="fifa_fantasy.model")
     parser.add_argument("--features-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
-    parser.add_argument("--backend", choices=("heuristic", "gbm"), default="heuristic")
+    parser.add_argument("--backend", choices=("heuristic", "gbm", "poisson"), default="heuristic")
     parser.add_argument("--models-dir", type=Path, default=DEFAULT_MODELS_DIR,
                         help="LightGBM model artefacts (used only for --backend gbm)")
     parser.add_argument(
@@ -50,10 +51,13 @@ def main() -> None:
     if args.backend == "heuristic":
         predictions = heuristic_predict(features, premium_boost=args.premium_boost)
         backend_label = "heuristic"
-    else:
+    elif args.backend == "gbm":
         models = load_models(args.models_dir)
         predictions = gbm_predict(features, models)
         backend_label = "gbm"
+    else:
+        predictions = poisson_predict(features)
+        backend_label = "poisson"
 
     # Stamp the backend name into the predictions table so downstream
     # tools (optimizer filename, web report) can read which model produced

@@ -211,6 +211,44 @@ def main() -> None:
         },
     }
     if transfer is not None:
+        # Resolve player details for both sides so the JSON is self-contained.
+        # IN players are in the new squad and live in `full_players`; OUT
+        # players were in the previous squad and we read their details from
+        # the previous JSON if available (it has the `squad` array since
+        # the rich-JSON change), otherwise fall back to bare ids.
+        prev_squad_lookup: dict[int, dict] = {}
+        if args.from_json is not None:
+            try:
+                prev = json.loads(args.from_json.read_text())
+                for ent in prev.get("squad", []):
+                    prev_squad_lookup[int(ent["player_id"])] = ent
+            except Exception:
+                pass
+
+        def _detail_in(pid: int) -> dict:
+            meta = full_players.loc[pid]
+            return {
+                "player_id": int(pid),
+                "full_name": str(meta["full_name"]),
+                "country": str(meta["country"]),
+                "country_abbr": str(meta["country_abbr"]),
+                "position": str(meta["position"]),
+                "price_millions": float(meta["price_millions"]),
+            }
+
+        def _detail_out(pid: int) -> dict:
+            ent = prev_squad_lookup.get(int(pid))
+            if ent is not None:
+                return {
+                    "player_id": int(pid),
+                    "full_name": ent.get("full_name"),
+                    "country": ent.get("country"),
+                    "country_abbr": ent.get("country_abbr"),
+                    "position": ent.get("position"),
+                    "price_millions": ent.get("price_millions"),
+                }
+            return {"player_id": int(pid)}
+
         payload["transfer"] = {
             "from": str(args.from_json),
             "rolled_over_free_transfers": args.rolled_over,
@@ -218,11 +256,13 @@ def main() -> None:
                 None if config.free_transfers is None
                 else (config.free_transfers + args.rolled_over)
             ),
-            "transfers_in": transfer.transfers_in,
-            "transfers_out": transfer.transfers_out,
             "n_transfers": transfer.n_transfers,
             "n_extra_transfers": transfer.n_extra_transfers,
             "transfer_cost_points": transfer.transfer_cost_points,
+            "transfers_in": transfer.transfers_in,
+            "transfers_out": transfer.transfers_out,
+            "transfers_in_detail": [_detail_in(pid) for pid in transfer.transfers_in],
+            "transfers_out_detail": [_detail_out(pid) for pid in transfer.transfers_out],
         }
     json_path.write_text(json.dumps(payload, indent=2))
 
@@ -245,6 +285,7 @@ def main() -> None:
         round_predictions=squad_in_round,
         target_round=first_round,
         transfer=transfer,
+        transfers_out_detail=payload.get("transfer", {}).get("transfers_out_detail"),
     ))
 
     print(f"json  {json_path}")

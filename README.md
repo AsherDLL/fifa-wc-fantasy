@@ -20,6 +20,62 @@ labels to the training set and retrain on `EPL + WC_so_far`. That is a
 some teams; the live retrain pipeline below automates the append-and-
 refit loop.
 
+## Approaches available
+
+Three predictor backends. Each maps the per-(player, round) feature
+table into a `predicted_points` column for the full squad (not partial,
+not captain-only). Full write-up in [`docs/approaches.md`](./docs/approaches.md).
+
+| Backend | Idea | Trained on | When to use |
+|---|---|---|---|
+| `heuristic` (default) | position_coef x price x matchup x home, with a small premium-tier knob | nothing | conservative, transparent, the right call for MD1 submission |
+| `gbm` | LightGBM mean + q10/q50/q90 per position | one full season of Premier League FPL | experimental; underperforms the heuristic pre-tournament because EPL patterns do not perfectly carry to the WC. Refit with `--include-wc` once MD1 data lands |
+| `poisson` | structural Poisson goals: team xG, per-position goal/assist share, clean-sheet probability | nothing | independent of price and of EPL; a useful third opinion when the heuristic and the GBM disagree |
+
+Pick a backend on the model CLI:
+
+```bash
+python -m fifa_fantasy.model                    # default: heuristic
+python -m fifa_fantasy.model --backend gbm      # LightGBM
+python -m fifa_fantasy.model --backend poisson  # structural goals
+python -m fifa_fantasy.optimizer                # consumes the latest predictions, whichever backend wrote them
+```
+
+The backend is stamped into the predictions Parquet, the recommendation
+filename, the JSON `model_backend` field, and the first lines of the
+markdown report. There is no ambiguity about which approach produced a
+given recommendation.
+
+## Browsing results
+
+After running the optimizer one or more times, generate a static HTML
+report and open it locally:
+
+```bash
+python -m fifa_fantasy.web      # writes results/index.html
+```
+
+To open it in a browser (Linux Mint / Ubuntu):
+
+```bash
+xdg-open results/index.html
+```
+
+On macOS:
+
+```bash
+open results/index.html
+```
+
+On any OS you can also paste this into the address bar:
+`file:///opt/fifa_wc_fantasy/results/index.html` (adjust the path to
+match your clone).
+
+The HTML page lists every recommendation under `results/` with stage,
+backend, host, formation, expected points, and a collapsible squad
+table. Direct links to the underlying `.json` and `.md`. No web
+server, no Docker; just a file you open.
+
 ## Status
 
 | Phase | What it does | State |
@@ -30,6 +86,7 @@ refit loop.
 | 2 Features | Per-(player, round) table with rest days and matchup signal | done |
 | 3a Predictor | Heuristic, price-coef x matchup x home, with optional premium tilt | done |
 | 3b Predictor | LightGBM mean + q10/q50/q90 per position, trained on one EPL FPL season | done (opt-in via `--backend gbm`) |
+| 3c Predictor | Structural Poisson goals: team xG, per-position share, clean sheets | done (opt-in via `--backend poisson`) |
 | 4 Optimizer | PuLP MILPs: squad, transfer with -3 hit, lineup + captain | done |
 | 4.5 Polish | `--compare-to`, `--report-alternatives`, `oneToWatch` flag | done |
 | 4.7 Strength | FIFA World Ranking blended into the matchup multiplier | done |

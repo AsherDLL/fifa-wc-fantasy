@@ -1,3 +1,9 @@
+# Recommendation
+
+- stage: GROUP_MD1
+- backend: gbm
+- generated_at_utc: 2026-06-08T05:02:56+00:00
+
 | Role | Player | Cty | Pos | Price | Own% | Opp | R1 E[pts] |
 |---|---|---|---|---|---|---|---|
 | Start | Dean Henderson | ENG | GK | $4.2M | 0.3% | vs CRO | 4.25 |

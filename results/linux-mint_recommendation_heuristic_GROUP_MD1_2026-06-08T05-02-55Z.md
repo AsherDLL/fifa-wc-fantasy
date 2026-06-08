@@ -1,3 +1,9 @@
+# Recommendation
+
+- stage: GROUP_MD1
+- backend: heuristic
+- generated_at_utc: 2026-06-08T05:02:55+00:00
+
 | Role | Player | Cty | Pos | Price | Own% | Opp | R1 E[pts] |
 |---|---|---|---|---|---|---|---|
 | Start | Manuel Neuer | GER | GK | $5.0M | 12.7% | vs CUW | 3.61 |

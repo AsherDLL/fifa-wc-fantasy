@@ -1,7 +1,8 @@
 {
   "stage": "GROUP_MD1",
+  "model_backend": "heuristic",
   "host": "linux-mint",
-  "generated_at_utc": "2026-06-08T04:16:43+00:00",
+  "generated_at_utc": "2026-06-08T05:02:55+00:00",
   "horizon_rounds": [
     1,
     2,
