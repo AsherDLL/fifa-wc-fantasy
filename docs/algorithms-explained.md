@@ -39,6 +39,21 @@ points per row. Lower is better.
 
 ### 1. Heuristic (the default in this project)
 
+The word "heuristic" comes from the Greek `heuriskein`, "to find"
+(same root as "eureka"). It is the standard name for a hand-written
+rule of thumb: a fast, transparent formula built from domain
+knowledge rather than from a probabilistic derivation or from
+learning on labelled data. Heuristics are the right tool when an
+exact answer is unavailable or unaffordable; they trade optimality
+for clarity and speed.
+
+The same idea is sometimes called any of: baseline model
+(the file is `baseline.py` for this reason), rule-based predictor,
+hand-crafted formula, closed-form predictor, parametric formula,
+expert-system rule. In Fantasy Premier League community discussion
+you may see "points-per-million model"; that is the simplest version
+of the same idea.
+
 A formula. Not learnt from data; written down by hand. The full
 expression lives in `src/fifa_fantasy/model/baseline.py`:
 
