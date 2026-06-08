@@ -71,6 +71,8 @@ class RawPlayer(BaseModel):
     price: float
     status: str
     percentSelected: float
+    oneToWatch: bool = False
+    oneToWatchText: str | None = None
 
 
 class RawFixture(BaseModel):
@@ -130,6 +132,8 @@ class Player(BaseModel):
     ownership_fraction: float  # 0.0–1.0 (API returns percent; we divide by 100)
     status: str  # raw API value: "playing", "transferred", …
     is_eliminated: bool
+    one_to_watch: bool = False
+    one_to_watch_text: str | None = None
 
 
 class Fixture(BaseModel):

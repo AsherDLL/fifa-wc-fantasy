@@ -72,6 +72,8 @@ def parse_players(
                 ownership_fraction=raw.percentSelected / 100.0,
                 status=raw.status,
                 is_eliminated=squad.is_eliminated,
+                one_to_watch=raw.oneToWatch,
+                one_to_watch_text=raw.oneToWatchText,
             )
         )
     return players

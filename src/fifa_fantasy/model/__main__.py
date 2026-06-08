@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .baseline import heuristic_predict
+from .baseline import DEFAULT_PREMIUM_BOOST, heuristic_predict
 
 DEFAULT_DIR = Path("data/processed")
 
@@ -28,10 +28,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="fifa_fantasy.model")
     parser.add_argument("--features-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
+    parser.add_argument(
+        "--premium-boost",
+        type=float,
+        default=DEFAULT_PREMIUM_BOOST,
+        help=("non-linear ceiling for £9M+ players (default 0.0). "
+              "Try 0.3–0.6 to tilt the optimizer toward premium picks."),
+    )
     args = parser.parse_args()
 
     features = pd.read_parquet(_latest(args.features_dir, "features"))
-    predictions = heuristic_predict(features)
+    predictions = heuristic_predict(features, premium_boost=args.premium_boost)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")

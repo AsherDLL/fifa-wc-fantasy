@@ -312,3 +312,48 @@ deterministic and per-user.
 group-stage rounds. The system has no memory of what you actually used,
 so the user supplies it. Simpler than tracking transfer history in
 state.
+
+
+## 2026-06-08 — Phase 4.5 pre-lockout polish
+
+### `oneToWatch` surfaced but not weighted
+
+**Decision.** Added `one_to_watch` and `one_to_watch_text` to the collector
+schema, propagated through features/predictions, rendered as a ⭐ next to
+the player name in the report. NOT used as a weighted feature.
+
+**Why.** It's FIFA's curation, not ours, and they hadn't populated any
+flags as of 2026-06-08. Surfacing it costs nothing; weighting it without
+knowing how FIFA chooses risks double-counting against our own signals.
+Revisit once we see how the flag actually moves.
+
+### `--premium-boost` as a single linear knob
+
+**Decision.** The premium-player tilt is `boost × max(0, price − 9.0)`,
+added after the existing matchup/home multipliers. One scalar, one
+threshold constant. Default 0.0 preserves the original heuristic exactly.
+
+**Why.** Resists the temptation to ship a "real model" without data. The
+linear-above-threshold form gives a clean answer to "what would happen
+if I cared more about £10M+ players" without inventing curvature. A
+single user-facing scalar is easier to reason about than a position-by-
+position table of coefficients.
+
+### `--compare-to` as a separate flag from `--from`
+
+**Decision.** `--compare-to` only diffs; `--from` triggers the transfer
+MILP. Both can be passed together (transfer-plan AND diff).
+
+**Why.** Different decisions. Pre-lockout you re-solve fresh every day
+and want to see what shifted (compare-to). Mid-tournament you have a
+real squad and want the cheapest move to next round (from + compare-to).
+
+### Daily script lives in `scripts/`, not invokable as a Python module
+
+**Decision.** `scripts/daily-snapshot.sh` chains the four module CLIs.
+Environment variables for `STAGE` and `PREMIUM_BOOST`. Computes
+yesterday's path itself and falls back gracefully if absent.
+
+**Why.** Bash is the right shape for a chain-of-commands wrapper. Cron
+calls it directly without a Python startup. Anyone reading it sees
+exactly what runs.

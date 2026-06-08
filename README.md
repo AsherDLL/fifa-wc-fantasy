@@ -89,6 +89,23 @@ python -m fifa_fantasy.optimizer --stage R16
 # Plan transfers from a previous-round recommendation
 python -m fifa_fantasy.optimizer --stage GROUP_MD2 \
     --from results/<host>_recommendation_GROUP_MD1_<date>.json
+
+# Daily pre-lockout refresh: alternatives section + diff vs yesterday
+python -m fifa_fantasy.optimizer --report-alternatives \
+    --compare-to results/<host>_recommendation_GROUP_MD1_<yesterday>.json
+```
+
+Premium-tier knob on the predictor (default 0.0):
+
+```bash
+python -m fifa_fantasy.model --premium-boost 0.4   # tilt toward £9M+ players
+```
+
+One-shot daily wrapper:
+
+```bash
+./scripts/daily-snapshot.sh                        # collector → features → model → optimizer
+PREMIUM_BOOST=0.4 ./scripts/daily-snapshot.sh
 ```
 
 See [`docs/optimizer.md`](./docs/optimizer.md) for the MILP formulation

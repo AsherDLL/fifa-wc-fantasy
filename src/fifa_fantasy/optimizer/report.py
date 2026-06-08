@@ -65,15 +65,19 @@ def render_markdown(
             return "Start"
         return f"Bench {bench_pos[pid]}"
 
+    has_otw = "one_to_watch" in players.columns
     rows = []
     for pid in squad_player_ids:
         p = players.loc[pid]
         r = round_idx.loc[pid]
+        name = p["full_name"]
+        if has_otw and bool(p.get("one_to_watch", False)):
+            name = name + " ⭐"
         rows.append({
             "_pos_sort": POSITION_ORDER[p["position"]],
             "_md_pred": float(r["predicted_points"]),
             "Role": role(pid),
-            "Player": p["full_name"],
+            "Player": name,
             "Cty": p["country_abbr"],
             "Pos": p["position"],
             "Price": f"${float(p['price_millions']):.1f}M",

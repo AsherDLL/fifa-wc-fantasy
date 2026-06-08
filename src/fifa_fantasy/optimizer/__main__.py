@@ -25,6 +25,8 @@ import pandas as pd
 
 from fifa_fantasy.collector.schemas import Stage
 
+from .alternatives import render_alternatives_markdown
+from .compare import diff as diff_recommendation, render_diff_markdown
 from .pipeline import aggregate_to_player, apply_scouting_bonus
 from .report import render_markdown
 from .solvers import (
@@ -70,6 +72,10 @@ def main() -> None:
                         help="rolled-over free transfers from the prior round")
     parser.add_argument("--predictions-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_RESULTS_DIR)
+    parser.add_argument("--compare-to", dest="compare_to", type=Path, default=None,
+                        help="diff against this previous recommendation JSON")
+    parser.add_argument("--report-alternatives", action="store_true",
+                        help="add captain candidates / squad depth / swap-risk section")
     args = parser.parse_args()
 
     stage = Stage(args.stage)
@@ -181,7 +187,13 @@ def main() -> None:
         }
     json_path.write_text(json.dumps(payload, indent=2))
 
-    md_path.write_text(render_markdown(
+    md_player_cols = ["player_id", "full_name", "position", "country",
+                      "country_abbr", "price_millions", "ownership_fraction"]
+    if "one_to_watch" in predictions.columns:
+        md_player_cols.append("one_to_watch")
+    players_for_report = predictions[md_player_cols].drop_duplicates("player_id")
+
+    body = render_markdown(
         stage=stage.value,
         horizon_rounds=list(horizon),
         budget_used=budget_used,
@@ -194,13 +206,45 @@ def main() -> None:
         bench_ids_priority_order=lineup.bench_ids,
         captain_id=lineup.captain_id,
         vice_captain_id=lineup.vice_captain_id,
-        players=predictions[["player_id", "full_name", "position", "country",
-                             "country_abbr", "price_millions",
-                             "ownership_fraction"]].drop_duplicates("player_id"),
+        players=players_for_report,
         round_predictions=squad_in_round,
         target_round=first_round,
         transfer=transfer,
-    ))
+    )
+
+    if args.report_alternatives:
+        body += render_alternatives_markdown(
+            squad_round=squad_in_round,
+            starter_ids=lineup.starter_ids,
+            captain_id=lineup.captain_id,
+        )
+
+    if args.compare_to is not None:
+        d = diff_recommendation(
+            previous_path=args.compare_to,
+            new_squad_ids=chosen_ids,
+            new_starter_ids=lineup.starter_ids,
+            new_captain_id=lineup.captain_id,
+            new_formation=lineup.formation,
+            new_xi_expected=lineup.objective,
+        )
+        body += render_diff_markdown(d, players_for_report)
+        print()
+        print(f"--- diff vs {args.compare_to.name} ---")
+        if not (d.squad_in or d.squad_out or d.captain_changed
+                or d.formation_changed):
+            print("  no changes")
+        else:
+            if d.squad_in or d.squad_out:
+                print(f"  squad: OUT {len(d.squad_out)}, IN {len(d.squad_in)}")
+            if d.captain_changed:
+                print("  captain changed")
+            if d.formation_changed:
+                print(f"  formation {d.previous_formation} → {d.new_formation}")
+            sign = "+" if d.md1_expected_delta >= 0 else ""
+            print(f"  R{first_round} expected delta: {sign}{d.md1_expected_delta:.2f}")
+
+    md_path.write_text(body)
     print(f"\nrecommendation written → {json_path}")
     print(f"report written         → {md_path}")
 
