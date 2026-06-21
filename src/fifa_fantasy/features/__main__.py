@@ -19,6 +19,11 @@ import pandas as pd
 
 from fifa_fantasy.collector.rankings import DEFAULT_PATH as RANKINGS_PATH
 from fifa_fantasy.collector.rankings import load_rankings
+from fifa_fantasy.external.international_elo import (
+    DEFAULT_OUTPUT as COUNTRY_ELO_PATH,
+    load as load_country_elo,
+)
+from fifa_fantasy.external.mapping import to_fifa_country
 
 from .build import build_player_round_features
 from .squad import squad_strength
@@ -40,6 +45,8 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--rankings", type=Path, default=RANKINGS_PATH,
                         help="path to FIFA ranking CSV (data/static/fifa_rankings.csv)")
+    parser.add_argument("--country-elo", type=Path, default=COUNTRY_ELO_PATH,
+                        help="country Elo snapshot (run `python -m fifa_fantasy.external` first)")
     args = parser.parse_args()
 
     players = pd.read_parquet(_latest(args.raw_dir, "players"))
@@ -49,9 +56,15 @@ def main() -> None:
     # as ISO strings. Restore tz-aware datetime for time-delta arithmetic.
     fixtures["kickoff"] = pd.to_datetime(fixtures["kickoff"], utc=True)
     rankings = load_rankings(args.rankings)
+    country_elo = load_country_elo(args.country_elo)
+    if not country_elo.empty:
+        country_elo = country_elo.copy()
+        country_elo["country_name"] = country_elo["country_name"].map(to_fifa_country)
 
     strength = squad_strength(players, squads, rankings=rankings)
-    features = build_player_round_features(players, fixtures, strength)
+    features = build_player_round_features(
+        players, fixtures, strength, country_elo=country_elo,
+    )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")

@@ -5,28 +5,28 @@
       "n": 180,
       "heuristic_rmse": 2.698005317776449,
       "poisson_rmse": 2.503425768648967,
-      "gbm_rmse": 2.710372588387728
+      "gbm_rmse": 2.649654122382129
     },
     {
       "position": "DEF",
       "n": 910,
       "heuristic_rmse": 3.1412832560268797,
       "poisson_rmse": 3.400080218852366,
-      "gbm_rmse": 3.2973173880523934
+      "gbm_rmse": 3.187389406943438
     },
     {
       "position": "MID",
       "n": 1228,
       "heuristic_rmse": 2.8738316356757125,
       "poisson_rmse": 4.371036652211807,
-      "gbm_rmse": 2.8984403521662983
+      "gbm_rmse": 2.766783448558025
     },
     {
       "position": "FWD",
       "n": 368,
       "heuristic_rmse": 3.5145170566912753,
       "poisson_rmse": 4.560273121366268,
-      "gbm_rmse": 3.2810977577046794
+      "gbm_rmse": 3.1530448204370343
     }
   ]
 }

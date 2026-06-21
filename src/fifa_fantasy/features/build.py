@@ -112,15 +112,54 @@ def _attach_opponent_strength(
     return grid.merge(opp, on="opponent_squad_id", how="left")
 
 
+def _attach_country_elo(grid: pd.DataFrame, country_elo: pd.DataFrame) -> pd.DataFrame:
+    """Join the international Elo snapshot onto both own and opponent country.
+
+    `country_elo` is whatever `external.international_elo.load()` returned,
+    with `country_name` translated to the FIFA Fantasy `country` field via
+    `external.mapping.to_fifa_country`. An empty frame leaves all elo
+    columns NaN, which the heuristic and GBM both tolerate.
+    """
+    if country_elo is None or country_elo.empty:
+        for c in ("country_elo", "opp_country_elo", "country_elo_diff",
+                  "country_last10_form", "opp_country_last10_form"):
+            grid[c] = pd.NA
+        return grid
+    snap = country_elo[["country_name", "elo", "last10_form"]].copy()
+    snap = snap.rename(columns={
+        "country_name": "country",
+        "elo": "country_elo",
+        "last10_form": "country_last10_form",
+    })
+    grid = grid.merge(snap, on="country", how="left")
+    opp = snap.rename(columns={
+        "country": "opponent_name",
+        "country_elo": "opp_country_elo",
+        "country_last10_form": "opp_country_last10_form",
+    })
+    grid = grid.merge(opp, on="opponent_name", how="left")
+    grid["country_elo_diff"] = (
+        pd.to_numeric(grid["country_elo"], errors="coerce")
+        - pd.to_numeric(grid["opp_country_elo"], errors="coerce")
+    )
+    return grid
+
+
 def build_player_round_features(
     players: pd.DataFrame,
     fixtures: pd.DataFrame,
     squad_strength: pd.DataFrame,
+    country_elo: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Return one row per (player, upcoming round in which their squad plays).
 
     Inner-joins players to fixtures, so eliminated or rest-day squads have
     no rows for the rounds they're sitting out.
+
+    `country_elo` is the optional output of
+    `external.international_elo.load()` after country-name normalization.
+    When supplied, the grid gets `country_elo`, `opp_country_elo`,
+    `country_elo_diff`, and the last-10 form columns. None / empty is fine.
     """
     fix_long = flatten_fixtures(fixtures)
 
@@ -139,5 +178,6 @@ def build_player_round_features(
         pd.to_numeric(grid["squad_rank_points"], errors="coerce")
         - pd.to_numeric(grid["opp_squad_rank_points"], errors="coerce")
     )
+    grid = _attach_country_elo(grid, country_elo)
     grid = _attach_rest_days(grid)
     return grid.reset_index(drop=True)

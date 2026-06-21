@@ -39,6 +39,18 @@ def parse_squads(payload: list[dict[str, Any]]) -> list[Squad]:
     return squads
 
 
+def _round_points(rp: list[int] | dict[str, int]) -> list[int]:
+    # Pre-WC the API returned []. Once the tournament started it switched
+    # to {"1": 7, "2": 0, ...}. Normalize to a list ordered by round id so
+    # downstream code sees a stable shape.
+    if isinstance(rp, dict):
+        if not rp:
+            return []
+        max_round = max(int(k) for k in rp.keys())
+        return [int(rp.get(str(i), 0)) for i in range(1, max_round + 1)]
+    return list(rp)
+
+
 def _full_name(raw: RawPlayer) -> str:
     if raw.knownName:
         return raw.knownName
@@ -77,7 +89,7 @@ def parse_players(
                 total_points=raw.stats.totalPoints,
                 last_round_points=raw.stats.lastRoundPoints,
                 form=raw.stats.form,
-                round_points=list(raw.stats.roundPoints),
+                round_points=_round_points(raw.stats.roundPoints),
             )
         )
     return players

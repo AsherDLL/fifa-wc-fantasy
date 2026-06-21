@@ -30,6 +30,11 @@ BASE_TEAM_XG = 1.30                 # expected goals for a typical WC team per m
 HOME_XG_BOOST = 0.10                # +10% xG for home side
 RANK_DIFF_SLOPE_XG = 1.0 / 800.0    # 800 ranking points ~ 1.0x swing
 PRICE_DIFF_SLOPE_XG = 1.0 / 6.0     # 6.0M price diff ~ 1.0x swing
+# Elo's natural log-odds scale: 400 Elo = 10x odds. A 400-Elo gap should
+# move team xG roughly 1.0x (matchup factor e^1 ~ 2.7), matching what the
+# FIFA-rank slope produced for top-vs-bottom WC fixtures. Elo data is a
+# live, derived signal so it takes precedence over rank_diff when present.
+ELO_DIFF_SLOPE_XG = 1.0 / 400.0
 
 # Per-position share of own-team expected goals (rough WC consensus).
 GOAL_SHARE = {"GK": 0.0, "DEF": 0.10, "MID": 0.30, "FWD": 0.50}
@@ -65,14 +70,24 @@ def _team_xg(features: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     top-11 price gap into a multiplicative factor; the home side gets a
     small boost.
     """
-    rank_diff = pd.to_numeric(features.get("rank_diff"), errors="coerce") \
-        if "rank_diff" in features.columns else pd.Series(np.nan, index=features.index)
     price_diff = features["strength_diff"].astype(float).to_numpy()
 
-    # NaN-safe rank component.
-    rank_arr = np.where(np.isnan(rank_diff), 0.0, rank_diff)
-    matchup = (rank_arr * RANK_DIFF_SLOPE_XG
-               + price_diff * PRICE_DIFF_SLOPE_XG)
+    # National-team strength: prefer Elo (live, real matches) over FIFA
+    # ranking (static snapshot). When neither is present (EPL training),
+    # the price component carries the matchup signal.
+    elo_diff = pd.to_numeric(features.get("country_elo_diff"), errors="coerce") \
+        if "country_elo_diff" in features.columns else pd.Series(np.nan, index=features.index)
+    rank_diff = pd.to_numeric(features.get("rank_diff"), errors="coerce") \
+        if "rank_diff" in features.columns else pd.Series(np.nan, index=features.index)
+    elo_arr = np.asarray(elo_diff, dtype=float)
+    rank_arr = np.asarray(rank_diff, dtype=float)
+    has_elo = ~np.isnan(elo_arr)
+    has_rank = ~np.isnan(rank_arr)
+    strength_component = np.where(
+        has_elo, np.nan_to_num(elo_arr) * ELO_DIFF_SLOPE_XG,
+        np.where(has_rank, np.nan_to_num(rank_arr) * RANK_DIFF_SLOPE_XG, 0.0),
+    )
+    matchup = strength_component + price_diff * PRICE_DIFF_SLOPE_XG
     # Map matchup to a multiplicative factor centred on 1.0. Clipping the
     # exponent keeps the predictions sane at the extremes (e.g. France
     # vs Curacao).

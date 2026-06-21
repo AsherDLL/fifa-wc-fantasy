@@ -46,16 +46,22 @@ POINTS_PER_PRICE_UNIT: dict[Position, float] = {
 # tanh(x / 2) saturates by |x|=5 so the matchup adjustment caps at ±alpha.
 # Strength signals. The price-based `strength_diff` ranges roughly +/-3 across
 # the field; the FIFA ranking `rank_diff` is in ranking points (roughly
-# +/-700 across the field). Scales normalize both to a comparable z-like range
-# before blending.
+# +/-700 across the field). country_elo_diff (post-MD1 of WC 2026) ranges
+# roughly +/-480 Elo points (Argentina vs Curaçao at the extreme). Scales
+# normalize all signals to a comparable z-like range before blending.
 STRENGTH_DIFF_SCALE = 2.0
 RANK_DIFF_SCALE = 250.0
+# Elo's natural scale: 400 points means 10x odds. Using 400 keeps the same
+# semantic distance ("one tier above") as the rank scale.
+ELO_DIFF_SCALE = 400.0
 
-# Blend weights for the two strength signals. Default tilts toward the FIFA
-# ranking since it tracks national-team form, where the price proxy tracks
-# club-league quality. Both signals normalize to roughly +/-1 at saturation.
+# Blend weights for the two strength signals. Default tilts toward national-
+# team strength (Elo when available, FIFA ranking as fallback) since it tracks
+# international form, where the price proxy tracks club-league quality.
 PRICE_SIGNAL_WEIGHT = 0.35
-RANK_SIGNAL_WEIGHT = 0.65
+STRENGTH_SIGNAL_WEIGHT = 0.65
+# Backwards-compat alias used by older callers; same value.
+RANK_SIGNAL_WEIGHT = STRENGTH_SIGNAL_WEIGHT
 
 # Matchup saturation. Bumped to +/-40% so a top-vs-bottom matchup carries real
 # weight; the previous 25% was too conservative.
@@ -78,23 +84,36 @@ def _position_coef(value: object) -> float:
 
 
 def _combined_matchup_z(features: pd.DataFrame) -> np.ndarray:
-    """Blend the price-based and ranking-based strength signals.
+    """Blend price-based and national-team strength signals.
 
-    NaN-safe for `rank_diff`: rows without a FIFA ranking get the full
-    matchup weight on the price signal so they degrade gracefully.
+    Priority: country_elo_diff (rolled from real international results) >
+    rank_diff (static FIFA ranking snapshot) > price-only. Rows missing the
+    higher-priority signal fall back to the next one.
     """
     z_price = features["strength_diff"].astype(float).to_numpy() / STRENGTH_DIFF_SCALE
+
+    elo_raw = pd.to_numeric(features.get("country_elo_diff"), errors="coerce") \
+        if "country_elo_diff" in features.columns else pd.Series(
+            [pd.NA] * len(features), dtype="Float64"
+        )
+    z_elo = elo_raw.to_numpy(dtype=float) / ELO_DIFF_SCALE
+    has_elo = ~pd.isna(elo_raw).to_numpy()
+
     rank_raw = pd.to_numeric(features.get("rank_diff"), errors="coerce") \
         if "rank_diff" in features.columns else pd.Series(
             [pd.NA] * len(features), dtype="Float64"
         )
-    z_rank = rank_raw.to_numpy(dtype=float) / RANK_DIFF_SCALE  # NaN preserved
+    z_rank = rank_raw.to_numpy(dtype=float) / RANK_DIFF_SCALE
     has_rank = ~pd.isna(rank_raw).to_numpy()
 
+    # Pick the best available strength z-score per row.
+    z_strength = np.where(has_elo, z_elo, np.where(has_rank, z_rank, 0.0))
+    has_strength = has_elo | has_rank
+
     blended = np.where(
-        has_rank,
-        PRICE_SIGNAL_WEIGHT * z_price + RANK_SIGNAL_WEIGHT * z_rank,
-        z_price,  # fall back to full-weight price when rank is missing
+        has_strength,
+        PRICE_SIGNAL_WEIGHT * z_price + STRENGTH_SIGNAL_WEIGHT * z_strength,
+        z_price,  # no strength signal at all -> full weight on price
     )
     return blended
 

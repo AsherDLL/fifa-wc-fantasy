@@ -66,7 +66,10 @@ class RawPlayerStats(BaseModel):
     avgPoints: float = 0.0
     form: float = 0.0
     lastRoundPoints: int = 0
-    roundPoints: list[int] = []
+    # API switched mid-tournament: pre-WC this was [], post-WC it became a
+    # dict like {"1": 7} keyed by round id. Accept either; the parser
+    # flattens it into a list indexed by round position.
+    roundPoints: list[int] | dict[str, int] = []
 
 
 class RawPlayer(BaseModel):

@@ -23,6 +23,13 @@ data/processed/*.parquet
 !data/processed/features_2026-06-08.parquet
 !data/processed/predictions_2026-06-08.parquet
 
+# External raw caches (regenerable via `python -m fifa_fantasy.external`)
+data/external/cache/
+data/external/football_data/
+
+# Generated dashboards (per-run output)
+results/*.html
+
 # Editor
 .vscode/
 .idea/

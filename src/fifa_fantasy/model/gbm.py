@@ -50,6 +50,12 @@ FEATURE_COLUMNS = [
     "squad_top_n_avg_price",
     "opp_squad_top_n_avg_price",
 ]
+# team_elo_diff was tested as a sixth feature (v3 candidate). With a
+# deterministic A/B on EPL 2024-25 GW 30-38: GK -0.018, MID -0.019 (better);
+# DEF +0.033, FWD +0.015 (worse). Net wash; the extra feature risks
+# distribution shift to international Elo gaps (much larger than EPL gaps)
+# at WC inference, so v3 was not shipped. The data and column live on for
+# the heuristic and Poisson backends, where the signal is consumed directly.
 
 
 @dataclass(frozen=True)
@@ -79,6 +85,15 @@ def _shared_params(cfg: TrainConfig) -> dict:
         "bagging_freq": cfg.bagging_freq,
         "verbose": cfg.verbose,
         "force_row_wise": True,
+        # Determinism: without this, bagging RNG drifts run-to-run and the
+        # held-out RMSE wobbles ~0.05 per position; that masks small
+        # feature-engineering gains. Same seed across heads is fine; the
+        # heads have different objectives so they still learn different
+        # trees.
+        "seed": 42,
+        "bagging_seed": 42,
+        "feature_fraction_seed": 42,
+        "deterministic": True,
     }
 
 

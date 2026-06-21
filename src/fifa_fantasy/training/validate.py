@@ -76,7 +76,7 @@ def evaluate(
     train_t = build_training_table(train_df)
     holdout_t = build_training_table(holdout_df)
 
-    cfg = TrainConfig(n_estimators=400, learning_rate=0.05)
+    cfg = TrainConfig()  # use the shipped defaults; tune.py sweeps to find them
     models = train_all(train_t, cfg)
 
     # Build the inference-side feature frame holdout_t already has the

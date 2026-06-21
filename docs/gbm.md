@@ -69,10 +69,33 @@ training. RMSE per position (lower is better):
 
 | Pos | n | heuristic | poisson | gbm-v1 | gbm-v2 |
 |---|---|---|---|---|---|
-| GK | 180 | 2.698 | 2.503 | 2.710 | 2.645 |
-| DEF | 910 | 3.141 | 3.400 | 3.297 | 3.195 |
-| MID | 1228 | 2.874 | 4.371 | 2.898 | 2.795 |
-| FWD | 368 | 3.515 | 4.560 | 3.281 | 3.160 |
+| GK | 180 | 2.698 | 2.503 | 2.710 | 2.650 |
+| DEF | 910 | 3.141 | 3.400 | 3.297 | 3.187 |
+| MID | 1228 | 2.874 | 4.371 | 2.898 | 2.767 |
+| FWD | 368 | 3.515 | 4.560 | 3.281 | 3.153 |
+
+(GBM v2 numbers above are the deterministic-seed reproduction; pre-seed
+runs floated within ±0.05 due to LightGBM bagging RNG.)
+
+### GBM v3 candidate — rejected
+
+A v3 candidate was tested with an additional `team_elo_diff` feature
+(club Elo from football-data.co.uk during training, country Elo from
+martj42 during WC inference). Same hyperparameters, deterministic seed:
+
+| Pos | v2 | v3 with team_elo_diff | Δ |
+|---|---|---|---|
+| GK | 2.650 | 2.632 | -0.018 (better) |
+| DEF | 3.187 | 3.221 | +0.034 (worse) |
+| MID | 2.767 | 2.748 | -0.019 (better) |
+| FWD | 3.153 | 3.168 | +0.015 (worse) |
+
+Net: roughly a wash on EPL (±1%). The new feature also introduces
+distribution-shift risk at WC inference — country-Elo gaps span
+~480 points (Argentina 2072 vs Curaçao 1592), well outside the EPL
+club-Elo range the GBM was trained on. v3 was not shipped. The Elo
+columns are still produced for the heuristic and Poisson backends,
+which consume the signal directly without distribution-shift risk.
 
 GBM-v1 is the single-season-EPL default-config model. GBM-v2 is the
 shipped configuration: three seasons (2022-23, 2023-24, 2024-25 minus
