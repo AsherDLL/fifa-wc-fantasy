@@ -1,0 +1,25 @@
+{
+  "round_id": 3,
+  "stage": "GROUP_MD3",
+  "squad_player_ids": [45, 523, 1264, 2053, 248, 1226, 517, 501, 38, 531, 804, 1523, 1711, 2000, 1338],
+  "starter_ids":     [45, 523, 1264, 2053, 248, 1226, 517, 501, 38, 531, 804],
+  "captain_id": 38,
+  "vice_captain_id": 517,
+  "formation": "5-2-3",
+  "transfer_cost_points": 6,
+  "realised_total_pts": 42,
+  "notes": "Multiple transfers exceeded free quota; took a -6 point penalty (2 extra transfers at -3 each). Brought in Freeman (USA), Munoz (COL), Araujo (URU), Messi (ARG captain) and Undav (GER). User flagged Uruguay was eliminated which made Araujo a poor decision in hindsight. Many teams rested starters in clinched-group MD3, which the model did not predict; the -6 hit returned roughly +1 on realised data.",
+  "player_names": {
+    "45": "Emiliano Martinez (ARG GK)",
+    "523": "Jonathan Tah (GER DEF)",
+    "1264": "Alexander Freeman (USA DEF)",
+    "2053": "Willian Pacho (ECU DEF)",
+    "248": "Daniel Munoz (COL DEF)",
+    "1226": "Ronald Araujo (URU DEF)",
+    "517": "Michael Olise (FRA MID VICE)",
+    "501": "Ousmane Dembele (FRA MID)",
+    "38": "Lionel Messi (ARG FWD CAPTAIN)",
+    "531": "Deniz Undav (GER FWD)",
+    "804": "Cody Gakpo (NED FWD)"
+  }
+}

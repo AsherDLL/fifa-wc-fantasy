@@ -24,12 +24,14 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 06 | [implementation.md](sections/06_implementation.md) | Implementation & architecture | DRAFT |
 | 07 | [validation.md](sections/07_validation.md) | Held-out validation | DRAFT |
 | 08 | [live_results.md](sections/08_live_results.md) | Live tournament results | DRAFT |
+| 08b | [cross_model_backtest.md](sections/08b_cross_model_backtest.md) | Cross-model retrospective backtest | DRAFT |
 | 09 | [analysis.md](sections/09_analysis.md) | Critical analysis | DRAFT |
 | 09b | [gk_insight.md](sections/09b_gk_insight.md) | The goalkeeper paradox (Dibu vs Rangel) | DRAFT |
 | 09c | [gk_formula_evolution.md](sections/09c_gk_formula_evolution.md) | GK save-bonus formula: v1 flat, v2 empirically tuned (0.50) | DRAFT |
 | 10 | [lessons.md](sections/10_lessons.md) | Lessons learned | DRAFT |
 | 11 | [future_work.md](sections/11_future_work.md) | Better approaches & future work | DRAFT |
 | 11b | [innovation_roadmap.md](sections/11b_innovation_roadmap.md) | Innovation roadmap: prediction markets (Polymarket/Kalshi) | DRAFT |
+| 11c | [monte_carlo_and_benter_separation.md](sections/11c_monte_carlo_and_benter_separation.md) | Monte Carlo simulator + Benter separation architecture | DRAFT |
 | 12 | [conclusion.md](sections/12_conclusion.md) | Conclusion | TODO |
 | 13 | [references.bib.md](sections/13_references.bib.md) | References (BibTeX-ready) | DRAFT |
 | AA | [appendix.md](sections/AA_appendix.md) | Appendix: model artefacts | DRAFT |

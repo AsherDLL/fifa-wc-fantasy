@@ -1,0 +1,26 @@
+{
+  "round_id": 2,
+  "stage": "GROUP_MD2",
+  "squad_player_ids": [45, 1709, 2053, 523, 521, 505, 57, 517, 501, 804, 1338, 1523, 918, 1711, 2000],
+  "starter_ids":     [45, 1709, 2053, 523, 521, 505, 57, 517, 501, 804, 1338],
+  "captain_id": 517,
+  "vice_captain_id": 501,
+  "formation": "4-4-2",
+  "transfer_cost_points": 0,
+  "realised_total_pts": 84,
+  "user_stated_pts": 102,
+  "notes": "No transfers used. Captain Olise (9 raw -> 18 captained). The MD1 to MD2 captain swap from Lautaro to Olise was the largest single decision of the group stage; based on D. Guajardo's read on Olise form vs the model's preference for Lautaro retention. NOTE: user initially stated 102 points but the backtest against realised round_points showed 84. The 18-point gap may reflect a captain-doubling or auto-sub the user misremembered. We use 84 (realised) for the paper's accuracy tables.",
+  "player_names": {
+    "45": "Emiliano Martinez (ARG GK)",
+    "1709": "Reece James (ENG DEF)",
+    "2053": "Willian Pacho (ECU DEF)",
+    "523": "Jonathan Tah (GER DEF)",
+    "521": "David Raum (GER DEF)",
+    "505": "Desire Doue (FRA MID)",
+    "57": "Enzo Fernandez (ARG MID)",
+    "517": "Michael Olise (FRA MID CAPTAIN)",
+    "501": "Ousmane Dembele (FRA MID VICE)",
+    "804": "Cody Gakpo (NED FWD)",
+    "1338": "Lautaro Martinez (ARG FWD)"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "round_id": 4,
+  "stage": "R32",
+  "squad_player_ids": [757, 76, 1086, 1088, 248, 916, 1264, 491, 173, 517, 501, 1133, 38, 855, 531],
+  "starter_ids":     [757, 1086, 1088, 248, 491, 173, 517, 501, 38, 855, 531],
+  "captain_id": 38,
+  "vice_captain_id": 501,
+  "formation": "3-4-3",
+  "transfer_cost_points": 0,
+  "realised_total_pts": null,
+  "notes": "Wildcard booster used. Full rebuild with $107.5M budget. Captain switched from initial Dembele to Messi after numerical analysis (blended raw 11.57 vs 10.89, captained edge +1.4 pts after differential-weighting). Vice Dembele covers the Messi blank scenario. Bench priority order: Manzambi (MID) -> Nuno Mendes (DEF) -> Freeman (DEF) -> Beach (GK). Pending realised score after R32 matches complete (July 4 final fixture).",
+  "player_names": {
+    "757": "Raul Rangel (MEX GK)",
+    "76": "Patrick Beach (AUS GK BENCH)",
+    "1086": "Aymeric Laporte (ESP DEF)",
+    "1088": "Marc Cucurella (ESP DEF)",
+    "248": "Daniel Munoz (COL DEF)",
+    "916": "Nuno Mendes (POR DEF BENCH)",
+    "1264": "Alexander Freeman (USA DEF BENCH)",
+    "491": "Jude Bellingham (ENG MID)",
+    "173": "Vinicius Junior (BRA MID)",
+    "517": "Michael Olise (FRA MID)",
+    "501": "Ousmane Dembele (FRA MID VICE)",
+    "1133": "Johan Manzambi (SUI MID BENCH)",
+    "38": "Lionel Messi (ARG FWD CAPTAIN)",
+    "855": "Erling Haaland (NOR FWD)",
+    "531": "Deniz Undav (GER FWD)"
+  }
+}

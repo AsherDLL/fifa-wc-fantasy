@@ -1,0 +1,29 @@
+{
+  "round_id": 1,
+  "stage": "GROUP_MD1",
+  "squad_player_ids": [45, 1709, 2053, 523, 521, 505, 57, 517, 501, 804, 1338, 1523, 918, 1711, 2000],
+  "starter_ids":     [45, 1709, 2053, 523, 521, 505, 57, 517, 501, 804, 1338],
+  "captain_id": 1338,
+  "vice_captain_id": 45,
+  "formation": "4-4-2",
+  "transfer_cost_points": 0,
+  "realised_total_pts": 33,
+  "notes": "Pre-tournament selection. Captain Lautaro blanked (1 raw = 2 captained). Hybrid pick combining heuristic backend top picks plus D. Guajardo input (Pacho call).",
+  "player_names": {
+    "45": "Emiliano Martinez (ARG GK)",
+    "1709": "Reece James (ENG DEF)",
+    "2053": "Willian Pacho (ECU DEF)",
+    "523": "Jonathan Tah (GER DEF)",
+    "521": "David Raum (GER DEF)",
+    "505": "Desire Doue (FRA MID)",
+    "57": "Enzo Fernandez (ARG MID)",
+    "517": "Michael Olise (FRA MID)",
+    "501": "Ousmane Dembele (FRA MID)",
+    "804": "Cody Gakpo (NED FWD)",
+    "1338": "Lautaro Martinez (ARG FWD CAPTAIN)",
+    "1523": "Mike Penders (BEL GK BENCH)",
+    "918": "Diogo Dalot (POR DEF BENCH)",
+    "1711": "Ollie Watkins (ENG FWD BENCH)",
+    "2000": "Nico Williams (ESP MID BENCH)"
+  }
+}
