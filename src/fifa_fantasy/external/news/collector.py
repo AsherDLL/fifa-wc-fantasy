@@ -79,6 +79,48 @@ def _parse_rss(xml_text: str) -> list[dict]:
     return items
 
 
+def _parse_espn_json(json_text: str) -> list[dict]:
+    """Parse ESPN's site.api.espn.com news JSON.
+
+    Schema:
+        {
+          "articles": [
+            {"headline": "...", "description": "...", "published": "...",
+             "links": {"web": {"href": "..."}, ...},
+             ...},
+            ...
+          ]
+        }
+    """
+    import json
+    items = []
+    try:
+        d = json.loads(json_text)
+    except (json.JSONDecodeError, ValueError):
+        return items
+    for art in d.get("articles", []):
+        links = art.get("links") or {}
+        web = (links.get("web") or {}).get("href") if isinstance(links.get("web"), dict) else None
+        if not web:
+            web = (links.get("mobile") or {}).get("href") if isinstance(links.get("mobile"), dict) else None
+        if not web:
+            continue
+        items.append({
+            "title": (art.get("headline") or art.get("title") or "").strip(),
+            "url": web,
+            "published": art.get("published") or art.get("lastModified") or "",
+            "summary": (art.get("description") or art.get("story") or "").strip(),
+        })
+    return items
+
+
+def _parse_feed(text: str, format: str) -> list[dict]:
+    """Dispatch on feed format."""
+    if format == "json_espn":
+        return _parse_espn_json(text)
+    return _parse_rss(text)
+
+
 def _matches_keywords(item: dict, keywords: tuple[str, ...]) -> bool:
     haystack = (item.get("title", "") + " " + item.get("summary", "")).lower()
     return any(k.lower() in haystack for k in keywords)
@@ -156,7 +198,7 @@ def collect(
             log.warning("feed %s returned %d", feed.name, rss_resp.status_code)
             summary["errors"] += 1
             continue
-        items = _parse_rss(rss_resp.text)[:max_items_per_feed]
+        items = _parse_feed(rss_resp.text, feed.format)[:max_items_per_feed]
         summary["items_seen"] += len(items)
 
         for item in items:
@@ -165,6 +207,46 @@ def collect(
             if not _matches_keywords(item, feed.keywords):
                 continue
             summary["items_matched"] += 1
+
+            # Some feed formats provide the full body in the feed payload
+            # itself (ESPN JSON description, some Substack content fields).
+            # For those, the feed's summary is sufficient and we skip
+            # the article HTML fetch entirely. Saves bandwidth + bypasses
+            # WAF on the article-page side (ESPN's article pages are
+            # AWS-WAF-protected even though their JSON API is not).
+            summary_text = (item.get("summary") or "").strip()
+            min_body_len = 200
+            if feed.format == "json_espn" and len(summary_text) > 60:
+                # Use the JSON summary as the body. Shorter than scraped
+                # bodies but informative for team-news context.
+                body = summary_text[:MAX_BODY_CHARS]
+                article_title = item.get("title", "") or summary_text[:80]
+                article_snippet = summary_text[:280] + ("..." if len(summary_text) > 280 else "")
+                article_author = None
+                summary["items_fetched"] += 1  # count as a logical fetch
+                # Persist directly.
+                row = {
+                    "url": item["url"],
+                    "source_id": feed.source_id,
+                    "source_name": feed.name,
+                    "title": article_title,
+                    "snippet": article_snippet,
+                    "body_text": body,
+                    "byte_size": len(body.encode("utf-8")),
+                    "author": article_author,
+                    "published_at_utc": (
+                        _parse_published(item.get("published", "")).isoformat()
+                        if _parse_published(item.get("published", "")) is not None
+                        else None
+                    ),
+                    "collected_at_utc": datetime.now(timezone.utc).isoformat(),
+                    "source_confidence": feed.base_confidence,
+                }
+                new_rows.append(row)
+                summary["items_stored"] += 1
+                summary["bytes_added"] += row["byte_size"]
+                seen_urls.add(item["url"])
+                continue
 
             try:
                 art_resp = client.get(item["url"])
@@ -177,7 +259,7 @@ def collect(
                 continue
 
             article = extract(art_resp.text, fallback_title=item.get("title", ""))
-            if not article.body_text or len(article.body_text) < 200:
+            if not article.body_text or len(article.body_text) < min_body_len:
                 continue
             body = article.body_text[:MAX_BODY_CHARS]
             row = {

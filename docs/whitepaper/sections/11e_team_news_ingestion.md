@@ -252,6 +252,60 @@ have; the legal/technical cost of pursuing X data is not worth the
 marginal lineup-signal it provides over the RSS feeds above. This is
 documented in `news/feeds.py`'s module docstring.
 
+### 11e.10b.2 ESPN JSON API bypass
+
+ESPN's RSS endpoints are protected by AWS WAF (return 202 with a
+JavaScript challenge body that requires browser JS execution to
+solve). Defeating that would mean escalating to playwright-stealth
+or nodriver (escalation tier 2 per scraping/README.md).
+
+We discovered a free, public alternative: ESPN's JSON API at
+`site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/news` is
+not WAF-protected. It returns ~6 articles per call with title, URL,
+summary, and publication timestamp.
+
+The catch: ESPN's article PAGES are also WAF-protected. We can get
+the article *list* via JSON but cannot fetch the full body. The
+collector handles this by treating JSON-feed summaries as
+sufficient body text when the format is `"json_espn"`: ~80-200 chars
+per article is short but informative for team-news context (the
+summary often mentions the matchup, key players, and tactical
+storyline).
+
+This pattern (use the JSON-feed summary, skip the article page)
+generalises: any source that exposes a JSON list with reasonable
+summaries can be added with `format="json_espn"` even if their
+article pages are heavily protected.
+
+### 11e.10b.3 Substacks and tactical blogs
+
+Through a probe of 14 candidate sources (tactical analysis newsletters,
+mainstream football blogs, fan-oriented Substacks), three high-quality
+free RSS feeds were added:
+
+- **Bob Sturm's World Cup Journal** (`bobsturm.substack.com/feed`):
+  15/30 top items match WC keywords - the highest WC density of any
+  free source tested. Match-by-match journal of WC 2026.
+- **Daily Mail Football** (`dailymail.co.uk/sport/football/index.rss`):
+  150 items/pull, 15/30 WC density. High volume + high WC content
+  (tournament is in the host nations' news cycle).
+- **Gegenpressing** (`gegenpressing.substack.com/feed`): 4/30 WC density
+  but high-quality tactical analysis on the items that do surface.
+
+Sources tested but not added:
+- The Athletic (paywall, 404 on RSS)
+- The Times (empty RSS payload, paywall)
+- Reddit r/soccer and r/worldcup (403 / 429 blocking by Reddit)
+- Cultured Football (DNS error)
+- Eurosport (404)
+- Football.London (403)
+- Onefootball (404)
+- Mirror Football (403)
+
+Three RSS sources rotated in over the WC 2026 collection window have
+produced a stable 60+ articles per collection tick with zero errors
+on the working feeds.
+
 ### Disk-usage budget
 
 The collector enforces an upper bound on `data/external/news_articles/`
