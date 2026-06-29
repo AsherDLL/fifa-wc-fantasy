@@ -90,6 +90,7 @@ def parse_players(
                 last_round_points=raw.stats.lastRoundPoints,
                 form=raw.stats.form,
                 round_points=_round_points(raw.stats.roundPoints),
+                rounds_selected={int(k): float(v) for k, v in (raw.roundsSelected or {}).items()},
             )
         )
     return players

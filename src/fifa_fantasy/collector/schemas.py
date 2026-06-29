@@ -84,6 +84,10 @@ class RawPlayer(BaseModel):
     price: float
     status: str
     percentSelected: float
+    # Per-round ownership trajectory keyed by round id. Tells us how the
+    # field's consensus moved across the tournament: rising = template
+    # forming, falling = consensus dispersing, flat low = differential.
+    roundsSelected: dict[str, float] = {}
     oneToWatch: bool = False
     oneToWatchText: str | None = None
     stats: RawPlayerStats = RawPlayerStats()
@@ -152,6 +156,9 @@ class Player(BaseModel):
     last_round_points: int = 0
     form: float = 0.0
     round_points: list[int] = []
+    # Ownership-trajectory by round (e.g. {1: 18.0, 2: 23.2, 3: 32.9})
+    # for differential analysis. Empty dict pre-MD1.
+    rounds_selected: dict[int, float] = {}
 
 
 class Fixture(BaseModel):

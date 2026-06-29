@@ -1,8 +1,9 @@
 """CLI for refreshing external datasets.
 
-    python -m fifa_fantasy.external                          # refresh both
+    python -m fifa_fantasy.external                          # refresh all
     python -m fifa_fantasy.external --skip-football-data
     python -m fifa_fantasy.external --skip-international
+    python -m fifa_fantasy.external --skip-markets
     python -m fifa_fantasy.external --no-refresh-cache       # reuse cached files
 """
 from __future__ import annotations
@@ -11,12 +12,15 @@ import argparse
 
 from .football_data import LEAGUES, refresh_all
 from .international_elo import refresh as refresh_elo
+from .prediction_markets import take_snapshot
 
 
 def main() -> None:
     p = argparse.ArgumentParser(prog="fifa_fantasy.external")
     p.add_argument("--skip-international", action="store_true")
     p.add_argument("--skip-football-data", action="store_true")
+    p.add_argument("--skip-markets", action="store_true",
+                   help="skip Polymarket and Kalshi snapshot")
     p.add_argument("--no-refresh-cache", action="store_true",
                    help="reuse any cached CSVs instead of re-downloading")
     p.add_argument("--seasons", nargs="+", default=["2223", "2324", "2425"])
@@ -40,6 +44,13 @@ def main() -> None:
             refresh=do_refresh,
         )
         print(f"football_data: {len(matches):5d} matches -> data/external/fd_matches.parquet")
+
+    if not args.skip_markets:
+        snaps, path = take_snapshot()
+        poly = sum(1 for s in snaps if s.provider == "polymarket")
+        kalshi = sum(1 for s in snaps if s.provider == "kalshi")
+        print(f"prediction_markets: {len(snaps)} contracts "
+              f"({poly} Polymarket, {kalshi} Kalshi) -> {path}")
 
 
 if __name__ == "__main__":
