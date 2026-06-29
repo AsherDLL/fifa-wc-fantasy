@@ -38,7 +38,11 @@ services:
     volumes:
       - ../data:/app/data
       - ../results:/app/results
-      - ../docker/snapshot_loop.py:/app/docker/snapshot_loop.py:ro
+      # Bind the whole docker/ and src/ directories so code edits on the
+      # host propagate live. Mounting a single file is fragile (atomic
+      # writes break the bind mount when the file is replaced).
+      - ../docker:/app/docker:ro
+      - ../src:/app/src:ro
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=UTC

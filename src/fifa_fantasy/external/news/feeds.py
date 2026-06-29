@@ -50,24 +50,10 @@ DEFAULT_FEEDS: tuple[FeedConfig, ...] = (
         keywords=WC_KEYWORDS,
     ),
     FeedConfig(
-        name="BBC Sport World Football",
-        url="https://feeds.bbci.co.uk/sport/football/world/rss.xml",
-        source_id="bbc_world",
-        base_confidence=0.80,
-        keywords=WC_KEYWORDS,
-    ),
-    FeedConfig(
         name="Sky Sports Football",
         url="https://www.skysports.com/rss/12040",
         source_id="skysports",
         base_confidence=0.70,
-        keywords=WC_KEYWORDS,
-    ),
-    FeedConfig(
-        name="ESPN Soccer",
-        url="https://www.espn.com/espn/rss/soccer/news",
-        source_id="espn",
-        base_confidence=0.65,
         keywords=WC_KEYWORDS,
     ),
     FeedConfig(
@@ -77,11 +63,34 @@ DEFAULT_FEEDS: tuple[FeedConfig, ...] = (
         base_confidence=0.75,
         keywords=WC_KEYWORDS,
     ),
+    # FourFourTwo: very high WC-2026 density (11/30 top items match WC
+    # keywords in our probe). Strong replacement for the dropped feeds.
     FeedConfig(
-        name="Goal.com Latest",
-        url="https://www.goal.com/feeds/en/news",
-        source_id="goal",
+        name="FourFourTwo",
+        url="https://www.fourfourtwo.com/feeds/all",
+        source_id="fourfourtwo",
+        base_confidence=0.65,
+        keywords=WC_KEYWORDS,
+    ),
+    # talkSPORT: high-volume general football news including WC coverage.
+    FeedConfig(
+        name="talkSPORT",
+        url="https://talksport.com/feed/",
+        source_id="talksport",
         base_confidence=0.55,
         keywords=WC_KEYWORDS,
     ),
 )
+
+# Dropped feeds (kept here for documentation; we do not retry them):
+#   - BBC Sport World Football (feeds.bbci.co.uk/sport/football/world/rss.xml):
+#     404 as of 2026-06-29. The general BBC Sport Football feed above
+#     already includes WC coverage, so the loss is small.
+#   - ESPN Soccer (www.espn.com/espn/rss/soccer/news):
+#     202 with an AWS WAF JavaScript challenge body. ESPN's RSS endpoint
+#     is now protected by AWS WAF. Defeating it requires
+#     playwright-stealth or nodriver (see scraping/README.md escalation
+#     tier 2). Out of scope for the lean RSS collector.
+#   - Goal.com (www.goal.com/feeds/en/news):
+#     404 with no working alternative URL. Their RSS endpoint moved or
+#     was retired; we could not find a replacement.
