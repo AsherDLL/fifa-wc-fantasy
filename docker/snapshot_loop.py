@@ -81,6 +81,14 @@ def markets_tick() -> None:
          "--skip-international", "--skip-football-data"])
 
 
+def news_tick() -> None:
+    """Team-news tick: scrape predicted XIs for upcoming fixtures."""
+    log("=== NEWS TICK ===")
+    run(["python", "-m", "fifa_fantasy.external.team_news",
+         "--fixtures-ahead",
+         os.environ.get("NEWS_FIXTURES_AHEAD", "3")])
+
+
 def elo_tick() -> None:
     """Daily tick: refresh martj42 Elo only."""
     log("=== ELO TICK ===")
@@ -93,12 +101,13 @@ def main() -> int:
     fifa_interval = env_int("FIFA_INTERVAL_HOURS", 12) * 3600
     markets_interval = env_int("MARKETS_INTERVAL_HOURS", 3) * 3600
     elo_interval = env_int("ELO_INTERVAL_HOURS", 24) * 3600
+    news_interval = env_int("NEWS_INTERVAL_HOURS", 6) * 3600
     log(f"loop start; end={end.isoformat()} "
         f"fifa={fifa_interval//3600}h markets={markets_interval//3600}h "
-        f"elo={elo_interval//3600}h")
+        f"elo={elo_interval//3600}h news={news_interval//3600}h")
 
-    next_fifa = next_markets = next_elo = 0.0  # fire all immediately
-    sleep_resolution = 60  # check schedules every 60s
+    next_fifa = next_markets = next_elo = next_news = 0.0
+    sleep_resolution = 60
 
     while datetime.now(timezone.utc) < end:
         now = time.time()
@@ -114,9 +123,12 @@ def main() -> int:
             try: elo_tick()
             except Exception as e: log(f"elo tick crashed: {e}")  # noqa: BLE001
             next_elo = now + elo_interval
+        if now >= next_news:
+            try: news_tick()
+            except Exception as e: log(f"news tick crashed: {e}")  # noqa: BLE001
+            next_news = now + news_interval
 
-        # Wait until the next scheduled tick (or sleep_resolution, whichever first).
-        next_event = min(next_fifa, next_markets, next_elo)
+        next_event = min(next_fifa, next_markets, next_elo, next_news)
         sleep_for = max(sleep_resolution, min(next_event - now, sleep_resolution))
         time.sleep(sleep_for)
 

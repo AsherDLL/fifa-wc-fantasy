@@ -193,6 +193,19 @@ def simulate(features: pd.DataFrame,
     # Zero out non-playing/eliminated.
     available = ((out["status"] == "playing")
                  & (~out["is_eliminated"].astype(bool))).to_numpy()
+    # Team-news gate: explicit-False xi flag means a confirmed bench player.
+    # Scale predictions by xi_confidence when present; NaN leaves them as-is.
+    if "predicted_starting_xi" in out.columns:
+        xi = out["predicted_starting_xi"]
+        is_bench = (xi == False).to_numpy()  # noqa: E712
+        available = available & ~is_bench
+        if "xi_confidence" in out.columns:
+            # Scale by source confidence on rows where we have data.
+            conf = pd.to_numeric(out["xi_confidence"], errors="coerce").fillna(1.0).to_numpy()
+            # Apply only on rows with explicit news (starting=True); leave NaN/unset at 1.0.
+            has_news = (xi == True).to_numpy()  # noqa: E712
+            scale = np.where(has_news, conf, 1.0)
+            sim_pts = sim_pts * scale
     sim_pts[:, ~available] = 0.0
 
     out["predicted_points"] = sim_pts.mean(axis=0)

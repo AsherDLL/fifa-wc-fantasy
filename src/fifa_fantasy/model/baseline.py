@@ -146,5 +146,12 @@ def heuristic_predict(
         raw = raw + premium_boost * np.maximum(0.0, price - PREMIUM_PRICE_THRESHOLD)
 
     available = (out["status"] == PLAYING_STATUS) & (~out["is_eliminated"].astype(bool))
+    # Team-news gate: when predicted_starting_xi is False, zero the prediction.
+    # NaN (no news available) means we have no signal -> keep current behaviour.
+    if "predicted_starting_xi" in out.columns:
+        xi = out["predicted_starting_xi"]
+        # treat NaN as "unknown" (keep available); only zero when explicitly False
+        not_bench = ~(xi == False)  # noqa: E712 (need == False not is False for pandas)
+        available = available & not_bench
     out["predicted_points"] = np.where(available, raw, 0.0)
     return out

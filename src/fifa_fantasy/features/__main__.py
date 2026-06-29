@@ -24,6 +24,10 @@ from fifa_fantasy.external.international_elo import (
     load as load_country_elo,
 )
 from fifa_fantasy.external.mapping import to_fifa_country
+from fifa_fantasy.external.team_news.store import (
+    DEFAULT_DIR as TEAM_NEWS_DIR,
+    load_latest as load_latest_team_news,
+)
 
 from .build import build_player_round_features
 from .squad import squad_strength
@@ -47,6 +51,9 @@ def main() -> None:
                         help="path to FIFA ranking CSV (data/static/fifa_rankings.csv)")
     parser.add_argument("--country-elo", type=Path, default=COUNTRY_ELO_PATH,
                         help="country Elo snapshot (run `python -m fifa_fantasy.external` first)")
+    parser.add_argument("--team-news-dir", type=Path, default=TEAM_NEWS_DIR,
+                        help="directory with scraped predicted-XI parquets "
+                             "(run `python -m fifa_fantasy.external.team_news` first)")
     args = parser.parse_args()
 
     players = pd.read_parquet(_latest(args.raw_dir, "players"))
@@ -62,8 +69,11 @@ def main() -> None:
         country_elo["country_name"] = country_elo["country_name"].map(to_fifa_country)
 
     strength = squad_strength(players, squads, rankings=rankings)
+    team_news = load_latest_team_news(args.team_news_dir)
     features = build_player_round_features(
-        players, fixtures, strength, country_elo=country_elo,
+        players, fixtures, strength,
+        country_elo=country_elo,
+        team_news=team_news if not team_news.empty else None,
     )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)

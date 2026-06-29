@@ -145,11 +145,41 @@ def _attach_country_elo(grid: pd.DataFrame, country_elo: pd.DataFrame) -> pd.Dat
     return grid
 
 
+def _attach_team_news(grid: pd.DataFrame,
+                     news_table: pd.DataFrame | None) -> pd.DataFrame:
+    """Join the latest scraped predicted-XI signal into the per-row grid.
+
+    Adds two columns:
+        predicted_starting_xi : bool | NaN
+            True if the latest news has the player as a starter for this
+            fixture, False if benched, NaN if no news available.
+        xi_confidence : float | NaN
+            Per-source confidence in [0, 1].
+
+    NaN-safe: when no news exists or the join misses, downstream models
+    fall back to their current behaviour.
+    """
+    if news_table is None or news_table.empty:
+        grid["predicted_starting_xi"] = pd.NA
+        grid["xi_confidence"] = pd.NA
+        return grid
+    # Latest record per (fixture_id, player_id).
+    latest = (news_table.sort_values("scraped_at_utc")
+              .groupby(["fixture_id", "player_id"]).tail(1).copy())
+    latest["predicted_starting_xi"] = latest["status"] == "starting"
+    latest = latest.rename(columns={"source_confidence": "xi_confidence"})
+    return grid.merge(
+        latest[["fixture_id", "player_id", "predicted_starting_xi", "xi_confidence"]],
+        on=["fixture_id", "player_id"], how="left",
+    )
+
+
 def build_player_round_features(
     players: pd.DataFrame,
     fixtures: pd.DataFrame,
     squad_strength: pd.DataFrame,
     country_elo: pd.DataFrame | None = None,
+    team_news: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Return one row per (player, upcoming round in which their squad plays).
 
@@ -179,5 +209,6 @@ def build_player_round_features(
         - pd.to_numeric(grid["opp_squad_rank_points"], errors="coerce")
     )
     grid = _attach_country_elo(grid, country_elo)
+    grid = _attach_team_news(grid, team_news)
     grid = _attach_rest_days(grid)
     return grid.reset_index(drop=True)

@@ -35,6 +35,7 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 11b | [innovation_roadmap.md](sections/11b_innovation_roadmap.md) | Innovation roadmap: prediction markets (Polymarket/Kalshi) | DRAFT |
 | 11c | [monte_carlo_and_benter_separation.md](sections/11c_monte_carlo_and_benter_separation.md) | Monte Carlo simulator + Benter separation architecture | DRAFT |
 | 11d | [market_integration_negative_result.md](sections/11d_market_integration_negative_result.md) | Empirical negative result: Polymarket WC-winner contracts add no signal | DRAFT |
+| 11e | [team_news_ingestion.md](sections/11e_team_news_ingestion.md) | Team-news ingestion: reusable stealth scraping + predicted-XI signal | DRAFT |
 | 12 | [conclusion.md](sections/12_conclusion.md) | Conclusion | TODO |
 | 13 | [references.bib.md](sections/13_references.bib.md) | References (BibTeX-ready) | DRAFT |
 | AA | [appendix.md](sections/AA_appendix.md) | Appendix: model artefacts | DRAFT |

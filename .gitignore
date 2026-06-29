@@ -69,3 +69,7 @@ results/*.html
 # Per-snapshot prediction market data (always regenerable but useful for the
 # whitepaper's empirical Benter combiner training data).
 !data/external/prediction_markets/
+
+# Team news (recent only, gitignored by default)
+data/external/team_news/
+data/external/cache/scraping/
