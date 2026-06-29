@@ -82,8 +82,19 @@ def markets_tick() -> None:
 
 
 def news_tick() -> None:
-    """Team-news tick: scrape predicted XIs for upcoming fixtures."""
+    """News tick: collect RSS articles, then run team-news lineup extraction.
+
+    Two-stage: the news module fills the article cache from RSS feeds
+    under a disk-budget cap; the team_news module then extracts
+    predicted XIs from those cached articles. Splitting them keeps the
+    RSS poller cheap and the lineup extractor independent.
+    """
     log("=== NEWS TICK ===")
+    # 1. Collect articles from RSS feeds (cheap, ~50KB per tick).
+    run(["python", "-m", "fifa_fantasy.external.news",
+         "--budget-mb", os.environ.get("NEWS_BUDGET_MB", "200"),
+         "--max-per-feed", os.environ.get("NEWS_MAX_PER_FEED", "20")])
+    # 2. Extract predicted XIs (uses the article cache + curated seed URLs).
     run(["python", "-m", "fifa_fantasy.external.team_news",
          "--fixtures-ahead",
          os.environ.get("NEWS_FIXTURES_AHEAD", "3")])

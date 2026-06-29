@@ -211,6 +211,81 @@ The demo proves the architectural split is real: the `scraping/`
 package functions outside the FIFA fantasy domain. A user can copy
 the directory to a new project and the example works unchanged.
 
+## 11e.10b The RSS-first news collector (lean architecture)
+
+After the initial scraper-and-parser architecture was built (above), the
+realisation that scraping HTML index pages would blow up disk usage led
+to a second, leaner collector: `src/fifa_fantasy/external/news/`. The
+key insight: RSS feeds are XML (5-50KB per fetch), already structured,
+and produced by every major football news site. Polling them is an
+order of magnitude cheaper than crawling HTML pages.
+
+The architecture:
+
+```
+news.collector.collect(client, feeds, out_dir, budget_mb)
+  for each feed in feeds:
+    fetch feed RSS XML (cheap, 5-50KB)
+    parse items: title, url, published, summary
+    filter items by keyword match against WC + team names
+    for each matching item:
+      fetch full article HTML (one per article, capped at MAX_BODY_CHARS=8000)
+      extract body text via news.extractor.extract()
+      append row to today's parquet (snappy-compressed)
+    dedup by URL within 12-hour window
+  after writing: enforce disk budget (default 200MB cap)
+    if over budget, delete oldest day's parquet until under cap
+```
+
+Six free feeds are curated in `news/feeds.py`:
+- BBC Sport Football (`feeds.bbci.co.uk/sport/football/rss.xml`)
+- BBC Sport World Football
+- Sky Sports Football
+- ESPN Soccer
+- Guardian Football
+- Goal.com Latest
+
+Twitter/X is **deliberately excluded**. As of 2026, Nitter's public
+instance network has collapsed (X blocked their guest-account tokens);
+twscrape requires authenticated accounts which the project does not
+have; the legal/technical cost of pursuing X data is not worth the
+marginal lineup-signal it provides over the RSS feeds above. This is
+documented in `news/feeds.py`'s module docstring.
+
+### Disk-usage budget
+
+The collector enforces an upper bound on `data/external/news_articles/`
+via `prune_disk_budget()`. Default 200MB; per-article cap 8KB raw text
+(~1-3KB compressed in parquet). Empirical footprint estimate for the
+remaining tournament:
+
+- 6 feeds × ~20 items/feed × ~15% keyword-match rate × 3KB per stored
+  article × ~6h cadence = **~50KB per tick, ~200KB per day**.
+- Over the remaining ~3 weeks of tournament: **~4-6MB total**. Well
+  under the 200MB cap.
+
+The cap exists as a safety: if a parser flaw or feed-flood causes
+runaway growth, the oldest data is dropped automatically rather than
+the disk filling. This is more defensive than tuned.
+
+### Tests
+
+`tests/test_news_collector.py` (10 tests): RSS parsing, keyword
+matching, body extraction, dedup-by-URL, day-file rotation, disk
+budget enforcement, and end-to-end with a mocked StealthClient. All
+pass.
+
+### Operational status
+
+The collector is built and tested but not yet run live in the
+production daemon. A first live run will:
+1. Verify the listed RSS endpoints are reachable
+2. Confirm keyword-match rate is ~10-20% (per the estimate)
+3. Validate disk-usage tracking against the budget
+
+After that, the Docker daemon picks it up automatically via the
+updated `news_tick()` (every 6h by default).
+
 ## 11e.10 Limitations and follow-up work
 
 - **Coverage**: ESPN/Sportsgambler/soccerdata don't all have predicted

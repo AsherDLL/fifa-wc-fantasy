@@ -73,3 +73,6 @@ results/*.html
 # Team news (recent only, gitignored by default)
 data/external/team_news/
 data/external/cache/scraping/
+
+# News article cache (RSS-collected, disk-budget capped)
+data/external/news_articles/
