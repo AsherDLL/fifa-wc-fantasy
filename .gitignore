@@ -23,6 +23,30 @@ data/processed/*.parquet
 !data/processed/features_2026-06-08.parquet
 !data/processed/predictions_2026-06-08.parquet
 
+# Re-include per-matchday API snapshots so the whitepaper's live-results
+# section is reproducible. Each entry is a decision-point snapshot.
+!data/raw/players_2026-06-18.parquet
+!data/raw/squads_2026-06-18.parquet
+!data/raw/fixtures_2026-06-18.parquet
+!data/raw/players_2026-06-21.parquet
+!data/raw/squads_2026-06-21.parquet
+!data/raw/fixtures_2026-06-21.parquet
+!data/raw/players_2026-06-23.parquet
+!data/raw/squads_2026-06-23.parquet
+!data/raw/fixtures_2026-06-23.parquet
+!data/raw/players_2026-06-24.parquet
+!data/raw/squads_2026-06-24.parquet
+!data/raw/fixtures_2026-06-24.parquet
+!data/raw/players_2026-06-28.parquet
+!data/raw/squads_2026-06-28.parquet
+!data/raw/fixtures_2026-06-28.parquet
+!data/processed/features_2026-06-18.parquet
+!data/processed/features_2026-06-21.parquet
+!data/processed/features_2026-06-23.parquet
+!data/processed/features_2026-06-24.parquet
+!data/processed/features_2026-06-28.parquet
+!data/processed/predictions_2026-06-18.parquet
+
 # External raw caches (regenerable via `python -m fifa_fantasy.external`)
 data/external/cache/
 data/external/football_data/
