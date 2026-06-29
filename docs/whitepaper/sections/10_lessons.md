@@ -122,15 +122,38 @@ predicted horizon gain over the next two matchdays exceeds 6 points
 (double the per-hit cost). This adds a margin of safety for the
 rotation-risk under-estimation.
 
-## 10.5b The goalkeeper paradox
+## 10.5b The goalkeeper paradox (CONFIRMED MODEL BUG)
 
 Documented in detail in Section 9b. Summary: the Poisson backend treats
 GK save bonus as a flat constant, which is structurally wrong. The
 empirically correct formulation scales save bonus by opponent xG.
-Rangel (MEX) outscored Dibu (ARG) by 50% in the group stage because
-Mexico's defense let him face more shots while still keeping clean
-sheets. The model predicted Dibu would outperform; he did not. A fix
-is proposed in Section 9b.7 and 11.
+
+**The bug.** In `src/fifa_fantasy/model/poisson.py`:
+
+```python
+GK_SAVE_BONUS = 1.0          # flat expected points from saves
+```
+
+This is insensitive to `opp_xg`, which means the model assigns the same
+save bonus to Dibu Martínez (Argentina, facing ~0.3 opp_xg) and Raúl
+Rangel (Mexico, facing ~0.8 opp_xg). The actual save bonuses differ
+by ~3x.
+
+**The fix.** Scale by opponent xG using the empirical shots-per-xG
+ratio:
+
+```python
+GK save bonus ≈ (opp_xg × shot_per_xg_ratio / 3)
+            ≈ opp_xg × ~1.3   (empirically)
+```
+
+For Dibu vs CPV (very low opp_xg ~0.4): expected save bonus ~0.5.
+For Rangel vs ECU (moderate opp_xg ~0.7): expected save bonus ~0.9.
+
+That changes the GK ranking materially. Marked as a confirmed model
+bug here and as an explicit fix in Section 11. We will not change R32
+since the squad is locked, but the formula will be fixed before R16
+and validated on the EPL 2024-25 held-out set before shipping.
 
 ## 10.6 Auto-substitution mechanics matter
 

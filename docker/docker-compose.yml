@@ -1,0 +1,48 @@
+# docker-compose for the FIFA Fantasy WC 2026 prediction system.
+#
+# Two profiles:
+#   1. (default) Interactive run-on-demand
+#        docker compose run --rm fantasy python -m fifa_fantasy.optimizer
+#   2. snapshot   Background loop, ticks every SNAPSHOT_INTERVAL_HOURS
+#        docker compose --profile snapshot up -d
+#
+# After the WC ends (2026-07-18), tear down with:
+#   docker compose --profile snapshot down
+#   docker rmi fifa-fantasy   # if you want to reclaim the image too
+#
+# Data persists in the host's ./data and ./results dirs via volume
+# mount. Nothing is stored inside the container.
+
+services:
+  fantasy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: fifa-fantasy:latest
+    volumes:
+      - ../data:/app/data
+      - ../results:/app/results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
+    # Default command: python REPL. Override per `docker compose run`.
+    command: python
+
+  snapshot:
+    image: fifa-fantasy:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    profiles: ["snapshot"]
+    restart: unless-stopped
+    volumes:
+      - ../data:/app/data
+      - ../results:/app/results
+      - ../docker/snapshot_loop.py:/app/docker/snapshot_loop.py:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
+      - SNAPSHOT_INTERVAL_HOURS=${SNAPSHOT_INTERVAL_HOURS:-6}
+      - WC_END_DATE=${WC_END_DATE:-2026-07-18}
+      - STAGE=${STAGE:-R32}
+    command: python /app/docker/snapshot_loop.py

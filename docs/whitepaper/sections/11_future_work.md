@@ -112,6 +112,39 @@ This is the main planned follow-up after the WC final: clean up the
 repo, publish the validation report and the live decision log, and
 submit to a sports-analytics venue or workshop.
 
+## 11.8b Fix the goalkeeper save-bonus bug (confirmed)
+
+The flat `GK_SAVE_BONUS = 1.0` constant in `poisson.py` is empirically
+wrong; the empirical formulation scales save bonus by opponent xG.
+
+**Target implementation (validated before shipping):**
+
+```python
+# poisson.py
+SHOT_PER_XG_RATIO = 4.0     # ~4 shots on target per unit of xG, empirical
+SAVE_PCT          = 0.85    # ~85% save percentage for an average WC goalkeeper
+SAVES_PER_BONUS   = 3       # FIFA Fantasy: +1 per 3 saves
+
+def gk_save_bonus(opp_xg: float) -> float:
+    expected_shots_on_target = opp_xg * SHOT_PER_XG_RATIO
+    expected_saves           = expected_shots_on_target * SAVE_PCT
+    return expected_saves / SAVES_PER_BONUS
+    # equivalent to opp_xg * (4 * 0.85 / 3) = opp_xg * 1.13
+```
+
+For Dibu vs CPV (opp_xg ~ 0.4): GK save bonus ≈ 0.45 (was 1.0)
+For Rangel vs ECU (opp_xg ~ 0.7): GK save bonus ≈ 0.79 (was 1.0)
+
+**Validation gate.** Before shipping the fix, run
+`python -m fifa_fantasy.training.validate_main` on EPL 2024-25 GW
+30-38 held-out and confirm Poisson GK RMSE improves. The current
+RMSE for Poisson at GK is 2.503 (already the best of the three
+backends). If the fix improves it further, ship. If it regresses,
+the empirical ratios above need re-tuning against EPL data
+specifically.
+
+**Marked for implementation before R16 deadline.**
+
 ## 11.9 What we would do differently from MD1
 
 If we ran the system over again with the lessons learned:

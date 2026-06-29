@@ -1,0 +1,122 @@
+{
+  "round_id": 3,
+  "model_accuracies": [
+    {
+      "round_id": 3,
+      "backend": "unknown",
+      "position": "GK",
+      "n": 181,
+      "rmse": 2.3899382248202743,
+      "mae": 1.7734150675421223,
+      "spearman_rho": 0.30086745884499866
+    },
+    {
+      "round_id": 3,
+      "backend": "unknown",
+      "position": "DEF",
+      "n": 482,
+      "rmse": 2.907376566512957,
+      "mae": 2.1435228637823736,
+      "spearman_rho": 0.3969066847672952
+    },
+    {
+      "round_id": 3,
+      "backend": "unknown",
+      "position": "MID",
+      "n": 512,
+      "rmse": 3.02396242567824,
+      "mae": 2.2915220499668703,
+      "spearman_rho": 0.4464290706015508
+    },
+    {
+      "round_id": 3,
+      "backend": "unknown",
+      "position": "FWD",
+      "n": 306,
+      "rmse": 3.2103662785240457,
+      "mae": 2.659162682398293,
+      "spearman_rho": 0.38347771315405665
+    },
+    {
+      "round_id": 3,
+      "backend": "gbm",
+      "position": "GK",
+      "n": 181,
+      "rmse": 3.06369863548226,
+      "mae": 2.579921208529904,
+      "spearman_rho": 0.2523847697441999
+    },
+    {
+      "round_id": 3,
+      "backend": "gbm",
+      "position": "DEF",
+      "n": 482,
+      "rmse": 3.048729540389628,
+      "mae": 2.3214041969142847,
+      "spearman_rho": 0.273507721487849
+    },
+    {
+      "round_id": 3,
+      "backend": "gbm",
+      "position": "MID",
+      "n": 513,
+      "rmse": 2.9383059991166647,
+      "mae": 2.1287350625633086,
+      "spearman_rho": 0.463401506864399
+    },
+    {
+      "round_id": 3,
+      "backend": "gbm",
+      "position": "FWD",
+      "n": 306,
+      "rmse": 2.9257321953060416,
+      "mae": 2.1272753326465277,
+      "spearman_rho": 0.3426462257333867
+    },
+    {
+      "round_id": 3,
+      "backend": "heuristic",
+      "position": "GK",
+      "n": 181,
+      "rmse": 2.404497669551578,
+      "mae": 1.762698340749614,
+      "spearman_rho": 0.27749572898966185
+    },
+    {
+      "round_id": 3,
+      "backend": "heuristic",
+      "position": "DEF",
+      "n": 485,
+      "rmse": 2.8855722485214654,
+      "mae": 2.0856845948510925,
+      "spearman_rho": 0.4080256906843199
+    },
+    {
+      "round_id": 3,
+      "backend": "heuristic",
+      "position": "MID",
+      "n": 515,
+      "rmse": 3.0679869278570844,
+      "mae": 2.309134290647991,
+      "spearman_rho": 0.42582915920981096
+    },
+    {
+      "round_id": 3,
+      "backend": "heuristic",
+      "position": "FWD",
+      "n": 307,
+      "rmse": 3.2673122655970035,
+      "mae": 2.623792185565748,
+      "spearman_rho": 0.34135211952359124
+    }
+  ],
+  "squad_performances": [],
+  "captain_analyses": [],
+  "random_baseline": {
+    "n_valid_trials": 1000,
+    "mean": 27.974,
+    "median": 27.0,
+    "p10": 13.0,
+    "p90": 44.0
+  }
+}
