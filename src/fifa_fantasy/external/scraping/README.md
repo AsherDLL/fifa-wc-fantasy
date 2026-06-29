@@ -113,8 +113,15 @@ git submodule add ...
 
 Then `from scraping import StealthClient` works the same way.
 
-A 20-line demonstration of out-of-project use is at
-`docs/scraping/example_other_project.py`.
+Two demonstrations of out-of-project use:
+
+1. `docs/scraping/example_other_project.py` — minimal 30-line script
+   that fetches the Hacker News front page using just `StealthClient`.
+2. `docs/scraping/startup_research_demo.py` — configures the `news`
+   collector with custom feeds (TechCrunch, Crunchbase, The Information,
+   VentureBeat, Hacker News) and keyword filters for startup / VC
+   research. Demonstrates that the `news` package is reusable outside
+   the FIFA fantasy domain.
 
 ## Architecture
 

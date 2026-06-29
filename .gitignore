@@ -76,3 +76,7 @@ data/external/cache/scraping/
 
 # News article cache (RSS-collected, disk-budget capped)
 data/external/news_articles/
+
+# Demo scraping outputs (out-of-project reusability)
+data/external/startup_articles_demo/
+data/external/cache/scraping_demo/

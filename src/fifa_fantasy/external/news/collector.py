@@ -39,8 +39,8 @@ from .store import (
 
 log = logging.getLogger(__name__)
 
-MAX_BODY_CHARS = 8000          # cap stored body text per article
-DEFAULT_BUDGET_MB = 200        # total disk budget for news_articles/
+MAX_BODY_CHARS = 12000         # cap stored body text per article (~1-4KB after parquet+snappy)
+DEFAULT_BUDGET_MB = 2048       # total disk budget for news_articles/ (~2GB)
 
 
 def _parse_rss(xml_text: str) -> list[dict]:
