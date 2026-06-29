@@ -1,0 +1,153 @@
+{
+  "config": {
+    "beta_0": 0.0,
+    "beta_1": 1.0,
+    "beta_2": 0.2
+  },
+  "rows": [
+    {
+      "round_id": 1,
+      "backend": "heuristic",
+      "n": 1482,
+      "rmse_model": 2.917266105192651,
+      "rmse_combined": 3.281198656257822,
+      "mae_model": 2.1819493747157925,
+      "mae_combined": 2.2925432669079986,
+      "rho_model": 0.4251421118150092,
+      "rho_combined": 0.40345628756875535,
+      "delta_rmse": 0.363932551065171
+    },
+    {
+      "round_id": 1,
+      "backend": "poisson",
+      "n": 1482,
+      "rmse_model": 6.094896613608587,
+      "rmse_combined": 7.032589261763023,
+      "mae_model": 4.844454359780369,
+      "mae_combined": 5.154858850961955,
+      "rho_model": 0.36912200634988696,
+      "rho_combined": 0.3571938907972438,
+      "delta_rmse": 0.9376926481544352
+    },
+    {
+      "round_id": 1,
+      "backend": "gbm",
+      "n": 1482,
+      "rmse_model": 2.904256206677598,
+      "rmse_combined": 3.1054107608195816,
+      "mae_model": 2.1240469571941953,
+      "mae_combined": 2.1919498523250582,
+      "rho_model": 0.3523124042029625,
+      "rho_combined": 0.33329437372447257,
+      "delta_rmse": 0.2011545541419837
+    },
+    {
+      "round_id": 1,
+      "backend": "monte_carlo",
+      "n": 1482,
+      "rmse_model": 4.955644755152578,
+      "rmse_combined": 5.8215690294355555,
+      "mae_model": 3.9613657219973013,
+      "mae_combined": 4.243962309743483,
+      "rho_model": 0.38327964362952216,
+      "rho_combined": 0.3626320610165887,
+      "delta_rmse": 0.8659242742829774
+    },
+    {
+      "round_id": 2,
+      "backend": "heuristic",
+      "n": 1488,
+      "rmse_model": 3.1164035326238673,
+      "rmse_combined": 3.454581537718955,
+      "mae_model": 2.3073785372339266,
+      "mae_combined": 2.4033792026882406,
+      "rho_model": 0.4266661685284442,
+      "rho_combined": 0.4178555649247281,
+      "delta_rmse": 0.33817800509508755
+    },
+    {
+      "round_id": 2,
+      "backend": "poisson",
+      "n": 1488,
+      "rmse_model": 6.252851702837807,
+      "rmse_combined": 7.363410934161455,
+      "mae_model": 4.93295652766518,
+      "mae_combined": 5.284660671276932,
+      "rho_model": 0.3769914183266002,
+      "rho_combined": 0.37380264339589814,
+      "delta_rmse": 1.1105592313236476
+    },
+    {
+      "round_id": 2,
+      "backend": "gbm",
+      "n": 1488,
+      "rmse_model": 3.064305057988218,
+      "rmse_combined": 3.227011745191382,
+      "mae_model": 2.2241168811087286,
+      "mae_combined": 2.2706027569490095,
+      "rho_model": 0.3841283514184898,
+      "rho_combined": 0.37143918336855897,
+      "delta_rmse": 0.16270668720316417
+    },
+    {
+      "round_id": 2,
+      "backend": "monte_carlo",
+      "n": 1488,
+      "rmse_model": 5.8731908224286355,
+      "rmse_combined": 7.603293388907627,
+      "mae_model": 4.065813508064516,
+      "mae_combined": 4.456195150084096,
+      "rho_model": 0.4991173008832848,
+      "rho_combined": 0.48361647325930124,
+      "delta_rmse": 1.7301025664789913
+    },
+    {
+      "round_id": 3,
+      "backend": "heuristic",
+      "n": 1488,
+      "rmse_model": 2.941864500382164,
+      "rmse_combined": 3.208004798077074,
+      "mae_model": 2.219180984476129,
+      "mae_combined": 2.3148720698835756,
+      "rho_model": 0.4660478149853394,
+      "rho_combined": 0.4475589018018092,
+      "delta_rmse": 0.2661402976949101
+    },
+    {
+      "round_id": 3,
+      "backend": "poisson",
+      "n": 1488,
+      "rmse_model": 6.09880098112275,
+      "rmse_combined": 7.183293014988829,
+      "mae_model": 4.815148097788535,
+      "mae_combined": 5.1384104534491435,
+      "rho_model": 0.40755992213533543,
+      "rho_combined": 0.4019892011109876,
+      "delta_rmse": 1.0844920338660788
+    },
+    {
+      "round_id": 3,
+      "backend": "gbm",
+      "n": 1488,
+      "rmse_model": 2.9621157699605156,
+      "rmse_combined": 3.1120493436818317,
+      "mae_model": 2.207953834472354,
+      "mae_combined": 2.260085148488011,
+      "rho_model": 0.3467437897893539,
+      "rho_combined": 0.33592423351231204,
+      "delta_rmse": 0.1499335737213161
+    },
+    {
+      "round_id": 3,
+      "backend": "monte_carlo",
+      "n": 1488,
+      "rmse_model": 4.788644997557703,
+      "rmse_combined": 6.018991390684194,
+      "mae_model": 3.3891149193548387,
+      "mae_combined": 3.6856138727792502,
+      "rho_model": 0.47211612039812983,
+      "rho_combined": 0.4609864849324779,
+      "delta_rmse": 1.2303463931264913
+    }
+  ]
+}

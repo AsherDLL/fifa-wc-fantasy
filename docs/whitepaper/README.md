@@ -18,6 +18,7 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 02 | [introduction.md](sections/02_introduction.md) | Introduction | DRAFT |
 | 03 | [background.md](sections/03_background.md) | Background & related work | DRAFT |
 | 03b | [literature_review.md](sections/03b_literature_review.md) | Literature review: prior art (Benter, OpenFPL, etc.) | DRAFT |
+| 03c | [expert_strategies.md](sections/03c_expert_strategies.md) | Expert practitioner strategies & comparison | DRAFT |
 | 04 | [data.md](sections/04_data.md) | Data sources & schemas | DRAFT |
 | 05 | [methodology.md](sections/05_methodology.md) | Methodology | DRAFT |
 | 05b | [algorithms_formal.md](sections/05b_algorithms_formal.md) | Algorithms (formal specifications) | DRAFT |
@@ -32,6 +33,7 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 11 | [future_work.md](sections/11_future_work.md) | Better approaches & future work | DRAFT |
 | 11b | [innovation_roadmap.md](sections/11b_innovation_roadmap.md) | Innovation roadmap: prediction markets (Polymarket/Kalshi) | DRAFT |
 | 11c | [monte_carlo_and_benter_separation.md](sections/11c_monte_carlo_and_benter_separation.md) | Monte Carlo simulator + Benter separation architecture | DRAFT |
+| 11d | [market_integration_negative_result.md](sections/11d_market_integration_negative_result.md) | Empirical negative result: Polymarket WC-winner contracts add no signal | DRAFT |
 | 12 | [conclusion.md](sections/12_conclusion.md) | Conclusion | TODO |
 | 13 | [references.bib.md](sections/13_references.bib.md) | References (BibTeX-ready) | DRAFT |
 | AA | [appendix.md](sections/AA_appendix.md) | Appendix: model artefacts | DRAFT |
