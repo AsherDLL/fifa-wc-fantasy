@@ -42,7 +42,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=UTC
-      - SNAPSHOT_INTERVAL_HOURS=${SNAPSHOT_INTERVAL_HOURS:-6}
       - WC_END_DATE=${WC_END_DATE:-2026-07-18}
+      - FIFA_INTERVAL_HOURS=${FIFA_INTERVAL_HOURS:-12}
+      - MARKETS_INTERVAL_HOURS=${MARKETS_INTERVAL_HOURS:-3}
+      - ELO_INTERVAL_HOURS=${ELO_INTERVAL_HOURS:-24}
       - STAGE=${STAGE:-R32}
     command: python /app/docker/snapshot_loop.py

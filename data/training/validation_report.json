@@ -4,7 +4,7 @@
       "position": "GK",
       "n": 180,
       "heuristic_rmse": 2.698005317776449,
-      "poisson_rmse": 2.503425768648967,
+      "poisson_rmse": 2.4906970503673267,
       "gbm_rmse": 2.649654122382129
     },
     {

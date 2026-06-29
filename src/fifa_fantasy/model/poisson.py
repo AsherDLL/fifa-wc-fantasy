@@ -56,9 +56,20 @@ SCOUTING_BONUS_POINTS_THRESHOLD = 4
 SCOUTING_BONUS_OWNERSHIP_THRESHOLD = 0.05
 SCOUTING_BONUS = 2
 
-# Goalkeeper-specific bonuses (saves + penalty saves). Modelled as a flat
-# expected contribution per match for a starter.
-GK_SAVE_BONUS = 1.0          # expected points from save bonuses (saves/3 + pen save)
+# Goalkeeper save-bonus scaling. v1 used a flat 1.0 constant (the same
+# expected save bonus for every goalkeeper regardless of opponent
+# strength). That formulation lost information: GKs facing high-xG
+# opponents see more shots and accumulate more save-bonus points than
+# GKs facing low-xG opponents, all else equal.
+#
+# v2 (current): scales with opp_xg. The multiplier was first derived
+# theoretically as SHOT_PER_XG_RATIO * SAVE_PCT / SAVES_PER_BONUS ≈ 1.13
+# but empirically calibrated to 0.50 against EPL 2024-25 GW 30-38
+# held-out plus WC 2026 MD1-R32 realised data. The theoretical value
+# overestimates because not all opponent xG produces on-target shots and
+# the median (not top-tier) GK does not save at the elite 0.85 rate.
+# See scripts/gk_formula_ab.py and docs/whitepaper/sections/09c_*.md.
+GK_SAVE_BONUS_PER_OPP_XG = 0.50
 DEF_GC_PENALTY_FACTOR = 0.5  # average -0.5 pts/match from goals-conceded beyond first
 
 
@@ -160,9 +171,11 @@ def poisson_predict(features: pd.DataFrame) -> pd.DataFrame:
         cs_pts[mask] = cs_prob[mask] * val
 
     # Goalkeeper save bonus + goals-conceded penalty.
+    # Save bonus scales with opp_xg (more shots faced -> more save chances).
+    # See module-level comment for the calibration history.
     gk_mask = positions == "GK"
     gk_save_pts = np.zeros(len(out))
-    gk_save_pts[gk_mask] = GK_SAVE_BONUS
+    gk_save_pts[gk_mask] = np.maximum(opp_xg[gk_mask], 0.0) * GK_SAVE_BONUS_PER_OPP_XG
 
     def_mask = positions == "DEF"
     gc_penalty = np.zeros(len(out))
