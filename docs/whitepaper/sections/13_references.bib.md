@@ -101,6 +101,50 @@ the contents directly.
 }
 ```
 
+### Favorite-longshot bias and prediction-market efficiency
+
+```bibtex
+@incollection{thaler1988favorite,
+  title={Anomalies: Parimutuel betting markets: Racetracks and lotteries},
+  author={Thaler, Richard H and Ziemba, William T},
+  booktitle={Journal of Economic Perspectives},
+  volume={2},
+  number={2},
+  pages={161--174},
+  year={1988}
+}
+
+@article{snowberg2010explaining,
+  title={Explaining the favorite-long shot bias: Is it risk-love or misperceptions?},
+  author={Snowberg, Erik and Wolfers, Justin},
+  journal={Journal of Political Economy},
+  volume={118},
+  number={4},
+  pages={723--746},
+  year={2010}
+}
+
+@article{levitt2004sportsbook,
+  title={Why are gambling markets organised so differently from financial markets?},
+  author={Levitt, Steven D},
+  journal={The Economic Journal},
+  volume={114},
+  number={495},
+  pages={223--246},
+  year={2004}
+}
+
+@article{croxson2014information,
+  title={Information and efficiency: Goal arrival in soccer betting},
+  author={Croxson, Karen and Reade, J James},
+  journal={The Economic Journal},
+  volume={124},
+  number={575},
+  pages={62--91},
+  year={2014}
+}
+```
+
 (Add more as we cite them.)
 
 ### Tools and platforms

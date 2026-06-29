@@ -148,6 +148,88 @@ focused on:
   probabilities (multiple papers in finance, fewer in sports)
 - Bet-sizing and Kelly criterion derivations from market odds
 
+### 3b.5a Favorite-longshot bias: the methodological challenge
+
+Treating market prices as direct probability estimates is methodologically
+naive. The literature documents persistent biases in sports betting and
+parimutuel markets:
+
+- **Thaler and Ziemba (1988)**: foundational paper documenting the
+  favorite-longshot bias in horse racing. Casual bettors systematically
+  underbet favorites and overbet longshots, producing predictable
+  inefficiencies that sharp bettors arbitrage but do not eliminate.
+- **Snowberg and Wolfers (2010, Journal of Political Economy)**: tests
+  competing explanations (risk-love vs. misperception) using empirical
+  data from racetracks. Concludes that the bias is rooted in
+  **misperception of small probabilities**, not utility curvature.
+  Bettors believe 30% events occur 10% of the time and vice versa.
+- **Levitt (2004)**: documents sportsbook prices that deviate from
+  efficient-market predictions specifically to exploit casual-bettor
+  biases. Implication: market prices reflect both information AND
+  behavioral biases.
+- **Croxson and Reade (2014)**: shows that prediction-market efficiency
+  varies with liquidity. Thin markets (early in a tournament, exotic
+  contracts) have larger bias than liquid markets (high-volume
+  outcomes near settlement).
+
+The implication for our methodology: **prediction-market prices are
+noisy estimators of true probabilities, with the noise composed of
+both information aggregation (signal) and behavioral biases (anti-signal)**.
+Treating them as ground truth is wrong; treating them as worthless
+is also wrong. The correct response is to combine them with a
+fundamental model using empirically estimated weights, as Benter (1994)
+demonstrated for parimutuel horse racing.
+
+### 3b.5b Empirical evidence from WC 2026 Polymarket prices
+
+We observe the bias in real time. Live Polymarket WC 2026 winner
+contract prices as of late R32:
+
+| Country | Polymarket implied | Our derived Elo | Likely interpretation |
+|---|---|---|---|
+| France | 22.9% (#1) | 2061 (#3) | Market overweights Mbappé narrative |
+| Argentina | 20.4% (#2) | 2103 (#1) | Market underweights ARG's defensive record |
+| Spain | 11.2% (#3) | 2087 (#2) | Closer agreement |
+| Brazil | 5.8% | 2005 | Closer agreement |
+
+The model-vs-market disagreement on Argentina vs France is the kind of
+information the Benter combiner exploits. Neither signal alone is
+correct; the empirical question is what weight each carries against
+realised tournament outcomes.
+
+### 3b.5c Counter-argument: are markets "just feelings"?
+
+A common objection (correctly raised by our co-author Diego Guajardo in
+the project conversation): prediction markets aggregate **bettor
+sentiment**, not analytical predictions. The objection is partially
+right and partially wrong, and the resolution is empirical.
+
+**Where the objection is right:**
+- Casual bettors dominate volume in many markets and inject behavioral
+  bias (narrative chasing, recency effects, anchoring on star players)
+- Prediction-market prices on long-tail outcomes (e.g. New Zealand wins
+  WC 2026 at 0.0% on Polymarket) are dominated by reservation pricing,
+  not real probability estimates
+
+**Where the objection is wrong:**
+- Sharp bettors with skin in the game arbitrage gross mispricings.
+  The remaining residual price is the **post-arbitrage equilibrium**,
+  which contains information that casual analysts (including
+  ourselves) cannot easily replicate
+- The market aggregates information sources we do not have access to:
+  injury reports from beat reporters in specific countries,
+  team-news leaks from players' agents, etc.
+- Even with bias, the **change in price over time** is a stronger
+  signal than the absolute price level. A market that moves from 10%
+  to 25% on a contract following news is revealing something we
+  should incorporate.
+
+The Benter combiner formalism handles this directly. The coefficient β
+on market price is **estimated from historical data**, not assumed.
+If the market is mostly noise on a particular contract type, β will
+be small. If it is mostly signal, β will be large. We do not have to
+take a prior position on which it is.
+
 Kalshi and Polymarket both list:
 
 - Match-outcome contracts (which team wins)

@@ -51,21 +51,63 @@ does not optimise for ownership differential, narrative momentum
 (top-scorer race), or fixture-specific motivation. A user with even
 moderate football knowledge can correct the model on captain choices.
 
-## 10.4 Differential strategy depends on standings position
+## 10.4 Differential strategy is portfolio construction, not pure differential
 
-Standard EV maximisation is correct when you are leading or tied with
-your league. It is incorrect when you are at the bottom: you need
-variance.
+Earlier in the tournament we framed the differential question as a
+binary choice: either go template or go differential. That was wrong.
+The correct framing is **portfolio construction**: a balanced mix of
+mainstream anchors, workhorses, and differential bets, with the mix
+governed by current league standings.
 
-The simplest formalism: weight predicted points by
-`(1 + lambda * (1 - ownership))` where lambda > 0 increases as your
-position in the league worsens. We did not have this in the optimiser;
-we approximated it by manually surfacing low-ownership options in the
-candidate tables and recommending them when the user's standings
-position warranted it.
+The right intuition (credited to D. Guajardo in the project
+conversations): you want exposure to the field's likely captain picks
+(so you do not collapse on the captain blank scenarios), AND you want
+exposure to picks the field does not have (so you can climb when the
+template blanks). The proportions depend on standings.
 
-A proper differential-aware MILP objective would be a useful Section 11
-follow-up.
+A working classification of squad slots:
+
+| Slot type | Ownership profile | Purpose |
+|---|---|---|
+| **Template anchor** | 30-60% | Match the field on the highest-EV premium |
+| **Workhorse** | 10-30% | Reliable producer; bulk of point accumulation |
+| **Differential bet** | 1-10% | Climb opportunity if they hit |
+
+A balanced 15-player squad typically holds 3-4 anchors, 5-7 workhorses,
+and 3-5 differential bets. The optimiser should explicitly target this
+distribution rather than maximising raw EV. A Markowitz-style
+formulation that targets a portfolio return-variance frontier under
+the budget and country constraints would be the proper academic
+treatment.
+
+We did not have this in the optimiser; we approximated it by manually
+surfacing low-ownership options in the candidate tables and weighing
+them against template picks during transfer conversations. The
+Section 11 follow-up is to formalise the portfolio objective.
+
+## 10.4b Defenders and bench slots are the highest-leverage differentials
+
+A specific empirical observation from the tournament: the best
+differential returns came from defenders and bench MIDs, not from
+attempting to differential-pick at the FWD or MID premium tier.
+
+| Player | Position | Ownership | Total pts | Per million |
+|---|---|---|---|---|
+| W. Pacho | DEF | 5.8% | 11 | 2.5 |
+| A. Freeman | DEF | 6.4% rising | 24 | 6.0 |
+| D. Muñoz | DEF | 9.1% | 24 | 5.2 |
+
+vs. attempting to differential at FWD:
+
+| Player | Position | Ownership | Total pts | Per million |
+|---|---|---|---|---|
+| O. Watkins | FWD | 1.0% | 0 (DNP) | 0.0 |
+
+The reason: at the FWD premium tier the field's ownership is highly
+correlated with realised production (template picks earn their
+ownership). At the DEF and bench-MID tier, the field under-attends and
+real opportunities exist for differential value. The portfolio rule of
+thumb is: **template at FWD, differentiate at DEF and bench**.
 
 ## 10.5 The cost of a transfer hit is consistently underestimated
 
@@ -79,6 +121,16 @@ Rule of thumb adopted post-MD3: never take an unforced hit unless the
 predicted horizon gain over the next two matchdays exceeds 6 points
 (double the per-hit cost). This adds a margin of safety for the
 rotation-risk under-estimation.
+
+## 10.5b The goalkeeper paradox
+
+Documented in detail in Section 9b. Summary: the Poisson backend treats
+GK save bonus as a flat constant, which is structurally wrong. The
+empirically correct formulation scales save bonus by opponent xG.
+Rangel (MEX) outscored Dibu (ARG) by 50% in the group stage because
+Mexico's defense let him face more shots while still keeping clean
+sheets. The model predicted Dibu would outperform; he did not. A fix
+is proposed in Section 9b.7 and 11.
 
 ## 10.6 Auto-substitution mechanics matter
 
