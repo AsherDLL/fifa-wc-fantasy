@@ -295,7 +295,6 @@ free RSS feeds were added:
 Sources tested but not added:
 - The Athletic (paywall, 404 on RSS)
 - The Times (empty RSS payload, paywall)
-- Reddit r/soccer and r/worldcup (403 / 429 blocking by Reddit)
 - Cultured Football (DNS error)
 - Eurosport (404)
 - Football.London (403)
@@ -305,6 +304,101 @@ Sources tested but not added:
 Three RSS sources rotated in over the WC 2026 collection window have
 produced a stable 60+ articles per collection tick with zero errors
 on the working feeds.
+
+### 11e.10b.4 Reddit via arctic-shift (the .json endpoint is dead)
+
+Reddit deprecated the unauthenticated `<url>.json` suffix on
+2026-05-30. Subsequent probes also confirmed:
+
+- `www.reddit.com/r/<sub>/new/.rss` returns 403 to datacenter IPs
+  even with realistic User-Agent and curl_cffi Chrome 146 impersonation
+- `old.reddit.com` mirrors return 403 (same WAF tier)
+- Subreddit-specific `/new/.rss` endpoints return 429 with empty body
+
+The remaining free path is `arctic-shift`
+([github.com/ArthurHeitmann/arctic_shift](https://github.com/ArthurHeitmann/arctic_shift)),
+a research-grade Reddit mirror exposing:
+
+- `arctic-shift.photon-reddit.com/api/posts/search?subreddit=<sub>&limit=...`
+- `arctic-shift.photon-reddit.com/api/comments/search?...`
+
+No authentication, ~2000 req/min soft cap, full post JSON including
+`selftext`. Empirically returns 10KB+ of typed data per call. Lags
+Reddit by hours to days, acceptable for our team-news context.
+
+The collector exposes this as `format="json_arctic_shift"` and adds
+two feeds: `r/soccer` and `r/worldcup`. The arctic-shift parser maps
+`permalink -> canonical reddit URL`, `created_utc -> ISO timestamp`,
+`selftext or title -> body`. Reddit short posts (e.g. match-thread
+headers) are persisted with title-only bodies; long selftexts (tactical
+posts, predicted-XI threads) are stored verbatim up to 12000 chars.
+
+An alternative path is registering a Reddit script OAuth app and
+using `asyncpraw`. This requires the operator to create a throwaway
+Reddit account and provision `REDDIT_CLIENT_ID/SECRET/USERNAME/PASSWORD`
+env vars. Not implemented because arctic-shift gives us what we need
+without managing OAuth refresh tokens; documented here as the
+escalation when arctic-shift coverage proves insufficient.
+
+### 11e.10b.5 Fingerprint upgrades to the StealthClient (2026 sweep)
+
+The original `StealthClient` (Section 11e.3) pinned every host to
+`impersonate="chrome124"`. By mid-2026 that has three problems:
+
+1. `chrome124` is on every public scraping tutorial. It is a known
+   fingerprint default in Cloudflare Bot Management's defensive
+   corpus (per ScrapFly's June 2026 review).
+2. curl_cffi v0.15.0 added `chrome142/145/146`, `firefox144/147`, and
+   `safari260`. Real-Chrome users are mostly on those builds; staying
+   on 124 produces a JA4_R that no real user emits.
+3. Single-identity pinning across all hosts means our fleet is one
+   client. A site with multi-host telemetry sees one "user" hitting
+   ESPN, BBC, Reddit, and Substacks simultaneously, which is itself a
+   bot signal.
+
+The upgraded `StealthClient` (`src/fifa_fantasy/external/scraping/`):
+
+- **Identity pool** (`identity.py`): four curated identities
+  (`chrome146`/macOS, `chrome145`/Windows, `chrome142`/Linux,
+  `firefox147`/Windows), each with a coherent UA + Sec-CH-UA +
+  Sec-CH-UA-Full-Version-List + Accept-Language + Sec-Fetch-*
+  navigation header set, matching the W3C UA Client Hints spec.
+- **Per-host sticky binding**: hash the hostname, pick an identity
+  from the pool deterministically. Same host always uses the same
+  identity (so cookies and ETags survive); different hosts use
+  different ones.
+- **Block-aware retry** (`retry.py`): inspect both response headers
+  (`x-amzn-waf-action: challenge`, `cf-mitigated: challenge`,
+  `x-dd-b`, `x-datadome-cid`) and the first 16KB of the body for
+  WAF challenge signatures (Cloudflare "Just a moment...",
+  AWS WAF integration JS, DataDome captcha redirect, Akamai
+  `_abck` cookie page, Imperva incident ID). When a block is
+  detected the client rotates to the next identity in the pool
+  and retries.
+
+Empirical improvement (one collection tick, 11 feeds): items_stored
+**68 -> 100**, errors **1 -> 0**. The previously-flaky FourFourTwo
+feed (intermittent 403) stopped firing 403s after the upgrade,
+suggesting at least one host was scoring our previous fingerprint.
+
+What this does NOT defeat:
+
+- Cloudflare Turnstile interactive challenges: no pure-Python
+  solver exists in 2026. Escalation tier 2 (`nodriver` or
+  `patchright`) is required.
+- AWS WAF JavaScript proof-of-work challenges (ESPN article
+  pages). We work around this by fetching the ESPN JSON API
+  (11e.10b.2) which is not WAF-protected, rather than solving
+  the PoW. `xKiian/awswaf` exists as a pure-Python PoW reimpl
+  but bit-rots fast; out of scope.
+- IP reputation when scraping from a datacenter range (as we are).
+  Residential proxies via `SCRAPING_PROXY_URL` are supported but
+  cost money; not enabled by default.
+
+ALPS TLS extension drift (curl_cffi emits codepoint 17513 where
+Chrome 133+ emits 17613) is documented but not patched, because it
+only matters for sites cross-checking JA4_c entropy; we have no
+empirical evidence any of our current feeds do so.
 
 ### Disk-usage budget
 
@@ -359,11 +453,53 @@ updated `news_tick()` (every 6h by default).
 
 ## 11e.11 Sources for the bibliography
 
+Industry / blog references:
+
 - [ScrapFly: 11 Best Anti-Bot Bypass Tools for Web Scraping in 2026](https://scrapfly.io/blog/posts/best-anti-bot-bypass-tools)
+- [ScrapFly: How to Bypass Anti-Bot Protection (2026)](https://scrapfly.io/blog/posts/how-to-bypass-anti-bot-protection)
 - [AlterLab: Playwright Anti-Bot Detection: What Works (2026)](https://alterlab.io/blog/playwright-bot-detection-what-actually-works-in-2026)
 - [ScrapFly: How to Bypass Cloudflare When Web Scraping in 2026](https://scrapfly.io/blog/posts/how-to-bypass-cloudflare-anti-scraping)
 - [Ian L. Paterson: Anti-detect browser benchmark 2026 (Patchright, NoDriver, curl_cffi)](https://ianlpaterson.com/blog/anti-detect-browser-benchmark-patchright-nodriver-curl-cffi/)
 - [Cloudflare developer docs: JA3/JA4 fingerprint](https://developers.cloudflare.com/bots/additional-configurations/ja3-ja4-fingerprint/)
+- [Cloudflare Engineering: ML-based residential-proxy bot detection](https://blog.cloudflare.com/residential-proxy-bot-detection-using-machine-learning/)
+- [John Althouse (FoxIO): JA4+ Network Fingerprinting](https://medium.com/foxio/ja4-network-fingerprinting-9376fe9ca637)
 - [BrightData: Web Scraping With curl_cffi and Python in 2026](https://brightdata.com/blog/web-data/web-scraping-with-curl-cffi)
 - [probberechts/soccerdata GitHub: Football data scraper](https://github.com/probberechts/soccerdata)
+- [lexiforest/curl_cffi GitHub (Chrome 142/145/146 + HTTP/3 support, April 2026)](https://github.com/lexiforest/curl_cffi)
+- [ultrafunkamsterdam/nodriver (CDP Chrome, Cloudflare Turnstile click)](https://github.com/ultrafunkamsterdam/nodriver)
+- [Kaliiiiiiiiii-Vinyzu/patchright (Playwright drop-in with anti-detect patches)](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright)
+- [ArthurHeitmann/arctic_shift (Pushshift-class Reddit mirror, no auth)](https://github.com/ArthurHeitmann/arctic_shift)
+- [praw-dev/asyncpraw (async Reddit OAuth client, 2026)](https://github.com/praw-dev/asyncpraw)
+- [xKiian/awswaf (pure-Python AWS WAF PoW solver)](https://github.com/xKiian/awswaf)
+- [riboseinc/country_to_locales_mapping (ISO 3166 -> Accept-Language)](https://github.com/riboseinc/country_to_locales_mapping)
 - [API-Football](https://www.api-football.com/) and [Highlightly Football API](https://highlightly.net/football-api/) for paid-tier alternatives
+
+Peer-reviewed academic references:
+
+- Annamalai, M. et al. (2025). **Beyond the Crawl: Unmasking Browser
+  Fingerprinting in Real User Interactions.** Proceedings of the
+  ACM Web Conference (WWW). arXiv:2502.01608. Shows that automated
+  crawlers miss 45% of fingerprinting sites real users encounter,
+  motivating our identity-rotation pool.
+- Bacis, E., Bilogrevic, I. et al. (2024). **Assessing Web
+  Fingerprinting Risk.** WWW Companion. arXiv:2403.15607. First
+  large-scale entropy estimate from tens of millions of real Chrome
+  browsers in the wild.
+- Xue, D., Stanley, M., Kumar, R., Ensafi, R. (2025). **The
+  Discriminative Power of Cross-Layer RTTs in Fingerprinting Proxy
+  Traffic.** NDSS Symposium. 92-98% accuracy fingerprinting
+  Shadowsocks / OpenVPN traffic at <1.5% FPR. Bears on our proxy
+  rotation discussion.
+- (2026). **Beyond RTT: An Adversarially Robust Two-Tiered Approach
+  for Residential Proxy Detection.** NDSS Symposium 2026.
+  Demonstrates that RTT-based detection breaks under trivial
+  adversarial padding; informs our decision not to rely on a single
+  proxy provider.
+- Teoh, M. et al. (2025). **Are CAPTCHAs Still Bot-hard? Generalized
+  Visual CAPTCHA Solving with Agentic Vision-Language Model.**
+  USENIX Security. 70.6% solve rate on in-the-wild CAPTCHAs;
+  motivates escalation to VLM-class solvers if CAPTCHA-protected
+  sources become necessary in future work.
+- Searles, A. et al. (2024). **The Matter of CAPTCHAs.** WWW
+  Symposium. 15,000 image-CAPTCHAs x 20 schemes against 14
+  open-source solvers.

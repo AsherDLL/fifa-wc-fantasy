@@ -20,5 +20,8 @@ Public API:
     print(response.text, response.from_cache)
 """
 from .client import CachedResponse, StealthClient
+from .identity import DEFAULT_POOL, Identity
+from .retry import detect_block
 
-__all__ = ["StealthClient", "CachedResponse"]
+__all__ = ["StealthClient", "CachedResponse", "Identity", "DEFAULT_POOL",
+           "detect_block"]

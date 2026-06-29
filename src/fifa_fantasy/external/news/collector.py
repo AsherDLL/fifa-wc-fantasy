@@ -114,10 +114,54 @@ def _parse_espn_json(json_text: str) -> list[dict]:
     return items
 
 
+def _parse_arctic_shift_json(json_text: str) -> list[dict]:
+    """Parse arctic-shift Reddit-mirror JSON.
+
+    Schema:
+        {"data": [{"title": "...", "selftext": "...",
+                   "permalink": "/r/soccer/comments/...",
+                   "created_utc": 1234567890, "subreddit": "soccer",
+                   "score": 42, "num_comments": 18, ...}, ...]}
+
+    We pull title + selftext, build a canonical reddit URL from
+    permalink, and convert the epoch timestamp to an RFC3339 string.
+    """
+    import json
+    from datetime import datetime, timezone
+    items: list[dict] = []
+    try:
+        d = json.loads(json_text)
+    except (json.JSONDecodeError, ValueError):
+        return items
+    for post in d.get("data", []):
+        permalink = post.get("permalink") or ""
+        if not permalink:
+            continue
+        url = f"https://www.reddit.com{permalink}"
+        created = post.get("created_utc")
+        published = ""
+        if isinstance(created, (int, float)):
+            published = datetime.fromtimestamp(created, tz=timezone.utc).isoformat()
+        title = (post.get("title") or "").strip()
+        selftext = (post.get("selftext") or "").strip()
+        # Reddit posts often have rich selftext bodies; treat them as
+        # the article summary so the JSON-feed short-circuit downstream
+        # can persist them without scraping the (WAF-blocked) reddit page.
+        items.append({
+            "title": title,
+            "url": url,
+            "published": published,
+            "summary": selftext if selftext else title,
+        })
+    return items
+
+
 def _parse_feed(text: str, format: str) -> list[dict]:
     """Dispatch on feed format."""
     if format == "json_espn":
         return _parse_espn_json(text)
+    if format == "json_arctic_shift":
+        return _parse_arctic_shift_json(text)
     return _parse_rss(text)
 
 
@@ -209,19 +253,32 @@ def collect(
             summary["items_matched"] += 1
 
             # Some feed formats provide the full body in the feed payload
-            # itself (ESPN JSON description, some Substack content fields).
-            # For those, the feed's summary is sufficient and we skip
-            # the article HTML fetch entirely. Saves bandwidth + bypasses
-            # WAF on the article-page side (ESPN's article pages are
-            # AWS-WAF-protected even though their JSON API is not).
+            # itself (ESPN JSON description, Reddit selftext via arctic-
+            # shift, some Substack content fields). For those, the feed's
+            # summary is sufficient and we skip the article HTML fetch
+            # entirely. Saves bandwidth + bypasses WAF on the article-page
+            # side (ESPN's article pages are AWS-WAF-protected even though
+            # their JSON API is not; reddit.com returns 403 to datacenter
+            # IPs but the arctic-shift mirror does not).
             summary_text = (item.get("summary") or "").strip()
+            title_text = (item.get("title") or "").strip()
             min_body_len = 200
-            if feed.format == "json_espn" and len(summary_text) > 60:
+            json_self_contained = feed.format in ("json_espn", "json_arctic_shift")
+            # ESPN summaries are ~80-200 chars; reddit selftexts can be
+            # 0-10000 chars but the title alone is content for short
+            # posts (transfer-news micro-threads, "Match Thread" etc).
+            min_json_chars = 60 if feed.format == "json_espn" else 1
+            if json_self_contained and (len(summary_text) >= min_json_chars
+                                         or len(title_text) >= 20):
                 # Use the JSON summary as the body. Shorter than scraped
-                # bodies but informative for team-news context.
-                body = summary_text[:MAX_BODY_CHARS]
-                article_title = item.get("title", "") or summary_text[:80]
-                article_snippet = summary_text[:280] + ("..." if len(summary_text) > 280 else "")
+                # bodies but informative for team-news context. For
+                # Reddit posts with empty selftext, fall back to the
+                # title so we still capture the headline-only post.
+                effective_text = summary_text if summary_text else title_text
+                body = effective_text[:MAX_BODY_CHARS]
+                article_title = title_text or effective_text[:80]
+                article_snippet = effective_text[:280] + (
+                    "..." if len(effective_text) > 280 else "")
                 article_author = None
                 summary["items_fetched"] += 1  # count as a logical fetch
                 # Persist directly.

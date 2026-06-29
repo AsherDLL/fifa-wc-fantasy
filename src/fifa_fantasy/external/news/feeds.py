@@ -29,6 +29,11 @@ class FeedConfig:
     keywords: tuple[str, ...] = field(default_factory=tuple)
     # Feed format. "rss" parses RSS 2.0 / Atom XML. "json_espn" parses the
     # ESPN site.api.espn.com news payload (articles -> [{headline, links, ...}]).
+    # "json_arctic_shift" parses arctic-shift's Reddit mirror (data -> [{title,
+    # selftext, permalink, created_utc, ...}]). Reddit's own endpoints
+    # (www.reddit.com .json suffix, www.reddit.com/.../.rss, old.reddit.com)
+    # all return 403/429 to datacenter IPs as of 2026; arctic-shift is
+    # the only durable free path for Reddit content without OAuth creds.
     format: str = "rss"
 
 
@@ -126,6 +131,28 @@ DEFAULT_FEEDS: tuple[FeedConfig, ...] = (
         base_confidence=0.70,
         keywords=WC_KEYWORDS,
     ),
+    # Reddit r/soccer via arctic-shift. Reddit killed the unauthenticated
+    # .json endpoint on 2026-05-30 and aggressively rate-limits its RSS
+    # endpoint from datacenter IPs. arctic-shift is a research-grade
+    # mirror of Reddit content (no auth required, ~2000 req/min soft
+    # cap, large queries throttled). Lags Reddit by hours to days; fine
+    # for our team-news / discussion-signal use case.
+    FeedConfig(
+        name="Reddit r/soccer (arctic-shift)",
+        url="https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=soccer&limit=50&sort=desc&sort_type=created_utc",
+        source_id="reddit_soccer",
+        base_confidence=0.45,
+        keywords=WC_KEYWORDS,
+        format="json_arctic_shift",
+    ),
+    FeedConfig(
+        name="Reddit r/worldcup (arctic-shift)",
+        url="https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=worldcup&limit=50&sort=desc&sort_type=created_utc",
+        source_id="reddit_worldcup",
+        base_confidence=0.50,
+        keywords=WC_KEYWORDS,
+        format="json_arctic_shift",
+    ),
 )
 
 # Dropped feeds (kept here for documentation; we do not retry them):
@@ -136,7 +163,14 @@ DEFAULT_FEEDS: tuple[FeedConfig, ...] = (
 #     202 with an AWS WAF JavaScript challenge body. ESPN's RSS endpoint
 #     is now protected by AWS WAF. Defeating it requires
 #     playwright-stealth or nodriver (see scraping/README.md escalation
-#     tier 2). Out of scope for the lean RSS collector.
+#     tier 2). Out of scope for the lean RSS collector. We use the
+#     site.api.espn.com JSON endpoint above instead.
 #   - Goal.com (www.goal.com/feeds/en/news):
 #     404 with no working alternative URL. Their RSS endpoint moved or
 #     was retired; we could not find a replacement.
+#   - www.reddit.com/r/<sub>/new/.rss:
+#     403 from datacenter IPs as of 2026-06. The legacy .json suffix
+#     died on 2026-05-30. old.reddit.com mirrors are also blocked. The
+#     only durable free path is arctic-shift (above) or registering a
+#     Reddit script OAuth app (env vars REDDIT_CLIENT_ID, _SECRET,
+#     _USERNAME, _PASSWORD; see docs/whitepaper section 11e).
