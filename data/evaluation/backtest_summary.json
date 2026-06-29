@@ -47,6 +47,46 @@
         {
           "round_id": 1,
           "stage": "GROUP_MD1",
+          "backend": "heuristic_v2",
+          "squad_player_ids": [
+            38,
+            57,
+            215,
+            216,
+            521,
+            527,
+            606,
+            939,
+            1085,
+            1092,
+            1338,
+            1573,
+            1574,
+            1600,
+            1995
+          ],
+          "starter_ids": [
+            38,
+            215,
+            521,
+            939,
+            1085,
+            1092,
+            1338,
+            1573,
+            1574,
+            1600,
+            1995
+          ],
+          "captain_id": 1573,
+          "formation": "3-4-3",
+          "realised_starter_pts": 37,
+          "realised_captain_raw": 2,
+          "realised_total": 39
+        },
+        {
+          "round_id": 1,
+          "stage": "GROUP_MD1",
           "backend": "poisson",
           "squad_player_ids": [
             30,
@@ -224,6 +264,46 @@
           "realised_starter_pts": 68,
           "realised_captain_raw": 13,
           "realised_total": 81
+        },
+        {
+          "round_id": 2,
+          "stage": "GROUP_MD2",
+          "backend": "heuristic_v2",
+          "squad_player_ids": [
+            38,
+            173,
+            214,
+            468,
+            500,
+            525,
+            937,
+            1001,
+            1086,
+            1089,
+            1102,
+            1320,
+            1361,
+            1431,
+            1601
+          ],
+          "starter_ids": [
+            38,
+            173,
+            214,
+            468,
+            500,
+            525,
+            937,
+            1086,
+            1102,
+            1361,
+            1431
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 66,
+          "realised_captain_raw": 13,
+          "realised_total": 79
         },
         {
           "round_id": 2,
@@ -409,6 +489,46 @@
         {
           "round_id": 3,
           "stage": "GROUP_MD3",
+          "backend": "heuristic_v2",
+          "squad_player_ids": [
+            38,
+            173,
+            468,
+            500,
+            517,
+            792,
+            1086,
+            1088,
+            1099,
+            1264,
+            1318,
+            1320,
+            1541,
+            1601,
+            2044
+          ],
+          "starter_ids": [
+            38,
+            173,
+            468,
+            500,
+            517,
+            792,
+            1086,
+            1099,
+            1318,
+            1320,
+            1601
+          ],
+          "captain_id": 38,
+          "formation": "3-4-3",
+          "realised_starter_pts": 65,
+          "realised_captain_raw": 7,
+          "realised_total": 72
+        },
+        {
+          "round_id": 3,
+          "stage": "GROUP_MD3",
           "backend": "poisson",
           "squad_player_ids": [
             43,
@@ -546,6 +666,7 @@
   ],
   "totals_by_source": {
     "heuristic": 211,
+    "heuristic_v2": 190,
     "poisson": 72,
     "gbm": 161,
     "monte_carlo": 212,

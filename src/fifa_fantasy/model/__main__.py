@@ -17,6 +17,7 @@ from pathlib import Path
 import pandas as pd
 
 from .baseline import DEFAULT_PREMIUM_BOOST, heuristic_predict
+from .baseline_v2 import heuristic_v2_predict
 from .gbm import DEFAULT_MODELS_DIR, GBM_VERSION, load_models, predict as gbm_predict
 from .monte_carlo import mc_predict
 from .poisson import poisson_predict
@@ -36,7 +37,8 @@ def main() -> None:
     parser.add_argument("--features-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--backend",
-                        choices=("heuristic", "gbm", "poisson", "monte_carlo"),
+                        choices=("heuristic", "heuristic_v2", "gbm",
+                                 "poisson", "monte_carlo"),
                         default="heuristic")
     parser.add_argument("--models-dir", type=Path, default=DEFAULT_MODELS_DIR,
                         help="LightGBM model artefacts (used only for --backend gbm)")
@@ -54,6 +56,9 @@ def main() -> None:
     if args.backend == "heuristic":
         predictions = heuristic_predict(features, premium_boost=args.premium_boost)
         backend_label = "heuristic"
+    elif args.backend == "heuristic_v2":
+        predictions = heuristic_v2_predict(features)
+        backend_label = "heuristic_v2"
     elif args.backend == "gbm":
         models = load_models(args.models_dir)
         predictions = gbm_predict(features, models)

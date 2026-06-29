@@ -36,6 +36,7 @@ import pulp
 
 from fifa_fantasy.collector.schemas import Stage
 from fifa_fantasy.model.baseline import heuristic_predict
+from fifa_fantasy.model.baseline_v2 import heuristic_v2_predict
 from fifa_fantasy.model.gbm import DEFAULT_MODELS_DIR, load_models, predict as gbm_predict
 from fifa_fantasy.model.monte_carlo import mc_predict
 from fifa_fantasy.model.poisson import poisson_predict
@@ -56,7 +57,7 @@ ROUND_PLAN = [
     # (4, "features_2026-06-28.parquet", "players_2026-06-29.parquet", Stage.R32),
 ]
 
-BACKENDS = ("heuristic", "poisson", "gbm", "monte_carlo")
+BACKENDS = ("heuristic", "heuristic_v2", "poisson", "gbm", "monte_carlo")
 
 
 @dataclass(frozen=True)
@@ -85,6 +86,8 @@ def _round_points(raw_players: pd.DataFrame, round_id: int) -> dict[int, int]:
 def _predict(features: pd.DataFrame, backend: str) -> pd.DataFrame:
     if backend == "heuristic":
         return heuristic_predict(features)
+    if backend == "heuristic_v2":
+        return heuristic_v2_predict(features)
     if backend == "poisson":
         return poisson_predict(features)
     if backend == "gbm":
