@@ -1,4 +1,4 @@
-"""Heuristic v2 — empirically tuned and expert-knowledge-informed.
+"""Heuristic v2 - empirically tuned and expert-knowledge-informed.
 
 Improvements over v1 (`baseline.py`):
 

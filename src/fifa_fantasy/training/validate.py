@@ -40,13 +40,27 @@ class PositionRMSE:
 
 def load_all_seasons(training_dir: Path = DEFAULT_TRAINING_DIR
                      ) -> pd.DataFrame:
+    from fifa_fantasy.training.features import (
+        add_lagged_form, add_lagged_start_rate, add_team_gc_form,
+    )
     frames = []
     for path in sorted(training_dir.glob("fpl_player_gameweek_*.parquet")):
         df = pd.read_parquet(path)
         if "season" not in df.columns:
             df["season"] = path.stem.replace("fpl_player_gameweek_", "")
         frames.append(df)
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if not frames:
+        return pd.DataFrame()
+    allseasons = pd.concat(frames, ignore_index=True)
+    # Compute all lagged features on the FULL history before any train/holdout
+    # split. If we deferred this to build_training_table (called per-subset),
+    # the holdout's first in-window gameweek would see a truncated or empty
+    # trailing window because the prior gameweeks live in the training subset.
+    # Computing here keeps the holdout features identical to production.
+    allseasons = add_lagged_form(allseasons)
+    allseasons = add_lagged_start_rate(allseasons)
+    allseasons = add_team_gc_form(allseasons)
+    return allseasons
 
 
 def split_train_holdout(df: pd.DataFrame,

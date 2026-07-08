@@ -2,12 +2,12 @@
 
     python -m fifa_fantasy.optimizer                                # MD1 (fresh)
     python -m fifa_fantasy.optimizer --stage GROUP_MD2 \\
-        --from results/<host>_recommendation_GROUP_MD1_<ts>.json    # transfer
+        --from results/<host>_recommendation_<backend>_GROUP_MD1_<ts>.json  # transfer
 
 Outputs per run, both into --out-dir (default `results/`):
 
-  <host>_recommendation_<STAGE>_<UTC-timestamp>.json
-  <host>_recommendation_<STAGE>_<UTC-timestamp>.md
+  <host>_recommendation_<backend>_<STAGE>_<UTC-timestamp>.json
+  <host>_recommendation_<backend>_<STAGE>_<UTC-timestamp>.md
 
 The JSON carries the full payload (squad, lineup, captain, transfer
 block if any) for a UI to consume. The markdown is the squad table only.
@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import socket
 from datetime import datetime, timezone
@@ -26,7 +27,10 @@ import pandas as pd
 
 from fifa_fantasy.collector.schemas import Stage
 
-from .pipeline import aggregate_to_player, apply_scouting_bonus
+from .captain import select_captain_vice
+from .pipeline import (
+    aggregate_to_player, apply_availability_discount, apply_scouting_bonus,
+)
 from .report import render_markdown
 from .solvers import (
     TransferSolution,
@@ -57,8 +61,13 @@ def _select_round(predictions: pd.DataFrame, round_id: int, player_ids: list[int
         (predictions["round_id"] == round_id)
         & (predictions["player_id"].isin(player_ids))
     ]
-    return rows[["player_id", "full_name", "position", "country", "country_abbr",
-                 "price_millions", "predicted_points", "is_home", "opponent_abbr"]]
+    cols = ["player_id", "full_name", "position", "country", "country_abbr",
+            "price_millions", "predicted_points", "is_home", "opponent_abbr"]
+    # Carry the discounted score so solve_lineup optimizes what solve_squad
+    # optimized. Dropping it here silently reverted the XI to raw points.
+    if "effective_points" in rows.columns:
+        cols.append("effective_points")
+    return rows[cols]
 
 
 def main() -> None:
@@ -71,6 +80,12 @@ def main() -> None:
                         help="rolled-over free transfers from the prior round")
     parser.add_argument("--predictions-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_RESULTS_DIR)
+    parser.add_argument(
+        "--standings-pos-pct", type=float, default=0.9,
+        help=("user's league position as a percentile: 0.0 = leader, "
+              "1.0 = last. Drives the captain ceiling weighting; the "
+              "default 0.9 reflects a team near the bottom that needs "
+              "upside. Set lower when protecting a lead."))
     args = parser.parse_args()
 
     stage = Stage(args.stage)
@@ -90,6 +105,7 @@ def main() -> None:
         else ""
     )
     predictions = apply_scouting_bonus(predictions)
+    predictions = apply_availability_discount(predictions)
     player_table = aggregate_to_player(predictions, horizon)
 
     transfer: TransferSolution | None = None
@@ -115,6 +131,30 @@ def main() -> None:
 
     squad_in_round = _select_round(predictions, first_round, chosen_ids)
     lineup = solve_lineup(squad_in_round)
+
+    # Override the lineup solver's naive mean-argmax captain with the
+    # ceiling-aware composite selector. On the starting XI it weights the
+    # q90 ceiling by how hard the user is chasing, which captured nearly
+    # twice the captain points of mean-argmax on the leak-free backtest
+    # (docs 11g). Falls back cleanly to the mean when quantiles are absent
+    # (non-GBM backends): _row_to_dict defaults p90/p10 to predicted_points.
+    xi_ctx = predictions[
+        (predictions["round_id"] == first_round)
+        & (predictions["player_id"].isin(lineup.starter_ids))
+    ].copy()
+    if "ownership_fraction" in xi_ctx.columns:
+        xi_ctx["ownership_pct"] = xi_ctx["ownership_fraction"].astype(float) * 100.0
+    # The composite selector reads predicted_p10/p90; the GBM emits q10/q90.
+    for q, p in (("predicted_q10", "predicted_p10"), ("predicted_q90", "predicted_p90")):
+        if q in xi_ctx.columns and p not in xi_ctx.columns:
+            xi_ctx[p] = xi_ctx[q]
+    captain_id, vice_captain_id = lineup.captain_id, lineup.vice_captain_id
+    try:
+        decision = select_captain_vice(
+            xi_ctx, standings_pos_pct=args.standings_pos_pct)
+        captain_id, vice_captain_id = decision.captain_id, decision.vice_id
+    except (ValueError, KeyError, IndexError):
+        pass  # keep the solver's picks if the selector cannot run
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -147,9 +187,9 @@ def main() -> None:
                      if c in predictions.columns]
 
     def _role(pid: int) -> str:
-        if pid == lineup.captain_id:
+        if pid == captain_id:
             return "Captain"
-        if pid == lineup.vice_captain_id:
+        if pid == vice_captain_id:
             return "Vice"
         if pid in starter_set:
             return "Start"
@@ -183,6 +223,11 @@ def main() -> None:
             "is_home": bool(ctx["is_home"]),
             "predicted_points": float(ctx["predicted_points"]),
         }
+        # The score the solvers actually optimized (scouting bonus +
+        # availability discount). Without it the payload's per-player
+        # numbers cannot be reconciled with total_horizon_points.
+        if "effective_points" in ctx:
+            entry["effective_points"] = float(ctx["effective_points"])
         # Optional quantile bands when the GBM backend was used.
         for q in quantile_cols:
             preds_q_row = predictions[
@@ -191,6 +236,11 @@ def main() -> None:
             ]
             if not preds_q_row.empty and q in preds_q_row.columns:
                 entry[q] = float(preds_q_row[q].iloc[0])
+        # NaN is not valid JSON (json.dumps emits a bare NaN token that
+        # JSON.parse rejects). Nulls instead.
+        for key, val in list(entry.items()):
+            if isinstance(val, float) and math.isnan(val):
+                entry[key] = None
         squad_array.append(entry)
 
     payload: dict = {
@@ -211,8 +261,8 @@ def main() -> None:
             "formation": lineup.formation,
             "starter_ids": lineup.starter_ids,
             "bench_ids_priority_order": lineup.bench_ids,
-            "captain_id": lineup.captain_id,
-            "vice_captain_id": lineup.vice_captain_id,
+            "captain_id": captain_id,
+            "vice_captain_id": vice_captain_id,
             "expected_points": lineup.objective,
         },
     }
@@ -285,8 +335,8 @@ def main() -> None:
         squad_player_ids=chosen_ids,
         starter_ids=lineup.starter_ids,
         bench_ids_priority_order=lineup.bench_ids,
-        captain_id=lineup.captain_id,
-        vice_captain_id=lineup.vice_captain_id,
+        captain_id=captain_id,
+        vice_captain_id=vice_captain_id,
         players=players_for_report,
         round_predictions=squad_in_round,
         target_round=first_round,

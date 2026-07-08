@@ -49,7 +49,7 @@ from .prediction_markets import load_history
 # combiner is a no-op at this β; we keep the architecture for the
 # Kalshi per-fixture markets when they become available, and for the
 # post-tournament Bayesian refit.
-DEFAULT_BETA = (0.0, 1.0, 0.00)   # (β₀, β₁, β₂) — empirical optimum
+DEFAULT_BETA = (0.0, 1.0, 0.00)   # (β₀, β₁, β₂) - empirical optimum
 
 
 @dataclass(frozen=True)

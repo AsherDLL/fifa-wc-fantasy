@@ -32,7 +32,7 @@ SQUAD_POSITION_COUNTS: dict[Position, int] = {
 # Fantasy.md: -3 points per additional transfer above the free quota.
 TRANSFER_HIT_POINTS = 3
 
-# Each formation: (DEF, MID, FWD) — GK is always 1.
+# Each formation: (DEF, MID, FWD) - GK is always 1.
 VALID_FORMATIONS: dict[str, tuple[int, int, int]] = {
     "4-4-2": (4, 4, 2),
     "4-3-3": (4, 3, 3),
@@ -154,7 +154,7 @@ def solve_transfer(
 
     Stages with unlimited free transfers (`config.free_transfers is None`)
     short-circuit to `solve_squad` and report the diff against the current
-    squad — same shape of result so the caller doesn't branch.
+    squad - same shape of result so the caller doesn't branch.
     """
     if config.free_transfers is None:
         fresh = solve_squad(players, config, exclude_eliminated, verbose)
@@ -285,9 +285,20 @@ def solve_lineup(squad_round: pd.DataFrame) -> LineupSolution:
         player_id, position, predicted_points
     (predicted_points should be for the target round only; for captain/vice
     we want the round's own scoring potential, not the multi-round total.)
+
+    When an `effective_points` column is present (scouting bonus and
+    availability discount applied upstream), the XI objective and the
+    bench auto-sub priority use it instead of the raw prediction. Squad
+    selection already optimizes effective points; without this the XI
+    step silently reverted to raw points, so a rotation-risk player the
+    discount had penalized could still be started over a nailed teammate
+    with a lower raw mean.
     """
     if len(squad_round) != SQUAD_SIZE:
         raise ValueError(f"expected {SQUAD_SIZE} squad rows; got {len(squad_round)}")
+
+    score_col = ("effective_points" if "effective_points" in squad_round.columns
+                 else "predicted_points")
 
     prob = pulp.LpProblem("lineup", pulp.LpMaximize)
     y = {
@@ -300,7 +311,8 @@ def solve_lineup(squad_round: pd.DataFrame) -> LineupSolution:
     }
 
     prob += pulp.lpSum(
-        y[int(r.player_id)] * float(r.predicted_points) for r in squad_round.itertuples()
+        y[int(r.player_id)] * float(getattr(r, score_col))
+        for r in squad_round.itertuples()
     )
 
     # Exactly one formation
@@ -332,12 +344,12 @@ def solve_lineup(squad_round: pd.DataFrame) -> LineupSolution:
     starters = squad_round[squad_round["player_id"].isin(starter_ids)]
     bench = squad_round[~squad_round["player_id"].isin(starter_ids)]
 
-    # Auto-sub priority: outfield bench ordered by predicted_points desc.
-    # GK bench (the non-starting GK) is always at end — game auto-subs GK
-    # only with the other GK.
+    # Auto-sub priority: outfield bench ordered by the same score the XI
+    # was chosen on. GK bench (the non-starting GK) is always at end; the
+    # game auto-subs GK only with the other GK.
     bench_gk = bench[bench["position"] == "GK"]
     bench_outfield = bench[bench["position"] != "GK"].sort_values(
-        "predicted_points", ascending=False
+        score_col, ascending=False
     )
     bench_ordered = list(bench_outfield["player_id"].astype(int)) + list(
         bench_gk["player_id"].astype(int)

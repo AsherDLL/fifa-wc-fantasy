@@ -1,7 +1,7 @@
 """Diff two recommendations.
 
 Used by the `--compare-to` CLI flag to surface what changed between
-yesterday's and today's pick — typically driven by ownership shifts
+yesterday's and today's pick - typically driven by ownership shifts
 ahead of lockout.
 """
 

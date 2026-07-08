@@ -11,7 +11,7 @@ Layout under `data_dir` (default `data/raw/`):
         ├── squads_2026-06-07T13-04-22Z.json
         └── rounds_2026-06-07T13-04-22Z.json
 
-The raw JSON is cheap insurance — if the schema changes and parsing breaks,
+The raw JSON is cheap insurance - if the schema changes and parsing breaks,
 we still have the original payload to re-parse with an updated `RawPlayer`.
 """
 

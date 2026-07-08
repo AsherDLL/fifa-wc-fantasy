@@ -23,6 +23,15 @@ Limitations:
     honest upper bound on the model's prediction quality.
   - The user's actual squad may have included transfer-cost hits which
     are subtracted from realised_total_pts in the JSON.
+  - IN-SAMPLE CAVEAT for WC-trained backends: when the production GBM is
+    trained with --include-wc, it has seen the realised labels of every
+    completed WC round, including the rounds scored here. The `gbm` and
+    `ensemble` columns are therefore in-sample upper bounds on those
+    rounds, not out-of-sample estimates. The leak-free measure of the
+    form + WC-label change is the per-position walk-forward RMSE in
+    scripts/wc_forward_validation.py, which trains only on WC rounds
+    strictly before the round it scores. The heuristic, Poisson and
+    Monte Carlo columns never train on WC and remain out-of-sample.
 """
 from __future__ import annotations
 
@@ -35,8 +44,10 @@ import pandas as pd
 import pulp
 
 from fifa_fantasy.collector.schemas import Stage
+from fifa_fantasy.features.build import _attach_form_lag
 from fifa_fantasy.model.baseline import heuristic_predict
 from fifa_fantasy.model.baseline_v2 import heuristic_v2_predict
+from fifa_fantasy.model.ensemble import ensemble_predict
 from fifa_fantasy.model.gbm import DEFAULT_MODELS_DIR, load_models, predict as gbm_predict
 from fifa_fantasy.model.monte_carlo import mc_predict
 from fifa_fantasy.model.poisson import poisson_predict
@@ -50,14 +61,21 @@ OUT_DIR = Path("data/evaluation")
 # Round -> (features_file, raw_players_file, stage). Pick the snapshot
 # closest to but BEFORE the deadline of the listed round.
 ROUND_PLAN = [
-    (1, "features_2026-06-08.parquet", "players_2026-06-23.parquet", Stage.GROUP_MD1),
-    (2, "features_2026-06-18.parquet", "players_2026-06-23.parquet", Stage.GROUP_MD2),
-    (3, "features_2026-06-23.parquet", "players_2026-06-29.parquet", Stage.GROUP_MD3),
-    # R32 is in progress; realised scores not yet final, skip in this run.
-    # (4, "features_2026-06-28.parquet", "players_2026-06-29.parquet", Stage.R32),
+    (1, "features_2026-06-08.parquet", "players_2026-07-04.parquet", Stage.GROUP_MD1),
+    (2, "features_2026-06-18.parquet", "players_2026-07-04.parquet", Stage.GROUP_MD2),
+    (3, "features_2026-06-23.parquet", "players_2026-07-04.parquet", Stage.GROUP_MD3),
+    # R32 is now complete; realised scores live in round_points index 3.
+    (4, "features_2026-06-28.parquet", "players_2026-07-04.parquet", Stage.R32),
+    # R16 complete (realised scores at index 4). The 07-03 snapshot is the
+    # last strictly pre-round one; it covers 12 of 16 R16 squads (four
+    # pairings were decided by late R32 games). The 07-04 snapshot has all
+    # 16 but was taken after the first R16 match had recorded points (max
+    # round_points length 5), which leaks that fixture's own labels into
+    # its stored form_lag. Clean beats complete.
+    (5, "features_2026-07-03.parquet", "players_2026-07-08.parquet", Stage.R16),
 ]
 
-BACKENDS = ("heuristic", "heuristic_v2", "poisson", "gbm", "monte_carlo")
+BACKENDS = ("heuristic", "heuristic_v2", "poisson", "gbm", "monte_carlo", "ensemble")
 
 
 @dataclass(frozen=True)
@@ -95,6 +113,8 @@ def _predict(features: pd.DataFrame, backend: str) -> pd.DataFrame:
         return gbm_predict(features, models)
     if backend == "monte_carlo":
         return mc_predict(features)
+    if backend == "ensemble":
+        return ensemble_predict(features)
     raise ValueError(backend)
 
 
@@ -202,6 +222,12 @@ def run() -> dict:
             print(f"\nROUND {round_id}: skipping (missing files)")
             continue
         feat = pd.read_parquet(feat_path)
+        # These snapshots predate the form feature. Reconstruct form_lag from
+        # the point-in-time round_points already stored in the snapshot; it
+        # reflects only rounds completed before the snapshot, so it is
+        # leak-free for the round being predicted.
+        if "form_lag" not in feat.columns:
+            feat = _attach_form_lag(feat)
         raw = pd.read_parquet(raw_path)
         realised = _round_points(raw, round_id)
         print(f"\n=== ROUND {round_id} ({stage.value}) ===")

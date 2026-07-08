@@ -36,7 +36,7 @@ def squad_strength(
         squad_size
 
     `squad_top_n_avg_price` is the mean price of the squad's `top_n` most
-    expensive players — a closer proxy for starting-XI quality than the
+    expensive players - a closer proxy for starting-XI quality than the
     mean across the whole roster. Rank 1 is the strongest squad.
     """
     if top_n < 1:

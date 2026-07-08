@@ -50,11 +50,6 @@ CLEAN_SHEET_POINTS = {"GK": 5, "DEF": 5, "MID": 1, "FWD": 0}
 APPEARANCE_POINTS = 2
 # Common rules.
 ASSIST_POINTS = 3
-# Scouting bonus thresholds from scoring.py (referenced explicitly here so
-# this module stays self-contained).
-SCOUTING_BONUS_POINTS_THRESHOLD = 4
-SCOUTING_BONUS_OWNERSHIP_THRESHOLD = 0.05
-SCOUTING_BONUS = 2
 
 # Goalkeeper save-bonus scaling. v1 used a flat 1.0 constant (the same
 # expected save bonus for every goalkeeper regardless of opponent
@@ -187,19 +182,20 @@ def poisson_predict(features: pd.DataFrame) -> pd.DataFrame:
 
     raw = base + goal_pts + assist_pts + cs_pts + gk_save_pts + gc_penalty
 
-    # Scouting bonus: +2 pts when predicted > 4 AND ownership < 5%.
-    ownership = out["ownership_fraction"].astype(float).to_numpy()
-    scouting = np.where(
-        (raw > SCOUTING_BONUS_POINTS_THRESHOLD)
-        & (ownership < SCOUTING_BONUS_OWNERSHIP_THRESHOLD),
-        SCOUTING_BONUS,
-        0.0,
-    )
-    raw = raw + scouting
+    # No scouting bonus here. The bonus is applied exactly once, in
+    # optimizer/pipeline.apply_scouting_bonus, for every backend. Baking it
+    # into predicted_points double-counted it downstream (+4 instead of +2),
+    # which inflated every low-ownership backup keeper the poisson backend
+    # scores with team-level clean-sheet points.
 
     available = (
         (out["status"] == "playing")
         & (~out["is_eliminated"].astype(bool))
     )
+    # Team-news gate, mirroring baseline.py: an explicit predicted_starting_xi
+    # of False zeroes the row; NaN (no news) keeps current behaviour.
+    if "predicted_starting_xi" in out.columns:
+        xi = out["predicted_starting_xi"]
+        available = available & ~(xi == False)  # noqa: E712 (pandas semantics)
     out["predicted_points"] = np.where(available, np.clip(raw, 0.0, None), 0.0)
     return out

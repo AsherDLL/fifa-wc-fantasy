@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from fifa_fantasy.external.football_data import (
@@ -37,6 +38,14 @@ from fifa_fantasy.external.football_data import (
 from fifa_fantasy.external.mapping import to_fd_club
 
 TOP_N = 11
+
+# Trailing window (in matches) for the lagged-form feature. Three matches
+# is a "current form" window: long enough to smooth a single blank, short
+# enough to react to a hot streak. The window is shared with WC inference
+# (features/build.py) and WC label extraction (training/wc.py) so the GBM
+# sees one feature with one meaning across data sets.
+FORM_WINDOW = 3
+
 FEATURE_COLUMNS = [
     "position",
     "price_millions",
@@ -51,7 +60,147 @@ FEATURE_COLUMNS = [
     # Both derived from football-data.co.uk and martj42 respectively; same
     # scale (Elo ~400 per 10:1 odds) so the GBM treats them uniformly.
     "team_elo_diff",
+    # form_lag: trailing mean of the player's own realised fantasy points
+    # over the previous FORM_WINDOW matches (strictly past; shifted by one
+    # so the current row's label never leaks). NaN for a player's first
+    # match, which LightGBM handles natively.
+    "form_lag",
+    # start_rate_lag: trailing fraction of prior matches the player started
+    # (EPL) or participated in (WC). The minutes / rotation-risk signal.
+    "start_rate_lag",
+    # team_gc_form: trailing mean goals conceded by the player's team. The
+    # correct defensive recency signal for GK and DEF, where personal
+    # scoring form is noise.
+    "team_gc_form",
 ]
+
+
+def add_lagged_start_rate(player_gameweek: pd.DataFrame,
+                          window: int = FORM_WINDOW) -> pd.DataFrame:
+    """Attach `start_rate_lag`: trailing fraction of prior matches started.
+
+    This is the minutes / rotation-risk signal. A benched starter scores
+    near zero regardless of form or matchup, so the models need to know how
+    reliably a player actually takes the pitch. On EPL we have a real
+    `starts` flag per gameweek; the WC side derives the analogous signal
+    from participation (round_points > 0) because the FIFA API does not
+    expose per-round minutes.
+
+    Leak-free (`.shift(1)`), grouped by (season, player_id), NaN before a
+    player's first match. Idempotent like add_lagged_form.
+    """
+    if "start_rate_lag" in player_gameweek.columns:
+        return player_gameweek
+    df = player_gameweek.copy()
+    if "season" not in df.columns:
+        df["season"] = "single"
+    df["season"] = df["season"].fillna("single")
+    # `starts` is 1/0 on the EPL feed. Fall back to minutes>0 if absent.
+    if "starts" in df.columns:
+        started = pd.to_numeric(df["starts"], errors="coerce").fillna(0.0).clip(0, 1)
+    else:
+        started = (pd.to_numeric(df.get("minutes"), errors="coerce").fillna(0.0) > 0).astype(float)
+    df["_started"] = started
+    df = df.sort_values(_lag_sort_keys(df)).reset_index(drop=True)
+    grp = df.groupby(["season", "player_id"], sort=False)["_started"]
+    df["start_rate_lag"] = grp.transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+    )
+    return df.drop(columns=["_started"])
+
+
+def add_team_gc_form(player_gameweek: pd.DataFrame,
+                     window: int = FORM_WINDOW) -> pd.DataFrame:
+    """Attach `team_gc_form`: trailing mean goals conceded by the player's team.
+
+    Personal scoring form is noise for goalkeepers (their points come from
+    clean sheets and saves, not from scoring). The correct recency signal
+    for GK and DEF is how leaky their team has actually been. We estimate
+    per-(team, gameweek) goals conceded from the full-match players'
+    `goals_conceded` (a 90-minute player's value equals the team's), then
+    take a trailing mean per team, shifted so the current match is excluded.
+
+    Leak-free, grouped by (season, team_id). NaN before a team's first
+    match. Idempotent.
+    """
+    if "team_gc_form" in player_gameweek.columns:
+        return player_gameweek
+    df = player_gameweek.copy()
+    if "season" not in df.columns:
+        df["season"] = "single"
+    df["season"] = df["season"].fillna("single")
+    if "goals_conceded" not in df.columns or "team_id" not in df.columns:
+        df["team_gc_form"] = np.nan
+        return df
+    # Per-(season, team, gameweek) team goals conceded: median over the
+    # players who played a near-full match, whose personal goals_conceded
+    # equals the team's. Falls back to the max when nobody hit 60 minutes.
+    mins = pd.to_numeric(df.get("minutes"), errors="coerce").fillna(0.0)
+    gc = pd.to_numeric(df["goals_conceded"], errors="coerce")
+    full = df.assign(_gc=gc, _min=mins)
+    full60 = full[full["_min"] >= 60]
+    team_gc = (
+        full60.groupby(["season", "team_id", "gameweek"])["_gc"].median()
+        .rename("team_gc").reset_index()
+    )
+    if team_gc.empty:
+        df["team_gc_form"] = np.nan
+        return df
+    team_gc = team_gc.sort_values(["season", "team_id", "gameweek"]).reset_index(drop=True)
+    g = team_gc.groupby(["season", "team_id"], sort=False)["team_gc"]
+    team_gc["team_gc_form"] = g.transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+    )
+    return df.merge(
+        team_gc[["season", "team_id", "gameweek", "team_gc_form"]],
+        on=["season", "team_id", "gameweek"], how="left",
+    )
+
+
+def add_lagged_form(player_gameweek: pd.DataFrame,
+                    window: int = FORM_WINDOW) -> pd.DataFrame:
+    """Attach `form_lag`: trailing mean of prior-match fantasy points.
+
+    Grouped by (season, player_id) because FPL `player_id` (the element id)
+    is only unique within a season; without the season key a player's form
+    would bleed across season boundaries. Sorted by gameweek so the shift
+    is a true "previous match" shift.
+
+    Leak-free: `.shift(1)` drops the current gameweek from the window, so a
+    row's own label is never part of its own feature. The first match of a
+    (season, player) gets NaN.
+
+    Idempotent: if `form_lag` already exists (the caller computed it on the
+    full multi-season history before a train/holdout split, which is the
+    correct order), this is a no-op so the split's per-subset recompute
+    does not clobber it with a truncated window.
+    """
+    if "form_lag" in player_gameweek.columns:
+        return player_gameweek
+    df = player_gameweek.copy()
+    if "season" not in df.columns:
+        df["season"] = "single"
+    df["season"] = df["season"].fillna("single")
+    df = df.sort_values(_lag_sort_keys(df)).reset_index(drop=True)
+    grp = df.groupby(["season", "player_id"], sort=False)["total_points"]
+    df["form_lag"] = grp.transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+    )
+    return df
+
+
+def _lag_sort_keys(df: pd.DataFrame) -> list[str]:
+    """Sort keys for the pre-shift ordering of lagged features.
+
+    `gameweek` alone under-determines double gameweeks (a player's two
+    matches share the gameweek number); adding kickoff_time when present
+    makes within-gameweek order explicit instead of resting on the input
+    file's row order surviving a stable sort.
+    """
+    keys = ["season", "player_id", "gameweek"]
+    if "kickoff_time" in df.columns:
+        keys.append("kickoff_time")
+    return keys
 
 
 def _team_top_n_avg_price(per_team_gw: pd.DataFrame, top_n: int = TOP_N) -> pd.Series:
@@ -67,7 +216,13 @@ def _team_top_n_avg_price(per_team_gw: pd.DataFrame, top_n: int = TOP_N) -> pd.S
 
 def build_training_table(player_gameweek: pd.DataFrame) -> pd.DataFrame:
     """Augment the scraped FPL table with feature columns matching inference."""
-    df = player_gameweek.copy()
+    # Compute lagged form before the DNP drop so the trailing window counts
+    # real calendar matches (a benched 0-point week is legitimate form). If
+    # the caller already computed it on the full pre-split history, this is
+    # a no-op (see add_lagged_form docstring).
+    df = add_lagged_form(player_gameweek)
+    df = add_lagged_start_rate(df)
+    df = add_team_gc_form(df)
     df = df[df["minutes"] > 0].copy()  # drop DNPs; same as inference filter
 
     # Per-(team, gameweek) top-N avg price.

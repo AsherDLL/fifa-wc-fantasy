@@ -18,6 +18,7 @@ import pandas as pd
 
 from .baseline import DEFAULT_PREMIUM_BOOST, heuristic_predict
 from .baseline_v2 import heuristic_v2_predict
+from .ensemble import ensemble_predict
 from .gbm import DEFAULT_MODELS_DIR, GBM_VERSION, load_models, predict as gbm_predict
 from .monte_carlo import mc_predict
 from .poisson import poisson_predict
@@ -38,7 +39,7 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
     parser.add_argument("--backend",
                         choices=("heuristic", "heuristic_v2", "gbm",
-                                 "poisson", "monte_carlo"),
+                                 "poisson", "monte_carlo", "ensemble"),
                         default="heuristic")
     parser.add_argument("--models-dir", type=Path, default=DEFAULT_MODELS_DIR,
                         help="LightGBM model artefacts (used only for --backend gbm)")
@@ -66,6 +67,9 @@ def main() -> None:
     elif args.backend == "monte_carlo":
         predictions = mc_predict(features)
         backend_label = "monte_carlo"
+    elif args.backend == "ensemble":
+        predictions = ensemble_predict(features, models_dir=args.models_dir)
+        backend_label = "ensemble"
     else:
         predictions = poisson_predict(features)
         backend_label = "poisson"

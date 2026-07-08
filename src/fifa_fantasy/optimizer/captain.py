@@ -41,7 +41,7 @@ import pandas as pd
 
 
 # Tuning knobs for the captain score components.
-WEIGHT_MEAN = 1.00              # baseline weight on mean expected pts
+WEIGHT_MEAN = 1.00              # baseline weight on the ceiling-vs-mean base
 WEIGHT_VARIANCE = 0.10          # mild penalty for blank-prone (high p10=0)
 WEIGHT_DIFFERENTIAL = 0.20      # max bonus when chasing
 WEIGHT_FIXTURE_GAP = 0.05       # bonus for big Elo gap fixtures
@@ -49,6 +49,17 @@ WEIGHT_FIXTURE_GAP = 0.05       # bonus for big Elo gap fixtures
 # Standings position threshold: if user is above this percentile in
 # their league, prefer template captains; below, prefer differentials.
 LEAD_THRESHOLD = 0.50           # 50th percentile (median)
+
+# Ceiling weighting. The base captain term interpolates between the mean
+# prediction and the q90 ceiling by how hard the user is chasing:
+#   base = (1 - chase) * mean + chase * q90,   chase = standings_pos_pct.
+# A leader (chase=0) captains the safe mean; a team in last (chase=1)
+# captains the ceiling. This is not a preference, it is the empirical
+# winner: on a leak-free per-round backtest over MD2, MD3 and R32
+# (scripts wc_forward_validation context, docs 11g), captaining by q90
+# captured 21 raw captain points against 11 for the mean-argmax rule the
+# lineup solver had been using, with the optimal being 42.
+CEILING_MAX_CHASE = 1.0         # cap on the chase interpolation weight
 
 
 @dataclass(frozen=True)
@@ -63,7 +74,24 @@ class CaptainDecision:
     candidates_ranked: list[dict]
 
 
+def _num_or(row, attr: str, default: float) -> float:
+    """Numeric attribute with a default that also covers NaN.
+
+    `getattr(row, attr, default)` alone is a trap: under the ensemble
+    backend the quantile columns EXIST but hold NaN for the positions
+    routed to point-estimate backends (poisson GK, heuristic DEF). A NaN
+    p90 turns the composite score NaN, and sorting NaN keys is undefined
+    order, which once crowned a goalkeeper captain. NaN must fall back
+    exactly like a missing attribute.
+    """
+    value = getattr(row, attr, None)
+    if value is None or pd.isna(value):
+        return float(default)
+    return float(value)
+
+
 def _row_to_dict(row) -> dict:
+    mean = float(row.predicted_points)
     return {
         "player_id": int(row.player_id),
         "name": row.full_name,
@@ -71,12 +99,12 @@ def _row_to_dict(row) -> dict:
         "position": row.position,
         "opponent": row.opponent_abbr,
         "is_home": bool(row.is_home),
-        "predicted_points": float(row.predicted_points),
-        "ownership_pct": float(getattr(row, "ownership_pct", 0.0)),
-        "p10": float(getattr(row, "predicted_p10", row.predicted_points)),
-        "p90": float(getattr(row, "predicted_p90", row.predicted_points)),
-        "elo_diff": float(getattr(row, "country_elo_diff", 0.0) or 0.0),
-        "fixture_id": int(getattr(row, "fixture_id", -1)),
+        "predicted_points": mean,
+        "ownership_pct": _num_or(row, "ownership_pct", 0.0),
+        "p10": _num_or(row, "predicted_p10", mean),
+        "p90": _num_or(row, "predicted_p90", mean),
+        "elo_diff": _num_or(row, "country_elo_diff", 0.0),
+        "fixture_id": int(_num_or(row, "fixture_id", -1)),
     }
 
 
@@ -97,10 +125,16 @@ def captain_composite_score(player: dict,
     """
     mean = player["predicted_points"]
     p10 = player["p10"]
+    p90 = player["p90"]
     ownership_frac = player["ownership_pct"] / 100.0
     elo_diff = player["elo_diff"]
 
-    mean_term = WEIGHT_MEAN * mean
+    # Ceiling-vs-mean base: interpolate toward q90 by how hard we chase.
+    # When q90 is unavailable it equals the mean (see _row_to_dict default),
+    # so this degrades to the mean term for point-estimate backends.
+    chase = min(CEILING_MAX_CHASE, max(0.0, standings_pos_pct))
+    base = (1.0 - chase) * mean + chase * p90
+    mean_term = WEIGHT_MEAN * base
 
     blank_indicator = max(0.0, (mean - p10)) / max(mean, 0.01)
     variance_term = -WEIGHT_VARIANCE * blank_indicator * mean
@@ -115,6 +149,8 @@ def captain_composite_score(player: dict,
     composite = mean_term + variance_term + differential_term + fixture_term
     return composite, {
         "mean_term": mean_term,
+        "ceiling_base": base,
+        "chase_weight": chase,
         "variance_term": variance_term,
         "differential_term": differential_term,
         "fixture_term": fixture_term,

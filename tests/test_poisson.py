@@ -56,8 +56,13 @@ def test_gk_clean_sheet_signal_against_weak_opponent():
     assert out["predicted_points"].iloc[0] > out["predicted_points"].iloc[1]
 
 
-def test_scouting_bonus_triggers():
-    # Forward against a weaker team -> high prediction; low ownership.
+def test_scouting_bonus_not_baked_into_predictions():
+    # The scouting bonus is applied exactly once, in
+    # optimizer/pipeline.apply_scouting_bonus. The backend must NOT bake
+    # it into predicted_points: doing so double-counted it downstream
+    # (+4 instead of +2), inflating every low-ownership backup keeper
+    # above their team's actual number one. Identical players differing
+    # only in ownership must get identical raw predictions.
     df = pd.DataFrame([
         _row(position="FWD", rank_diff=400.0, strength_diff=1.5,
              ownership_fraction=0.01),
@@ -67,8 +72,7 @@ def test_scouting_bonus_triggers():
     out = poisson_predict(df)
     low_own = out["predicted_points"].iloc[0]
     high_own = out["predicted_points"].iloc[1]
-    # The low-ownership row should be +2 above the high-ownership row.
-    assert low_own == pytest.approx(high_own + 2.0, abs=1e-6) or low_own > high_own
+    assert low_own == pytest.approx(high_own, abs=1e-9)
 
 
 def test_appearance_floor_above_zero():

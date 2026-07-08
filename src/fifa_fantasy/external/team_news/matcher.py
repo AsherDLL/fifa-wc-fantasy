@@ -4,11 +4,11 @@ Strategy: lowercase + strip accents + match against (country_abbr, position
 hint, last name primary) on the latest players_<date>.parquet.
 
 Confidence tiers:
-  1.00 — exact full-name match
-  0.85 — last-name match within (country, position)
-  0.70 — last-name match within country (any position)
-  0.50 — last-name match without country (likely false positive)
-  0.00 — no match
+  1.00 - exact full-name match
+  0.85 - last-name match within (country, position)
+  0.70 - last-name match within country (any position)
+  0.50 - last-name match without country (likely false positive)
+  0.00 - no match
 """
 from __future__ import annotations
 

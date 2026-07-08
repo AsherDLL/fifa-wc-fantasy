@@ -119,13 +119,25 @@ def simulate(features: pd.DataFrame,
     own_xg, opp_xg = _team_xg(out)
     positions = out["position"].to_numpy()
 
-    # Per-position realised average (used as the form-multiplier denominator).
+    # Per-position realised PER-MATCH average (form-multiplier denominator).
+    # It must be on the same per-match scale as the numerator in
+    # _player_form_multiplier (total / matches played). Using the mean of
+    # tournament TOTALS here made the denominator grow with rounds played,
+    # clamping every multiplier to the 0.3 floor by mid-tournament and
+    # erasing the per-player differentiation the multiplier exists for.
+    if "round_points" in out.columns:
+        matches = out["round_points"].map(
+            lambda rp: max(len(list(rp)), 1) if rp is not None else 1
+        ).astype(float)
+    else:
+        matches = pd.Series(1.0, index=out.index)
+    per_match = out["total_points"].astype(float) / matches
     pos_avg = {}
     for pos in ("GK", "DEF", "MID", "FWD"):
         mask = positions == pos
         if mask.any():
-            tot = out.loc[mask, "total_points"].astype(float)
-            pos_avg[pos] = float(tot.mean()) if len(tot) else 1.0
+            vals = per_match[mask]
+            pos_avg[pos] = float(vals.mean()) if len(vals) else 1.0
         else:
             pos_avg[pos] = 1.0
 

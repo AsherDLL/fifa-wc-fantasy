@@ -145,6 +145,183 @@ def _attach_country_elo(grid: pd.DataFrame, country_elo: pd.DataFrame) -> pd.Dat
     return grid
 
 
+def team_gc_history(fixtures: pd.DataFrame, window: int = 3) -> pd.DataFrame:
+    """Per-(squad_id, round_id) trailing mean goals conceded, leak-free.
+
+    For each completed fixture a team's goals conceded is the opponent's
+    score. For an upcoming round we want the mean over the previous
+    `window` completed rounds, strictly before the round in question, so
+    the shift(1) excludes the current round. Returns columns
+    [squad_id, round_id, team_gc_form]. Rounds are 1-based; a team's
+    first round gets NaN.
+
+    Shared by WC inference (features.build) and WC label extraction
+    (training.wc) so `team_gc_form` has one definition everywhere.
+    """
+    fx = fixtures.copy()
+    for col in ("home_score", "away_score"):
+        fx[col] = pd.to_numeric(fx.get(col), errors="coerce")
+    completed = fx[fx["home_score"].notna() & fx["away_score"].notna()]
+    rows = []
+    for _, r in completed.iterrows():
+        rows.append({"squad_id": int(r["home_squad_id"]), "round_id": int(r["round_id"]),
+                     "gc": float(r["away_score"])})
+        rows.append({"squad_id": int(r["away_squad_id"]), "round_id": int(r["round_id"]),
+                     "gc": float(r["home_score"])})
+    if not rows:
+        return pd.DataFrame(columns=["squad_id", "round_id", "team_gc_form"])
+    gc = pd.DataFrame(rows).sort_values(["squad_id", "round_id"]).reset_index(drop=True)
+    g = gc.groupby("squad_id", sort=False)["gc"]
+    gc["team_gc_form"] = g.transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+    )
+    return gc[["squad_id", "round_id", "team_gc_form"]]
+
+
+def completed_rounds_by_squad(fixtures: pd.DataFrame) -> dict[int, int]:
+    """Number of completed rounds per squad_id, from fixture scores.
+
+    The FIFA API truncates a player's `round_points` at the last round the
+    player personally recorded anything, silently dropping trailing DNPs.
+    The squad's completed-fixture count is the true number of rounds the
+    player was available to appear in; the gap between the two is exactly
+    the trailing zeros the API swallowed.
+    """
+    fx = fixtures.copy()
+    for col in ("home_score", "away_score"):
+        fx[col] = pd.to_numeric(fx.get(col), errors="coerce")
+    completed = fx[fx["home_score"].notna() & fx["away_score"].notna()]
+    counts: dict[int, int] = {}
+    for _, r in completed.iterrows():
+        for side in ("home_squad_id", "away_squad_id"):
+            sid = int(r[side])
+            counts[sid] = counts.get(sid, 0) + 1
+    return counts
+
+
+def pad_round_points(rp, n_completed: int | None) -> list:
+    """Reconstruct the full per-round history from a truncated API list.
+
+    Trailing DNP rounds are missing from `round_points` (interior DNPs are
+    zero-filled by the API, trailing ones truncated). Padding with zeros up
+    to the squad's completed-round count restores them, so a player benched
+    for the last two rounds no longer shows the form and participation of
+    his last two matches PLAYED. Without this, form_lag is inflated and the
+    availability discount never fires for recently-dropped players, the
+    exact rotation risks it exists to catch.
+    """
+    vals = [float(v) for v in list(rp)] if rp is not None else []
+    if n_completed is not None and len(vals) < n_completed:
+        vals = vals + [0.0] * (n_completed - len(vals))
+    return vals
+
+
+def _attach_padded_round_points(grid: pd.DataFrame,
+                                fixtures: pd.DataFrame) -> pd.DataFrame:
+    """Add `_rp_padded`: round_points with trailing DNPs restored."""
+    if "round_points" not in grid.columns:
+        return grid
+    counts = completed_rounds_by_squad(fixtures)
+    grid["_rp_padded"] = [
+        pad_round_points(rp, counts.get(int(sid)) if pd.notna(sid) else None)
+        for rp, sid in zip(grid["round_points"], grid["squad_id"])
+    ]
+    return grid
+
+
+def _attach_team_gc_form(grid: pd.DataFrame, fixtures: pd.DataFrame,
+                         window: int = 3) -> pd.DataFrame:
+    """Attach team_gc_form to the upcoming-round grid.
+
+    Each upcoming (squad, round) gets the mean goals conceded over the
+    team's LAST `window` completed rounds, computed fresh from the fixture
+    scores. The previous implementation broadcast the team's latest stored
+    trailing value from `team_gc_history`, but that value is the form AT
+    the last completed round (it excludes that round's own concession by
+    design), so inference served a window stale by one match relative to
+    the training-side lookup.
+    """
+    fx = fixtures.copy()
+    for col in ("home_score", "away_score"):
+        fx[col] = pd.to_numeric(fx.get(col), errors="coerce")
+    completed = fx[fx["home_score"].notna() & fx["away_score"].notna()]
+    if completed.empty:
+        grid["team_gc_form"] = pd.NA
+        return grid
+    rows = []
+    for _, r in completed.iterrows():
+        rows.append((int(r["home_squad_id"]), int(r["round_id"]), float(r["away_score"])))
+        rows.append((int(r["away_squad_id"]), int(r["round_id"]), float(r["home_score"])))
+    gc = pd.DataFrame(rows, columns=["squad_id", "round_id", "gc"])
+    gc = gc.sort_values(["squad_id", "round_id"])
+    current = (gc.groupby("squad_id")["gc"]
+               .apply(lambda s: float(s.tail(window).mean()))
+               .rename("team_gc_form").reset_index())
+    return grid.merge(current, on="squad_id", how="left")
+
+
+def _attach_form_lag(grid: pd.DataFrame, window: int = 3) -> pd.DataFrame:
+    """Attach `form_lag`: trailing mean of the player's realised points over
+    the previous `window` completed rounds.
+
+    The `round_points` list holds one integer per completed round. For an
+    upcoming fixture we predict, all of those are strictly in the past, so
+    the mean of the last `window` of them is the recency signal for the next
+    round. This matches training/features.add_lagged_form (EPL) and
+    training/wc.extract_wc_training_rows (WC labels), so the GBM sees one
+    feature with one meaning. NaN before a player has any completed round
+    (e.g. pre-MD1), which the GBM handles natively.
+
+    Reads `_rp_padded` (trailing DNPs restored) when present, so a benched
+    player's missed rounds count as zeros instead of being skipped.
+    """
+    def last_k_mean(rp) -> float:
+        if rp is None:
+            return float("nan")
+        vals = [v for v in list(rp)]
+        if not vals:
+            return float("nan")
+        w = vals[-window:]
+        return float(sum(w)) / len(w)
+
+    src = "_rp_padded" if "_rp_padded" in grid.columns else "round_points"
+    if src in grid.columns:
+        grid["form_lag"] = grid[src].map(last_k_mean)
+    else:
+        grid["form_lag"] = pd.NA
+    return grid
+
+
+def _attach_start_rate_lag(grid: pd.DataFrame, window: int = 3) -> pd.DataFrame:
+    """Attach `start_rate_lag`: trailing participation rate over completed rounds.
+
+    The FIFA API does not expose per-round minutes, so participation is
+    proxied by round_points > 0 (a player who took the pitch banks at least
+    the appearance points). Mean over the last `window` completed rounds.
+    Matches the WC training-side definition in training/wc.py. NaN before a
+    player has any completed round.
+
+    Reads `_rp_padded` (trailing DNPs restored) when present: a player
+    benched for the last two rounds is a 1/3 participation, not the 3/3
+    his truncated played-matches list implied.
+    """
+    def part_rate(rp) -> float:
+        if rp is None:
+            return float("nan")
+        vals = [1.0 if v > 0 else 0.0 for v in list(rp)]
+        if not vals:
+            return float("nan")
+        w = vals[-window:]
+        return float(sum(w)) / len(w)
+
+    src = "_rp_padded" if "_rp_padded" in grid.columns else "round_points"
+    if src in grid.columns:
+        grid["start_rate_lag"] = grid[src].map(part_rate)
+    else:
+        grid["start_rate_lag"] = pd.NA
+    return grid
+
+
 def _attach_team_news(grid: pd.DataFrame,
                      news_table: pd.DataFrame | None) -> pd.DataFrame:
     """Join the latest scraped predicted-XI signal into the per-row grid.
@@ -210,5 +387,11 @@ def build_player_round_features(
     )
     grid = _attach_country_elo(grid, country_elo)
     grid = _attach_team_news(grid, team_news)
+    grid = _attach_padded_round_points(grid, fixtures)
+    grid = _attach_form_lag(grid)
+    grid = _attach_start_rate_lag(grid)
+    grid = _attach_team_gc_form(grid, fixtures)
     grid = _attach_rest_days(grid)
+    if "_rp_padded" in grid.columns:
+        grid = grid.drop(columns=["_rp_padded"])
     return grid.reset_index(drop=True)

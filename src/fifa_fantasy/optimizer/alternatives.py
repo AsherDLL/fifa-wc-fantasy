@@ -34,7 +34,7 @@ def render_alternatives_markdown(
     captain_rows = []
     for rank, (_, row) in enumerate(top_caps.iterrows(), start=1):
         gap = row["predicted_points"] - top1
-        gap_str = "—" if rank == 1 else f"{gap:+.2f}"
+        gap_str = "-" if rank == 1 else f"{gap:+.2f}"
         captain_rows.append(
             f"| {rank} | {row['full_name']} | {row['country_abbr']} | "
             f"{row['position']} | {row['predicted_points']:.2f} | {gap_str} |"
@@ -78,7 +78,7 @@ def render_alternatives_markdown(
             f"- **{pos}**: weakest starter "
             f"{starter_lowest['full_name']} ({starter_lowest['predicted_points']:.2f}) "
             f"vs best bench {bench_top['full_name']} "
-            f"({bench_top['predicted_points']:.2f}) — gap **{gap:+.2f}**"
+            f"({bench_top['predicted_points']:.2f}) - gap **{gap:+.2f}**"
         )
 
     return (

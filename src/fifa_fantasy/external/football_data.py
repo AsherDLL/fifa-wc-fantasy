@@ -104,7 +104,7 @@ def compute_club_elo_history(matches: pd.DataFrame) -> pd.DataFrame:
     """Per-(club, date) snapshot of Elo BEFORE each match the club played.
 
     Returns a long DataFrame: club, date, elo_before. Useful for joining
-    historical Elo without lookahead bias — for a training match on date D,
+    historical Elo without lookahead bias - for a training match on date D,
     take the latest row where date < D.
     """
     elos: dict[str, float] = {}

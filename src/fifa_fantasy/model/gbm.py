@@ -1,18 +1,19 @@
 """LightGBM predictor: per-position point + quantile heads.
 
-Four position models trained on EPL FPL data (one season is plenty for
-shape; more seasons land later). Each position trains:
+Four position models trained on three EPL FPL seasons (2022-23,
+2023-24, 2024-25) plus completed WC rounds when retrained with
+`model.train --include-wc` (the v3form contract). Each position trains:
 
   - mean head: regression for E[total_points]
   - q10 head: quantile regression at the 10th percentile
   - q50 head: quantile regression at the 50th percentile (median)
   - q90 head: quantile regression at the 90th percentile
 
-Feature columns match the WC inference table so the same model can score
-both data sets:
+Feature columns (six) match the WC inference table so the same model can
+score both data sets:
 
     price_millions, is_home (0/1), strength_diff,
-    squad_top_n_avg_price, opp_squad_top_n_avg_price
+    squad_top_n_avg_price, opp_squad_top_n_avg_price, form_lag
 
 `rank_diff` is included at WC inference but absent in training; the
 inference path drops it before passing rows to the model, so the column
@@ -41,7 +42,7 @@ QUANTILES = {"q10": 0.10, "q50": 0.50, "q90": 0.90}
 # apart from current v2 results (three seasons, tuned hyperparameters).
 # Bump this any time the training data or hyperparameters change in a
 # way that changes the squad picks.
-GBM_VERSION = "v2"
+GBM_VERSION = "v3form"
 
 FEATURE_COLUMNS = [
     "price_millions",
@@ -49,12 +50,28 @@ FEATURE_COLUMNS = [
     "strength_diff",
     "squad_top_n_avg_price",
     "opp_squad_top_n_avg_price",
+    # form_lag: trailing mean of the player's own realised fantasy points
+    # over the previous FORM_WINDOW (=3) matches, computed leak-free and
+    # shared across EPL training, WC training and WC inference. This is the
+    # recency signal the v1/v2 GBM lacked: without it the model predicted a
+    # player's output purely from price and team strength, so an in-form
+    # cheap player (or an out-of-form premium) was mispriced. See
+    # training/features.add_lagged_form and docs section 11f.
+    "form_lag",
+    # start_rate_lag and team_gc_form were tested as GBM features (config D
+    # in scripts/wc_forward_validation.py). Both regressed the leak-free WC
+    # walk-forward RMSE at every position (pooled 3.281 -> 3.307): the WC
+    # participation proxy is noisy over four rounds and team_gc_form is
+    # collinear with the strength signals the model already has. They are
+    # NOT model features. They are consumed where they actually help: the
+    # Poisson clean-sheet term (team_gc_form) and the rotation-risk flag
+    # surfaced to the optimiser (start_rate_lag). See docs section 11g.
 ]
 # team_elo_diff was tested as a sixth feature (v3 candidate). With a
 # deterministic A/B on EPL 2024-25 GW 30-38: GK -0.018, MID -0.019 (better);
 # DEF +0.033, FWD +0.015 (worse). Net wash; the extra feature risks
 # distribution shift to international Elo gaps (much larger than EPL gaps)
-# at WC inference, so v3 was not shipped. The data and column live on for
+# at WC inference, so it was not shipped. The data and column live on for
 # the heuristic and Poisson backends, where the signal is consumed directly.
 
 
@@ -97,9 +114,25 @@ def _shared_params(cfg: TrainConfig) -> dict:
     }
 
 
+def _ensure_feature_columns(out: pd.DataFrame) -> pd.DataFrame:
+    """Guarantee every FEATURE_COLUMNS entry exists.
+
+    Legacy feature parquets written before a feature was introduced lack
+    that column. Rather than KeyError (which would take down the daemon on
+    an old snapshot), we inject the missing column as NaN so LightGBM sees
+    a neutral value and the model degrades gracefully to its pre-feature
+    behaviour on that row.
+    """
+    for col in FEATURE_COLUMNS:
+        if col not in out.columns:
+            out[col] = np.nan
+    return out
+
+
 def _to_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["is_home"] = out["is_home"].astype(int)
+    out = _ensure_feature_columns(out)
     return out[FEATURE_COLUMNS]
 
 
@@ -173,6 +206,7 @@ def predict(features: pd.DataFrame,
     """
     out = features.copy()
     out["is_home"] = out["is_home"].astype(int)
+    out = _ensure_feature_columns(out)
     X = out[FEATURE_COLUMNS]
 
     pred_mean = np.zeros(len(out))
@@ -190,6 +224,11 @@ def predict(features: pd.DataFrame,
         pred_q90[mask] = heads["q90"].predict(Xp)
 
     available = (out["status"] == "playing") & (~out["is_eliminated"].astype(bool))
+    # Team-news gate, mirroring baseline.py: an explicit predicted_starting_xi
+    # of False zeroes the row; NaN (no news) keeps current behaviour.
+    if "predicted_starting_xi" in out.columns:
+        xi = out["predicted_starting_xi"]
+        available = available & ~(xi == False)  # noqa: E712 (pandas semantics)
     out["predicted_points"] = np.where(available, np.clip(pred_mean, 0, None), 0.0)
     out["predicted_q10"] = np.where(available, np.clip(pred_q10, 0, None), 0.0)
     out["predicted_q50"] = np.where(available, np.clip(pred_q50, 0, None), 0.0)

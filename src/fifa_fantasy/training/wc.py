@@ -19,7 +19,11 @@ from pathlib import Path
 import pandas as pd
 
 from fifa_fantasy.collector.rankings import load_rankings
+from fifa_fantasy.features.build import (
+    completed_rounds_by_squad, pad_round_points, team_gc_history,
+)
 from fifa_fantasy.features.squad import squad_strength
+from fifa_fantasy.training.features import FORM_WINDOW
 
 DEFAULT_RAW = Path("data/raw")
 DEFAULT_PROCESSED = Path("data/processed")
@@ -49,13 +53,44 @@ def extract_wc_training_rows(
 
     strength = squad_strength(players, squads, rankings=rankings)
 
+    # Leak-free trailing team goals-conceded per (squad, round). Used for
+    # the team_gc_form label feature; keyed on (squad_id, round_id).
+    gc_hist = team_gc_history(fixtures, window=FORM_WINDOW)
+    gc_lookup = {
+        (int(r["squad_id"]), int(r["round_id"])): r["team_gc_form"]
+        for _, r in gc_hist.iterrows()
+    }
+
+    # The API truncates round_points at the player's last recorded round,
+    # silently dropping trailing DNPs. Pad to the squad's completed-round
+    # count so those rounds exist as target=0 rows and so later rounds'
+    # lagged features see them; this keeps the training-side definition
+    # identical to inference (features.build pads the same way).
+    completed_counts = completed_rounds_by_squad(fixtures)
+
     rows = []
     for _, p in players.iterrows():
-        rp = p.get("round_points")
-        if rp is None or len(rp) == 0:
+        rp = pad_round_points(p.get("round_points"),
+                              completed_counts.get(int(p["squad_id"])))
+        if len(rp) == 0:
             continue
         for idx, pts in enumerate(rp):
             round_id = idx + 1  # round_points is 0-indexed; round_id is 1-based
+            # Lagged form: trailing mean of the player's points over the
+            # previous FORM_WINDOW completed rounds. Strictly past (rp[:idx]
+            # excludes the current round), so it never leaks this round's
+            # label. NaN before the player's first completed round; matches
+            # the EPL-side and inference-side definition exactly.
+            prior = rp[:idx]
+            if len(prior) > 0:
+                window_vals = list(prior)[-FORM_WINDOW:]
+                form_lag = float(sum(window_vals)) / len(window_vals)
+                # Participation proxy: fraction of recent rounds with points>0.
+                part_vals = [1.0 if v > 0 else 0.0 for v in window_vals]
+                start_rate_lag = float(sum(part_vals)) / len(part_vals)
+            else:
+                form_lag = float("nan")
+                start_rate_lag = float("nan")
             # Find the player's squad's fixture in this round.
             squad_id = int(p["squad_id"])
             fx = fixtures[
@@ -81,6 +116,9 @@ def extract_wc_training_rows(
                 "opp_squad_top_n_avg_price": float(opp_strength_row["squad_top_n_avg_price"]),
                 "strength_diff": float(strength_row["squad_top_n_avg_price"]
                                        - opp_strength_row["squad_top_n_avg_price"]),
+                "form_lag": form_lag,
+                "start_rate_lag": start_rate_lag,
+                "team_gc_form": gc_lookup.get((squad_id, round_id), float("nan")),
                 "minutes": None,  # we do not have per-round minutes from the API
                 "target": int(pts),
                 "source": "wc",
