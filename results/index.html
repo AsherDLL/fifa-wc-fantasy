@@ -2,2290 +2,916 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>FIFA Fantasy WC 2026 - results</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>WC2026 Prediction Desk - Quarter-final</title>
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif; max-width: 1200px;
-         margin: 2rem auto; padding: 0 1rem; color: #111; }
-  h1 { font-size: 1.3rem; margin-bottom: 0.3rem; font-weight: 600; }
-  h2 { font-size: 1.1rem; margin-top: 2.5rem; font-weight: 600;
-       padding: 8px 12px; background: #2c3e50; color: white; border-radius: 4px; }
-  h3 { font-size: 1.0rem; margin-top: 1.5rem; font-weight: 600;
-       border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-  .meta { color: #555; font-size: 0.85rem; margin-bottom: 1rem; }
-  table { border-collapse: collapse; width: 100%; font-size: 0.88rem;
-          margin-bottom: 1rem; }
-  th, td { padding: 5px 9px; text-align: left; border-bottom: 1px solid #eee; }
-  th { background: #f5f5f5; font-weight: 600; }
-  tr.captain { background: #fffbe6; font-weight: 600; }
-  tr.vice { background: #f5f9ff; }
-  tr.bench td { color: #555; }
-  details { margin-top: 0.4rem; }
-  summary { cursor: pointer; }
-  .otw { color: #b07300; font-size: 0.78rem; margin-left: 4px; }
-  .badge { display: inline-block; padding: 1px 6px; border-radius: 3px;
-           font-size: 0.72rem; background: #efefef; margin-left: 6px; }
-  .badge.heuristic { background: #d4edda; color: #155724; }
-  .badge.gbm { background: #f8d7da; color: #721c24; }
-  .badge.poisson { background: #d1ecf1; color: #0c5460; }
-  .links { font-size: 0.85rem; margin-top: 0.3rem; }
-  .links a { color: #06c; text-decoration: none; margin-right: 1rem; }
-  .transfer { margin-top: 0.4rem; font-size: 0.85rem; }
-  .transfer h4 { font-size: 0.85rem; margin: 0.5rem 0 0.2rem 0; }
-  .empty { color: #999; font-style: italic; }
-  .stage-header { display: flex; justify-content: space-between; align-items: center; }
-  .stage-count { font-size: 0.85rem; color: #ccc; font-weight: normal; }
+  :root {
+    --paper: #f3efe6;
+    --panel: #faf7f0;
+    --ink: #1b1712;
+    --ink-soft: #6a6155;
+    --line: #d8d0c0;
+    --line-hard: #bdb3a0;
+    --accent: #2f6b3f;
+    --signal: #a8620a;
+    --fresh: #2f6b3f;
+    --warn: #a8620a;
+    --stale: #9c2b2b;
+    --pitch: #24462f;
+    --pitch-line: rgba(255,255,255,0.16);
+    --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14130f;
+      --panel: #1c1a15;
+      --ink: #e9e3d5;
+      --ink-soft: #9a9384;
+      --line: #302c24;
+      --line-hard: #423d33;
+      --accent: #6fb884;
+      --signal: #e6a94a;
+      --fresh: #6fb884;
+      --warn: #e6a94a;
+      --stale: #e07a6f;
+      --pitch: #1a3322;
+      --pitch-line: rgba(255,255,255,0.13);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans); background: var(--paper); color: var(--ink);
+    margin: 0; padding: 0; line-height: 1.45;
+    font-feature-settings: "tnum" 1, "cv01" 1;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 64px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* Masthead */
+  header.mast {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    padding: 22px 0 12px; border-bottom: 2px solid var(--ink);
+    margin-bottom: 4px;
+  }
+  .mast .brand { font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 0.95rem; }
+  .mast .brand small { display: block; font-weight: 500; letter-spacing: 0.28em;
+    font-size: 0.62rem; color: var(--ink-soft); margin-top: 3px; }
+  .mast .status { font-family: var(--mono); font-size: 0.72rem; text-align: right;
+    color: var(--ink-soft); }
+  .live { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fresh);
+    box-shadow: 0 0 0 0 var(--fresh); animation: pulse 2.4s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(111,184,132,0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(111,184,132,0); }
+    100% { box-shadow: 0 0 0 0 rgba(111,184,132,0); }
+  }
+  .subline { display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline;
+    font-size: 0.78rem; color: var(--ink-soft); padding: 8px 0 24px; }
+  .chip { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.04em;
+    text-transform: uppercase; border: 1px solid var(--line-hard); padding: 2px 7px;
+    color: var(--ink); }
+  .chip.stage { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .empty { color: var(--ink-soft); font-style: italic; padding: 40px 0; }
+
+  /* Section rule */
+  .srule { display: flex; align-items: center; gap: 12px; margin: 34px 0 14px; }
+  .srule h2 { font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase;
+    margin: 0; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+  .srule::after { content: ""; flex: 1; height: 1px; background: var(--line-hard); }
+
+  /* Featured pick */
+  .pick { border: 1px solid var(--line-hard); background: var(--panel); }
+  .pick .head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .pick .head h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; }
+  .pick .head .meta { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); }
+
+  /* Stat strip */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--line); }
+  .stat { padding: 12px 16px; border-left: 1px solid var(--line); }
+  .stat:first-child { border-left: 0; }
+  .stat .k { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-soft); }
+  .stat .v { font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 1.24rem; margin-top: 4px; line-height: 1.1; }
+  .stat .v small { font-size: 0.72rem; color: var(--ink-soft); }
+  .stat.cap .v { color: var(--signal); }
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat { border-top: 1px solid var(--line); }
+  }
+
+  .body2 { display: grid; grid-template-columns: 340px 1fr; gap: 0; }
+  @media (max-width: 860px) { .body2 { grid-template-columns: 1fr; } }
+
+  /* Pitch */
+  .pitch { background: var(--pitch); padding: 16px 10px; position: relative;
+    border-right: 1px solid var(--line); overflow: hidden; }
+  @media (max-width: 860px) { .pitch { border-right: 0; border-bottom: 1px solid var(--line); } }
+  .pitch::before { content: ""; position: absolute; inset: 10px;
+    border: 1px solid var(--pitch-line); pointer-events: none; }
+  .pitch::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%;
+    height: 0; border-top: 1px solid var(--pitch-line); pointer-events: none; }
+  .line { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    position: relative; z-index: 1; margin: 10px 0; }
+  .p {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--line-hard);
+    min-width: 76px; max-width: 96px; padding: 5px 6px; text-align: center;
+  }
+  .p .nm { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; }
+  .p .sub { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-soft);
+    margin-top: 2px; display: flex; justify-content: space-between; gap: 4px; }
+  .p .ceil { color: var(--signal); font-weight: 700; }
+  .p.captain { border-color: var(--signal); border-width: 2px; padding: 4px 5px; }
+  .p .tag { position: relative; }
+  .p .tag b { position: absolute; top: -13px; right: -8px; font-family: var(--mono);
+    font-size: 0.58rem; background: var(--signal); color: #fff; padding: 0 3px; }
+  .p.vice .tag b { background: var(--ink-soft); }
+
+  /* Starters table */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  th, td { padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--line);
+    white-space: nowrap; }
+  thead th { font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 700; border-bottom: 1px solid var(--line-hard); }
+  td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  td.ceil { color: var(--signal); font-weight: 700; }
+  tr.cap td { background: color-mix(in srgb, var(--signal) 10%, transparent); }
+  tr.cap td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
+  .role { font-family: var(--mono); font-size: 0.64rem; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .otw { color: var(--signal); font-family: var(--mono); font-size: 0.6rem; margin-left: 5px; }
+  .flag-out { color: var(--stale); font-family: var(--mono); font-size: 0.6rem; margin-left: 5px; }
+
+  .bench { padding: 10px 12px; border-top: 1px solid var(--line); font-size: 0.78rem; }
+  .bench .lbl { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-soft); margin-right: 8px; }
+  .bench span.b { font-family: var(--mono); margin-right: 14px; }
+  .bench span.b i { font-style: normal; color: var(--ink-soft); }
+
+  .capnote { padding: 10px 18px; border-top: 1px solid var(--line);
+    font-size: 0.78rem; color: var(--ink-soft); }
+  .capnote b { color: var(--ink); }
+
+  /* Transfers */
+  .xfer { padding: 12px 18px; border-top: 1px solid var(--line); font-size: 0.8rem; }
+  .xfer .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 6px; }
+  .xfer ul { margin: 4px 0 0; padding-left: 16px; }
+  .xfer .in b { color: var(--accent); }
+  .xfer .out b { color: var(--stale); }
+
+  /* Freshness */
+  .fresh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .fcell { background: var(--panel); padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .fcell .fdot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .fcell.fresh .fdot { background: var(--fresh); }
+  .fcell.warn .fdot { background: var(--warn); }
+  .fcell.stale .fdot { background: var(--stale); }
+  .fcell.missing .fdot { background: var(--line-hard); }
+  .fcell .ft { line-height: 1.25; }
+  .fcell .ft .fl { font-size: 0.74rem; }
+  .fcell .ft .fa { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-soft); }
+
+  /* History */
+  details.hist { border: 1px solid var(--line); background: var(--panel); margin-bottom: 8px; }
+  details.hist > summary { cursor: pointer; padding: 8px 14px; font-family: var(--mono);
+    font-size: 0.74rem; list-style: none; display: flex; justify-content: space-between; }
+  details.hist > summary::-webkit-details-marker { display: none; }
+  details.hist[open] > summary { border-bottom: 1px solid var(--line); }
+  .hrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: baseline;
+    padding: 6px 14px; border-bottom: 1px solid var(--line); font-size: 0.76rem; }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow .hm { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); }
+  .hrow a { color: var(--accent); text-decoration: none; font-family: var(--mono);
+    font-size: 0.68rem; }
+  .hrow a:hover { text-decoration: underline; }
+
+  footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<h1>FIFA Fantasy WC 2026 results</h1>
-<div class="meta">12 recommendation(s) across 3 stage(s),
-                  0 live report(s)</div>
+  <header class="mast">
+    <div class="brand">WC2026 Prediction Desk<small>FIFA Fantasy World Cup 2026</small></div>
+    <div class="status">
+      <div>computed 2026-07-08T11:42:38+00:00</div>
+      <div>rendered 2026-07-08 11:42:38 UTC</div>
+    </div>
+  </header>
 
-
-
-
-  <h2>
-    <span class="stage-header">
-      <span>GROUP_MD1</span>
-      <span class="stage-count">8 run(s)</span>
-    </span>
-  </h2>
+  <div class="subline">
+    <span class="chip stage">Quarter-final</span>
+    <span>37 runs archived across 5 stages</span>
+  </div>
 
   
-    <h3>
-      gbm
-      (v2)
-      <span class="badge gbm">gbm v2</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T16:02:53+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 98.2 / 100.0M;
-      formation 3-5-2;
-      R1 expected 61.87;
-      horizon expected 292.48.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.json">json</a>
-      <a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.md">md</a>
-    </div>
 
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Alphonso Davies</td>
-        <td>CAN</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>4.4%</td>
-        <td>vs BIH</td>
-        <td>4.77</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Diogo Dalot</td>
-        <td>POR</td>
-        <td>DEF</td>
-        <td>$5.0M</td>
-        <td>2.6%</td>
-        <td>vs COD</td>
-        <td>4.44</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eric García</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$4.5M</td>
-        <td>1.0%</td>
-        <td>vs CPV</td>
-        <td>4.24</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Alejandro Grimaldo</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>1.7%</td>
-        <td>vs CPV</td>
-        <td>3.62</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Cristian Romero</td>
-        <td>ARG</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>4.9%</td>
-        <td>vs ALG</td>
-        <td>3.44</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Cody Gakpo</td>
-        <td>NED</td>
-        <td>FWD</td>
-        <td>$7.7M</td>
-        <td>3.1%</td>
-        <td>vs JPN</td>
-        <td>5.15</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>4.67</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Matheus Cunha</td>
-        <td>BRA</td>
-        <td>FWD</td>
-        <td>$7.3M</td>
-        <td>3.6%</td>
-        <td>vs MAR</td>
-        <td>4.65</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Mike Penders</td>
-        <td>BEL</td>
-        <td>GK</td>
-        <td>$3.5M</td>
-        <td>0.8%</td>
-        <td>vs EGY</td>
-        <td>5.00</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Robin Roefs</td>
-        <td>NED</td>
-        <td>GK</td>
-        <td>$4.6M</td>
-        <td>0.4%</td>
-        <td>vs JPN</td>
-        <td>4.77</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Ousmane Dembélé</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$10.0M</td>
-        <td>19.2%</td>
-        <td>vs SEN</td>
-        <td>8.20</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Michael Olise</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$9.5M</td>
-        <td>22.9%</td>
-        <td>vs SEN</td>
-        <td>7.49</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.77</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SEN</td>
-        <td>5.82</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Marcus Rashford</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>2.1%</td>
-        <td>vs CRO</td>
-        <td>5.33</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
   
-    <h3>
-      poisson
+  <div class="pick">
+    <div class="head">
+      <h1>Current pick: Quarter-final</h1>
+      <div class="meta">ensemble
+        &middot; 2026-07-08T11:42:38+00:00</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="k">Budget</div>
+        <div class="v">104.9<small> / 105M</small></div>
+      </div>
+      <div class="stat">
+        <div class="k">Formation</div>
+        <div class="v">3-4-3</div>
+      </div>
+      <div class="stat">
+        <div class="k">XI expected</div>
+        <div class="v">73.4</div>
+      </div>
+      <div class="stat">
+        <div class="k">Horizon expected</div>
+        <div class="v">90.7</div>
+      </div>
       
-      <span class="badge poisson">poisson</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T16:02:51+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 85.5 / 100.0M;
-      formation 3-4-3;
-      R1 expected 138.62;
-      horizon expected 614.38.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.json">json</a>
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>David Raum</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>11.45</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lucas Hernández</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>2.4%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Malo Gusto</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.1M</td>
-        <td>0.5%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Tino Livramento</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$4.6M</td>
-        <td>0.3%</td>
-        <td>vs CRO</td>
-        <td>8.40</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Víctor Muñoz</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$4.0M</td>
-        <td>0.7%</td>
-        <td>vs CPV</td>
-        <td>17.44</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>José Manuel López</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$5.3M</td>
-        <td>0.1%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Alexander Nübel</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.7M</td>
-        <td>0.5%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Oliver Baumann</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.3M</td>
-        <td>0.3%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Rodri</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>1.8%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Mikel Merino</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$6.2M</td>
-        <td>0.6%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Paz</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$5.9M</td>
-        <td>1.5%</td>
-        <td>vs ALG</td>
-        <td>12.90</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Morgan Rogers</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$7.2M</td>
-        <td>1.0%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Elliot Anderson</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$6.5M</td>
-        <td>0.9%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-    <h3>
-      heuristic
+      <div class="stat cap">
+        <div class="k">Captain ceiling</div>
+        <div class="v">14.3<small> Mbappé</small></div>
+      </div>
       
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T16:02:50+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 99.9 / 100.0M;
-      formation 3-4-3;
-      R1 expected 63.95;
-      horizon expected 301.97.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.md">md</a>
     </div>
 
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs CPV</td>
-        <td>4.38</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Jonathan Tah</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.4%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>3.90</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs CRO</td>
-        <td>3.63</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>8.05</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs CPV</td>
-        <td>7.34</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CUW</td>
-        <td>3.61</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs ALG</td>
-        <td>3.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs CPV</td>
-        <td>6.78</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SEN</td>
-        <td>6.43</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs ALG</td>
-        <td>6.33</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.09</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Désiré Doué</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.3%</td>
-        <td>vs SEN</td>
-        <td>6.03</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-    <h3>
-      poisson
+    <div class="body2">
       
-      <span class="badge poisson">poisson</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T06:41:05+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 85.5 / 100.0M;
-      formation 3-4-3;
-      R1 expected 138.62;
-      horizon expected 614.38.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.json">json</a>
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.md">md</a>
-    </div>
+      <div class="pitch">
+        
+          
+          <div class="line">
+            
+              <div class="p captain">
+                <div class="tag"><b>C</b></div>
+                <div class="nm">Mbappé</div>
+                <div class="sub">
+                  <span>FRA</span>
+                  <span class="ceil">14.3</span>
+                </div>
+              </div>
+            
+              <div class="p vice">
+                <div class="tag"><b>V</b></div>
+                <div class="nm">Messi</div>
+                <div class="sub">
+                  <span>ARG</span>
+                  <span class="ceil">13.1</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Martínez</div>
+                <div class="sub">
+                  <span>ARG</span>
+                  <span class="ceil">9.4</span>
+                </div>
+              </div>
+            
+          </div>
+          
+        
+          
+          <div class="line">
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Dembélé</div>
+                <div class="sub">
+                  <span>FRA</span>
+                  <span class="ceil">13.9</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Saka</div>
+                <div class="sub">
+                  <span>ENG</span>
+                  <span class="ceil">11.9</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Doué</div>
+                <div class="sub">
+                  <span>FRA</span>
+                  <span class="ceil">10.4</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Baena</div>
+                <div class="sub">
+                  <span>ESP</span>
+                  <span class="ceil">8.4</span>
+                </div>
+              </div>
+            
+          </div>
+          
+        
+          
+          <div class="line">
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Koundé</div>
+                <div class="sub">
+                  <span>FRA</span>
+                  <span class="ceil">3.7</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Upamecano</div>
+                <div class="sub">
+                  <span>FRA</span>
+                  <span class="ceil">3.6</span>
+                </div>
+              </div>
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Cucurella</div>
+                <div class="sub">
+                  <span>ESP</span>
+                  <span class="ceil">3.5</span>
+                </div>
+              </div>
+            
+          </div>
+          
+        
+          
+          <div class="line">
+            
+              <div class="p ">
+                <div class="tag"></div>
+                <div class="nm">Simón</div>
+                <div class="sub">
+                  <span>ESP</span>
+                  <span class="ceil">4.7</span>
+                </div>
+              </div>
+            
+          </div>
+          
+        
+      </div>
 
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>David Raum</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>11.45</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lucas Hernández</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>2.4%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Malo Gusto</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.1M</td>
-        <td>0.5%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Tino Livramento</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$4.6M</td>
-        <td>0.3%</td>
-        <td>vs CRO</td>
-        <td>8.40</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Víctor Muñoz</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$4.0M</td>
-        <td>0.7%</td>
-        <td>vs CPV</td>
-        <td>17.44</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>José Manuel López</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$5.3M</td>
-        <td>0.1%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Alexander Nübel</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.7M</td>
-        <td>0.5%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Oliver Baumann</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.3M</td>
-        <td>0.3%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Rodri</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>1.8%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Mikel Merino</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$6.2M</td>
-        <td>0.6%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Paz</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$5.9M</td>
-        <td>1.5%</td>
-        <td>vs ALG</td>
-        <td>12.90</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Morgan Rogers</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$7.2M</td>
-        <td>1.0%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Elliot Anderson</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$6.5M</td>
-        <td>0.9%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-    <h3>
-      heuristic
       
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T06:41:03+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 99.9 / 100.0M;
-      formation 3-4-3;
-      R1 expected 63.95;
-      horizon expected 301.97.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.md">md</a>
-    </div>
+      <div>
+        <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+              <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+              <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+            </tr>
+          </thead>
+          <tbody>
+          
+            <tr class="">
+              <td class="role">GK</td>
+              <td>Unai Simón</td>
+              <td class="num">ESP</td>
+              <td class="num">v BEL</td>
+              <td class="n">5.0</td>
+              <td class="n">15%</td>
+              <td class="n">7.0</td>
+              <td class="n">-</td>
+              <td class="n">4.7</td>
+              <td class="n ceil">-</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">DEF</td>
+              <td>Jules Koundé</td>
+              <td class="num">FRA</td>
+              <td class="num">v MAR</td>
+              <td class="n">5.4</td>
+              <td class="n">10%</td>
+              <td class="n">5.3</td>
+              <td class="n">-</td>
+              <td class="n">3.7</td>
+              <td class="n ceil">-</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">DEF</td>
+              <td>Dayot Upamecano</td>
+              <td class="num">FRA</td>
+              <td class="num">v MAR</td>
+              <td class="n">5.3</td>
+              <td class="n">11%</td>
+              <td class="n">5.3</td>
+              <td class="n">-</td>
+              <td class="n">3.6</td>
+              <td class="n ceil">-</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">DEF</td>
+              <td>Marc Cucurella</td>
+              <td class="num">ESP</td>
+              <td class="num">v BEL</td>
+              <td class="n">5.1</td>
+              <td class="n">43%</td>
+              <td class="n">9.0</td>
+              <td class="n">-</td>
+              <td class="n">3.5</td>
+              <td class="n ceil">-</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">MID</td>
+              <td>Ousmane Dembélé</td>
+              <td class="num">FRA</td>
+              <td class="num">v MAR</td>
+              <td class="n">10.0</td>
+              <td class="n">43%</td>
+              <td class="n">9.7</td>
+              <td class="n">1.2</td>
+              <td class="n">8.7</td>
+              <td class="n ceil">13.9</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">MID</td>
+              <td>Bukayo Saka</td>
+              <td class="num">ENG</td>
+              <td class="num">@ NOR</td>
+              <td class="n">9.5</td>
+              <td class="n">4%</td>
+              <td class="n">5.3</td>
+              <td class="n">1.1</td>
+              <td class="n">6.7</td>
+              <td class="n ceil">11.9</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">MID</td>
+              <td>Désiré Doué</td>
+              <td class="num">FRA</td>
+              <td class="num">v MAR</td>
+              <td class="n">7.5</td>
+              <td class="n">3%</td>
+              <td class="n">4.7</td>
+              <td class="n">1.0</td>
+              <td class="n">5.2</td>
+              <td class="n ceil">10.4</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">MID</td>
+              <td>Álex Baena</td>
+              <td class="num">ESP</td>
+              <td class="num">v BEL</td>
+              <td class="n">6.0</td>
+              <td class="n">4%</td>
+              <td class="n">7.3</td>
+              <td class="n">1.0</td>
+              <td class="n">4.3</td>
+              <td class="n ceil">8.4</td>
+            </tr>
+          
+            <tr class="cap">
+              <td class="role">FWD C</td>
+              <td>Kylian Mbappé</td>
+              <td class="num">FRA</td>
+              <td class="num">v MAR</td>
+              <td class="n">10.5</td>
+              <td class="n">70%</td>
+              <td class="n">10.7</td>
+              <td class="n">1.3</td>
+              <td class="n">11.4</td>
+              <td class="n ceil">14.3</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">FWD V</td>
+              <td>Lionel Messi</td>
+              <td class="num">ARG</td>
+              <td class="num">v SUI</td>
+              <td class="n">10.0</td>
+              <td class="n">54%</td>
+              <td class="n">9.3</td>
+              <td class="n">1.2</td>
+              <td class="n">8.1</td>
+              <td class="n ceil">13.1</td>
+            </tr>
+          
+            <tr class="">
+              <td class="role">FWD</td>
+              <td>Lautaro Martínez</td>
+              <td class="num">ARG</td>
+              <td class="num">v SUI</td>
+              <td class="n">8.8</td>
+              <td class="n">3%</td>
+              <td class="n">5.0</td>
+              <td class="n">1.1</td>
+              <td class="n">5.6</td>
+              <td class="n ceil">9.4</td>
+            </tr>
+          
+          </tbody>
+        </table>
+        </div>
 
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs CPV</td>
-        <td>4.38</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Jonathan Tah</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.4%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>3.90</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs CRO</td>
-        <td>3.63</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>8.05</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs CPV</td>
-        <td>7.34</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CUW</td>
-        <td>3.61</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs ALG</td>
-        <td>3.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs CPV</td>
-        <td>6.78</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SEN</td>
-        <td>6.43</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs ALG</td>
-        <td>6.33</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.09</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Désiré Doué</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.3%</td>
-        <td>vs SEN</td>
-        <td>6.03</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
+        <div class="bench">
+          <span class="lbl">Bench</span>
+          
+            <span class="b">1. Hernández Cascante <i>ESP MID</i></span>
+          
+            <span class="b">2. Cubarsí <i>ESP DEF</i></span>
+          
+            <span class="b">3. Tagliafico <i>ARG DEF</i></span>
+          
+            <span class="b">4. Martínez <i>ARG GK</i></span>
+          
+        </div>
+      </div>
+    </div>
 
     
-  
-    <h3>
-      poisson
-      
-      <span class="badge poisson">poisson</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T05:02:57+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 85.5 / 100.0M;
-      formation 3-4-3;
-      R1 expected 138.62;
-      horizon expected 614.38.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.json">json</a>
-      <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>David Raum</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>11.45</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lucas Hernández</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>2.4%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Malo Gusto</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.1M</td>
-        <td>0.5%</td>
-        <td>vs SEN</td>
-        <td>8.93</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Tino Livramento</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$4.6M</td>
-        <td>0.3%</td>
-        <td>vs CRO</td>
-        <td>8.40</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Víctor Muñoz</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$4.0M</td>
-        <td>0.7%</td>
-        <td>vs CPV</td>
-        <td>17.44</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>José Manuel López</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$5.3M</td>
-        <td>0.1%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>13.25</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Alexander Nübel</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.7M</td>
-        <td>0.5%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Oliver Baumann</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$4.3M</td>
-        <td>0.3%</td>
-        <td>vs CUW</td>
-        <td>8.15</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Rodri</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>1.8%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Mikel Merino</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$6.2M</td>
-        <td>0.6%</td>
-        <td>vs CPV</td>
-        <td>16.80</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Paz</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$5.9M</td>
-        <td>1.5%</td>
-        <td>vs ALG</td>
-        <td>12.90</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Morgan Rogers</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$7.2M</td>
-        <td>1.0%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Elliot Anderson</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$6.5M</td>
-        <td>0.9%</td>
-        <td>vs CRO</td>
-        <td>10.73</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-    <h3>
-      heuristic
-      
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T05:02:55+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 99.9 / 100.0M;
-      formation 3-4-3;
-      R1 expected 63.95;
-      horizon expected 301.97.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs CPV</td>
-        <td>4.38</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Jonathan Tah</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.4%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>3.90</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs CRO</td>
-        <td>3.63</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>8.05</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs CPV</td>
-        <td>7.34</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CUW</td>
-        <td>3.61</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs ALG</td>
-        <td>3.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs CPV</td>
-        <td>6.78</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SEN</td>
-        <td>6.43</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs ALG</td>
-        <td>6.33</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.09</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Désiré Doué</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.3%</td>
-        <td>vs SEN</td>
-        <td>6.03</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-    <h3>
-      heuristic
-      
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T04:28:29+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 99.9 / 100.0M;
-      formation 3-4-3;
-      R1 expected 63.95;
-      horizon expected 301.97.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R1 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs CPV</td>
-        <td>4.38</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Jonathan Tah</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.4%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CUW</td>
-        <td>4.21</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs SEN</td>
-        <td>3.90</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs CRO</td>
-        <td>3.63</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs ALG</td>
-        <td>8.05</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs CPV</td>
-        <td>7.34</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CUW</td>
-        <td>3.61</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs ALG</td>
-        <td>3.52</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs CPV</td>
-        <td>6.78</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SEN</td>
-        <td>6.43</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs ALG</td>
-        <td>6.33</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs CRO</td>
-        <td>6.09</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Désiré Doué</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.3%</td>
-        <td>vs SEN</td>
-        <td>6.03</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-  
-
-  <h2>
-    <span class="stage-header">
-      <span>GROUP_MD2</span>
-      <span class="stage-count">2 run(s)</span>
-    </span>
-  </h2>
-
-  
-    <h3>
-      heuristic
-      
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T05:02:59+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 100.0 / 100.0M;
-      formation 3-4-3;
-      R2 expected 65.47;
-      horizon expected 200.69.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R2 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs KSA</td>
-        <td>4.32</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs IRQ</td>
-        <td>4.19</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs GHA</td>
-        <td>4.07</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Malo Gusto</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.1M</td>
-        <td>0.5%</td>
-        <td>vs IRQ</td>
-        <td>4.04</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CIV</td>
-        <td>3.95</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs AUT</td>
-        <td>7.92</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs GHA</td>
-        <td>7.31</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs KSA</td>
-        <td>7.23</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs AUT</td>
-        <td>3.46</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CIV</td>
-        <td>3.39</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs IRQ</td>
-        <td>6.91</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs GHA</td>
-        <td>6.83</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs KSA</td>
-        <td>6.68</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bernardo Silva</td>
-        <td>POR</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>2.3%</td>
-        <td>vs UZB</td>
-        <td>6.55</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs AUT</td>
-        <td>6.23</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
-    
-    <div class="transfer">
-      <strong>Transfers from previous squad:</strong>
-      2 made, 0 above quota, hit 0 pts.
-      <h4>IN</h4>
-      <ul>
-        <li>Malo Gusto (FRA, DEF, $5.1M)</li>
-        <li>Bernardo Silva (POR, MID, $7.8M)</li>
-      </ul>
-      <h4>OUT</h4>
-      <ul>
-          <li>Désiré Doué (FRA, MID, $7.5M)</li>
-          <li>Jonathan Tah (GER, DEF, $5.3M)</li>
-      </ul>
+    <div class="capnote">
+      Captaining <b>Kylian Mbappé</b> (FRA):
+      mean 11.4, ceiling
+      14.3.
+      Chasing rewards the ceiling, so the pick leans on the q90 head, not the average.
+      Vice: <b>Lionel Messi</b>.
     </div>
     
-  
-    <h3>
-      heuristic
-      
-      <span class="badge heuristic">heuristic</span>
-      <span class="badge">linux-mint</span>
-      <span class="badge">2026-06-08T04:28:32+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 100.0 / 100.0M;
-      formation 3-4-3;
-      R2 expected 65.47;
-      horizon expected 200.69.
-    </div>
-    <div class="links">
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.json">json</a>
-      <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R2 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Aymeric Laporte</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.8%</td>
-        <td>vs KSA</td>
-        <td>4.32</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dayot Upamecano</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>4.7%</td>
-        <td>vs IRQ</td>
-        <td>4.19</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>4.2%</td>
-        <td>vs GHA</td>
-        <td>4.07</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Malo Gusto</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$5.1M</td>
-        <td>0.5%</td>
-        <td>vs IRQ</td>
-        <td>4.04</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Nico Schlotterbeck</td>
-        <td>GER</td>
-        <td>DEF</td>
-        <td>$5.3M</td>
-        <td>3.8%</td>
-        <td>vs CIV</td>
-        <td>3.95</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>4.0%</td>
-        <td>vs AUT</td>
-        <td>7.92</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>1.5%</td>
-        <td>vs GHA</td>
-        <td>7.31</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ferran Torres</td>
-        <td>ESP</td>
-        <td>FWD</td>
-        <td>$7.8M</td>
-        <td>3.4%</td>
-        <td>vs KSA</td>
-        <td>7.23</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Emiliano Martínez</td>
-        <td>ARG</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>22.1%</td>
-        <td>vs AUT</td>
-        <td>3.46</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>Manuel Neuer</td>
-        <td>GER</td>
-        <td>GK</td>
-        <td>$5.0M</td>
-        <td>12.7%</td>
-        <td>vs CIV</td>
-        <td>3.39</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs IRQ</td>
-        <td>6.91</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eberechi Eze</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs GHA</td>
-        <td>6.83</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Nico Williams</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>3.9%</td>
-        <td>vs KSA</td>
-        <td>6.68</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bernardo Silva</td>
-        <td>POR</td>
-        <td>MID</td>
-        <td>$7.8M</td>
-        <td>2.3%</td>
-        <td>vs UZB</td>
-        <td>6.55</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Enzo Fernández</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$7.5M</td>
-        <td>3.5%</td>
-        <td>vs AUT</td>
-        <td>6.23</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
 
     
-    <div class="transfer">
-      <strong>Transfers from previous squad:</strong>
-      2 made, 0 above quota, hit 0 pts.
-      <h4>IN</h4>
-      <ul>
-        <li class="empty">none</li>
-      </ul>
-      <h4>OUT</h4>
-      <ul>
-        <li class="empty">none</li>
-      </ul>
+
+    <div class="links" style="padding:10px 18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:0.7rem;">
+      <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.json" style="color:var(--accent);text-decoration:none;margin-right:16px;">json</a>
+      <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.md" style="color:var(--accent);text-decoration:none;">markdown</a>
+    </div>
+  </div>
+
+  
+  <div class="srule"><h2>Data freshness</h2></div>
+  <div class="fresh-grid">
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Squad + fixtures</div>
+        <div class="fa">26s ago &middot; 2026-07-08 11:42 UTC</div>
+      </div>
     </div>
     
-  
-
-  <h2>
-    <span class="stage-header">
-      <span>R32</span>
-      <span class="stage-count">2 run(s)</span>
-    </span>
-  </h2>
-
-  
-    <h3>
-      gbm
-      (v2)
-      <span class="badge gbm">gbm v2</span>
-      <span class="badge">a763723f48b7</span>
-      <span class="badge">2026-06-29T05:00:51+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 99.1 / 105.0M;
-      formation 3-5-2;
-      R4 expected 61.15;
-      horizon expected 107.77.
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">GBM retrain</div>
+        <div class="fa">5s ago &middot; 2026-07-08 11:42 UTC</div>
+      </div>
     </div>
-    <div class="links">
-      <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.json">json</a>
-      <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R4 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Johan Vásquez</td>
-        <td>MEX</td>
-        <td>DEF</td>
-        <td>$4.7M</td>
-        <td>3.1%</td>
-        <td>vs ECU</td>
-        <td>4.51</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>César Montes</td>
-        <td>MEX</td>
-        <td>DEF</td>
-        <td>$4.7M</td>
-        <td>0.4%</td>
-        <td>vs ECU</td>
-        <td>4.51</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Jesús Gallardo</td>
-        <td>MEX</td>
-        <td>DEF</td>
-        <td>$4.7M</td>
-        <td>1.0%</td>
-        <td>vs ECU</td>
-        <td>4.51</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Reece James</td>
-        <td>ENG</td>
-        <td>DEF</td>
-        <td>$5.2M</td>
-        <td>3.4%</td>
-        <td>vs COD</td>
-        <td>4.38</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Nicolás Otamendi</td>
-        <td>ARG</td>
-        <td>DEF</td>
-        <td>$4.4M</td>
-        <td>1.7%</td>
-        <td>vs CPV</td>
-        <td>4.28</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>2.6%</td>
-        <td>vs CPV</td>
-        <td>5.79</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ollie Watkins</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.9M</td>
-        <td>0.9%</td>
-        <td>vs COD</td>
-        <td>5.23</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Cody Gakpo</td>
-        <td>NED</td>
-        <td>FWD</td>
-        <td>$7.7M</td>
-        <td>4.2%</td>
-        <td>vs MAR</td>
-        <td>5.12</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>David Ospina</td>
-        <td>COL</td>
-        <td>GK</td>
-        <td>$4.0M</td>
-        <td>0.7%</td>
-        <td>vs GHA</td>
-        <td>4.85</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Álvaro Montero</td>
-        <td>COL</td>
-        <td>GK</td>
-        <td>$3.8M</td>
-        <td>0.1%</td>
-        <td>vs GHA</td>
-        <td>4.85</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>Ousmane Dembélé</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$10.0M</td>
-        <td>33.6%</td>
-        <td>vs SWE</td>
-        <td>7.88</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Bukayo Saka</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$9.5M</td>
-        <td>4.2%</td>
-        <td>vs COD</td>
-        <td>6.45</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Rayan Cherki</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>4.2%</td>
-        <td>vs SWE</td>
-        <td>6.05</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Bradley Barcola</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$8.0M</td>
-        <td>1.5%</td>
-        <td>vs SWE</td>
-        <td>6.05</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Dani Olmo</td>
-        <td>ESP</td>
-        <td>MID</td>
-        <td>$7.7M</td>
-        <td>1.7%</td>
-        <td>vs AUT</td>
-        <td>5.33</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
     
-  
-    <h3>
-      poisson
-      
-      <span class="badge poisson">poisson</span>
-      <span class="badge">6055863215ea</span>
-      <span class="badge">2026-06-29T04:59:37+00:00</span>
-    </h3>
-    <div class="meta">
-      budget 85.3 / 105.0M;
-      formation 3-4-3;
-      R4 expected 163.22;
-      horizon expected 237.75.
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Prediction markets</div>
+        <div class="fa">2.9h ago &middot; 2026-07-08 08:47 UTC</div>
+      </div>
     </div>
-    <div class="links">
-      <a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.json">json</a>
-      <a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.md">md</a>
-    </div>
-
-    <details>
-    <summary>squad table (15 players)</summary>
-    <table>
-    <thead>
-    <tr><th>Role</th><th>Player</th><th>Cty</th><th>Pos</th>
-        <th>Price</th><th>Own%</th><th>Opp</th><th>R4 E[pts]</th></tr>
-    </thead>
-    <tbody>
-      <tr class="">
-        <td>Start</td>
-        <td>Ibrahima Konaté</td>
-        <td>FRA</td>
-        <td>DEF</td>
-        <td>$4.9M</td>
-        <td>1.5%</td>
-        <td>vs SWE</td>
-        <td>11.59</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 2</td>
-        <td>Pedro Porro</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$5.5M</td>
-        <td>4.1%</td>
-        <td>vs AUT</td>
-        <td>10.72</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Eric García</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$4.5M</td>
-        <td>0.6%</td>
-        <td>vs AUT</td>
-        <td>10.72</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Marc Pubill</td>
-        <td>ESP</td>
-        <td>DEF</td>
-        <td>$4.2M</td>
-        <td>0.1%</td>
-        <td>vs AUT</td>
-        <td>10.72</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 3</td>
-        <td>Willer Ditta</td>
-        <td>COL</td>
-        <td>DEF</td>
-        <td>$3.7M</td>
-        <td>0.1%</td>
-        <td>vs GHA</td>
-        <td>10.34</td>
-      </tr>
-      <tr class="captain">
-        <td>Captain (C)</td>
-        <td>José Manuel López</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$5.3M</td>
-        <td>0.1%</td>
-        <td>vs CPV</td>
-        <td>18.96</td>
-      </tr>
-      <tr class="vice">
-        <td>Vice (V)</td>
-        <td>Lautaro Martínez</td>
-        <td>ARG</td>
-        <td>FWD</td>
-        <td>$8.8M</td>
-        <td>2.6%</td>
-        <td>vs CPV</td>
-        <td>18.96</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Ivan Toney</td>
-        <td>ENG</td>
-        <td>FWD</td>
-        <td>$7.5M</td>
-        <td>0.2%</td>
-        <td>vs COD</td>
-        <td>17.28</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Camilo Vargas</td>
-        <td>COL</td>
-        <td>GK</td>
-        <td>$4.3M</td>
-        <td>3.9%</td>
-        <td>vs GHA</td>
-        <td>7.06</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 4</td>
-        <td>David Ospina</td>
-        <td>COL</td>
-        <td>GK</td>
-        <td>$4.0M</td>
-        <td>0.7%</td>
-        <td>vs GHA</td>
-        <td>7.06</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Thiago Almada</td>
-        <td>ARG</td>
-        <td>MID</td>
-        <td>$6.5M</td>
-        <td>0.3%</td>
-        <td>vs CPV</td>
-        <td>18.21</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Morgan Rogers</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$7.2M</td>
-        <td>0.5%</td>
-        <td>vs COD</td>
-        <td>16.65</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Kobbie Mainoo</td>
-        <td>ENG</td>
-        <td>MID</td>
-        <td>$6.1M</td>
-        <td>0.4%</td>
-        <td>vs COD</td>
-        <td>16.65</td>
-      </tr>
-      <tr class=" bench">
-        <td>Bench 1</td>
-        <td>Adrien Rabiot</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$6.4M</td>
-        <td>0.4%</td>
-        <td>vs SWE</td>
-        <td>16.40</td>
-      </tr>
-      <tr class="">
-        <td>Start</td>
-        <td>Maghnes Akliouche</td>
-        <td>FRA</td>
-        <td>MID</td>
-        <td>$6.4M</td>
-        <td>0.0%</td>
-        <td>vs SWE</td>
-        <td>16.40</td>
-      </tr>
-    </tbody>
-    </table>
-    </details>
-
     
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">News feed</div>
+        <div class="fa">2.9h ago &middot; 2026-07-08 08:49 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Elo ratings</div>
+        <div class="fa">8.9h ago &middot; 2026-07-08 02:47 UTC</div>
+      </div>
+    </div>
+    
+  </div>
+
+  
+  
+  <div class="srule"><h2>Archive</h2></div>
+  
+  <details class="hist">
+    <summary><span>Quarter-final</span><span>5 run(s)</span></summary>
+    
+    <div class="hrow">
+      <span>ensemble
+        <span class="hm">XI 75.1 &middot; 105.0M</span></span>
+      <span class="hm">2026-07-08T02:46:47+00:00</span>
+      <span><a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.json">json</a> <a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>ensemble
+        <span class="hm">XI 68.3 &middot; 105.0M</span></span>
+      <span class="hm">2026-07-08T02:11:33+00:00</span>
+      <span><a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.json">json</a> <a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v3form
+        <span class="hm">XI 72.2 &middot; 104.9M</span></span>
+      <span class="hm">2026-07-07T21:39:29+00:00</span>
+      <span><a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.json">json</a> <a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v3form
+        <span class="hm">XI 67.5 &middot; 104.9M</span></span>
+      <span class="hm">2026-07-07T21:19:29+00:00</span>
+      <span><a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.json">json</a> <a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v3form
+        <span class="hm">XI 67.3 &middot; 104.9M</span></span>
+      <span class="hm">2026-07-07T21:08:24+00:00</span>
+      <span><a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.json">json</a> <a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.md">md</a></span>
+    </div>
+    
+  </details>
+  
+  <details class="hist">
+    <summary><span>Round of 16</span><span>1 run(s)</span></summary>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 53.7 &middot; 96.2M</span></span>
+      <span class="hm">2026-07-04T16:22:52+00:00</span>
+      <span><a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.json">json</a> <a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.md">md</a></span>
+    </div>
+    
+  </details>
+  
+  <details class="hist">
+    <summary><span>Round of 32</span><span>20 run(s)</span></summary>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 59.8 &middot; 99.0M</span></span>
+      <span class="hm">2026-07-07T17:25:42+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 59.4 &middot; 99.4M</span></span>
+      <span class="hm">2026-07-07T05:25:39+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 59.4 &middot; 99.4M</span></span>
+      <span class="hm">2026-07-06T17:24:39+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-06T05:23:44+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-05T17:23:09+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-05T05:22:09+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-04T17:21:46+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-04T05:21:43+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-03T17:21:10+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-03T05:20:51+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-02T17:19:53+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-02T05:19:18+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-01T17:19:17+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-07-01T05:18:38+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+      <span class="hm">2026-06-30T17:17:59+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+      <span class="hm">2026-06-30T05:17:05+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+      <span class="hm">2026-06-29T17:16:06+00:00</span>
+      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+      <span class="hm">2026-06-29T17:01:18+00:00</span>
+      <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+      <span class="hm">2026-06-29T05:00:51+00:00</span>
+      <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>poisson
+        <span class="hm">XI 163.2 &middot; 85.3M</span></span>
+      <span class="hm">2026-06-29T04:59:37+00:00</span>
+      <span><a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.json">json</a> <a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.md">md</a></span>
+    </div>
+    
+  </details>
+  
+  <details class="hist">
+    <summary><span>Group Matchday 2</span><span>2 run(s)</span></summary>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 65.5 &middot; 100.0M</span></span>
+      <span class="hm">2026-06-08T05:02:59+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 65.5 &middot; 100.0M</span></span>
+      <span class="hm">2026-06-08T04:28:32+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.md">md</a></span>
+    </div>
+    
+  </details>
+  
+  <details class="hist">
+    <summary><span>Group Matchday 1</span><span>8 run(s)</span></summary>
+    
+    <div class="hrow">
+      <span>gbm v2
+        <span class="hm">XI 61.9 &middot; 98.2M</span></span>
+      <span class="hm">2026-06-08T16:02:53+00:00</span>
+      <span><a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.json">json</a> <a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>poisson
+        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+      <span class="hm">2026-06-08T16:02:51+00:00</span>
+      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+      <span class="hm">2026-06-08T16:02:50+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>poisson
+        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+      <span class="hm">2026-06-08T06:41:05+00:00</span>
+      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+      <span class="hm">2026-06-08T06:41:03+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>poisson
+        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+      <span class="hm">2026-06-08T05:02:57+00:00</span>
+      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+      <span class="hm">2026-06-08T05:02:55+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.md">md</a></span>
+    </div>
+    
+    <div class="hrow">
+      <span>heuristic
+        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+      <span class="hm">2026-06-08T04:28:29+00:00</span>
+      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.md">md</a></span>
+    </div>
+    
+  </details>
+  
   
 
+  
 
+  
 
-
+  <footer>
+    <span>Rendered on request from the latest results in results/. Refresh to update.</span>
+    <span>Authors: A. D. Lopez, D. Guajardo</span>
+  </footer>
+</div>
 </body>
 </html>
