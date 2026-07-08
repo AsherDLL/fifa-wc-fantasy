@@ -1,0 +1,91 @@
+{
+  "_comment": "Feed registry for the news collector. This file IS the configuration: the collector code contains no feed URLs and no keywords. To reuse the collector in another project, replace this file (or point NEWS_FEEDS_CONFIG / --feeds-config at your own). shared_keywords gate which feed items get fetched (case-insensitive substring match on title+summary); a feed may add keywords_extra of its own. Formats: rss (RSS 2.0/Atom), json_espn (ESPN site.api JSON), json_arctic_shift (arctic-shift Reddit mirror).",
+  "shared_keywords": [
+    "world cup", "fifa", "wc 2026", "wc26",
+    "predicted xi", "predicted lineup", "starting xi", "team news",
+    "lineup", "line-up", "line up",
+    "injury", "doubt", "suspended", "rotation",
+    "player of the match", "man of the match",
+    "argentina", "france", "spain", "england", "brazil", "portugal",
+    "netherlands", "germany", "colombia", "usa", "mexico", "morocco",
+    "japan", "norway", "belgium", "switzerland", "ecuador", "egypt",
+    "australia", "canada", "uruguay", "croatia", "ghana"
+  ],
+  "feeds": [
+    {
+      "name": "BBC Sport Football",
+      "url": "https://feeds.bbci.co.uk/sport/football/rss.xml",
+      "source_id": "bbc",
+      "base_confidence": 0.75
+    },
+    {
+      "name": "Sky Sports Football",
+      "url": "https://www.skysports.com/rss/12040",
+      "source_id": "skysports",
+      "base_confidence": 0.70
+    },
+    {
+      "name": "Guardian Football",
+      "url": "https://www.theguardian.com/football/rss",
+      "source_id": "guardian",
+      "base_confidence": 0.75
+    },
+    {
+      "name": "FourFourTwo",
+      "url": "https://www.fourfourtwo.com/feeds/all",
+      "source_id": "fourfourtwo",
+      "base_confidence": 0.65
+    },
+    {
+      "name": "talkSPORT",
+      "url": "https://talksport.com/feed/",
+      "source_id": "talksport",
+      "base_confidence": 0.55
+    },
+    {
+      "name": "ESPN FIFA World",
+      "url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/news",
+      "source_id": "espn_json",
+      "base_confidence": 0.70,
+      "format": "json_espn"
+    },
+    {
+      "name": "Bob Sturm World Cup Journal",
+      "url": "https://bobsturm.substack.com/feed",
+      "source_id": "bobsturm",
+      "base_confidence": 0.65
+    },
+    {
+      "name": "Daily Mail Football",
+      "url": "https://www.dailymail.co.uk/sport/football/index.rss",
+      "source_id": "dailymail",
+      "base_confidence": 0.50
+    },
+    {
+      "name": "Gegenpressing Newsletter",
+      "url": "https://gegenpressing.substack.com/feed",
+      "source_id": "gegenpressing",
+      "base_confidence": 0.70
+    },
+    {
+      "name": "Reddit r/soccer (arctic-shift)",
+      "url": "https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=soccer&limit=50&sort=desc&sort_type=created_utc",
+      "source_id": "reddit_soccer",
+      "base_confidence": 0.45,
+      "format": "json_arctic_shift"
+    },
+    {
+      "name": "Reddit r/worldcup (arctic-shift)",
+      "url": "https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=worldcup&limit=50&sort=desc&sort_type=created_utc",
+      "source_id": "reddit_worldcup",
+      "base_confidence": 0.50,
+      "format": "json_arctic_shift"
+    }
+  ],
+  "dropped_feeds_log": [
+    "BBC Sport World Football (feeds.bbci.co.uk/sport/football/world/rss.xml): 404 as of 2026-06-29; general BBC feed covers WC",
+    "ESPN Soccer RSS (www.espn.com/espn/rss/soccer/news): AWS WAF challenge; replaced by site.api.espn.com JSON",
+    "Goal.com (www.goal.com/feeds/en/news): 404, no replacement found",
+    "reddit.com native .rss/.json: 403/429 from datacenter IPs since 2026-05/06; arctic-shift mirror used instead (or Reddit OAuth via REDDIT_CLIENT_ID/_SECRET/_USERNAME/_PASSWORD)"
+  ]
+}

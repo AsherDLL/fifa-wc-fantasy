@@ -35,6 +35,9 @@ services:
       dockerfile: docker/Dockerfile
     profiles: ["snapshot"]
     restart: unless-stopped
+    ports:
+      # Dashboard portal. Browse http://localhost:8770/ for the live page.
+      - "${WEB_PORT:-8770}:${WEB_PORT:-8770}"
     volumes:
       - ../data:/app/data
       - ../results:/app/results
@@ -50,5 +53,8 @@ services:
       - FIFA_INTERVAL_HOURS=${FIFA_INTERVAL_HOURS:-12}
       - MARKETS_INTERVAL_HOURS=${MARKETS_INTERVAL_HOURS:-3}
       - ELO_INTERVAL_HOURS=${ELO_INTERVAL_HOURS:-24}
-      - STAGE=${STAGE:-R32}
+      # Advance as the bracket does: QF now, then SF, then FINAL.
+      - STAGE=${STAGE:-QF}
+      - GBM_INCLUDE_WC=${GBM_INCLUDE_WC:-1}
+      - WEB_PORT=${WEB_PORT:-8770}
     command: python /app/docker/snapshot_loop.py

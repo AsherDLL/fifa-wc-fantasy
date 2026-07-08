@@ -29,18 +29,26 @@ docker compose --profile snapshot down
 
 ## What the snapshot loop does
 
-Every `SNAPSHOT_INTERVAL_HOURS` (default 6) the container:
+The loop runs four independent schedules in one process:
 
-1. Pulls the FIFA Fantasy API (players, squads, fixtures) and saves a
-   dated Parquet under `data/raw/`.
-2. Refreshes the martj42 international Elo CSV and the Polymarket /
-   Kalshi WC 2026 prediction-market snapshot under `data/external/`.
-3. Rebuilds the per-(player, round) features Parquet under
-   `data/processed/`.
-4. Runs all three predictor backends and writes their `predictions_*.parquet`.
-5. Runs the optimizer for the current stage (env var `STAGE`) and
-   writes the recommendation JSON+MD under `results/`.
-6. Regenerates `results/index.html`.
+- **FIFA tick** (every `FIFA_INTERVAL_HOURS`, default 12): pulls the
+  FIFA Fantasy API (players, squads, fixtures) into `data/raw/`,
+  rebuilds the features Parquet under `data/processed/`, retrains the
+  GBM with `--include-wc` (EPL + completed WC rounds), runs four
+  backends (heuristic, poisson, gbm, ensemble), then runs the optimizer
+  for the current stage (env var `STAGE`) on the ensemble predictions
+  (override with `OPTIMIZER_BACKEND`) and writes the recommendation
+  JSON+MD under `results/`, plus a static `results/index.html`.
+- **Markets tick** (every `MARKETS_INTERVAL_HOURS`, default 3):
+  Polymarket / Kalshi prediction-market snapshots under `data/external/`.
+- **News tick** (every `NEWS_INTERVAL_HOURS`, default 6): RSS article
+  collection under a disk budget, then team-news lineup extraction.
+- **Elo tick** (every `ELO_INTERVAL_HOURS`, default 24): refreshes the
+  martj42 international Elo CSV.
+
+A dashboard portal is served on port `WEB_PORT` (default 8770). It
+renders the results page fresh on each request; there is no
+auto-refresh, a manual browser refresh shows the latest.
 
 Errors in any single stage are logged and do not block the rest of the
 tick. The loop exits cleanly after `WC_END_DATE` (default 2026-07-18).
@@ -49,14 +57,23 @@ tick. The loop exits cleanly after `WC_END_DATE` (default 2026-07-18).
 
 | Variable | Default | What |
 |---|---|---|
-| `SNAPSHOT_INTERVAL_HOURS` | 6 | Hours between full ticks |
+| `FIFA_INTERVAL_HOURS` | 12 | Hours between FIFA data + model + optimizer ticks |
+| `MARKETS_INTERVAL_HOURS` | 3 | Hours between prediction-market snapshots |
+| `NEWS_INTERVAL_HOURS` | 6 | Hours between RSS news + team-news ticks |
+| `ELO_INTERVAL_HOURS` | 24 | Hours between Elo refreshes |
+| `NEWS_BUDGET_MB` | 2048 | Disk cap for the news article cache |
+| `NEWS_MAX_PER_FEED` | 20 | Max articles fetched per feed per tick |
+| `NEWS_FIXTURES_AHEAD` | 3 | Fixtures ahead for lineup extraction |
+| `GBM_INCLUDE_WC` | 1 | Retrain the GBM with `--include-wc` each FIFA tick |
+| `OPTIMIZER_BACKEND` | ensemble | Predictions the optimizer consumes |
+| `WEB_PORT` | 8770 | Dashboard HTTP port |
 | `WC_END_DATE` | 2026-07-18 | Loop exits after this UTC date |
-| `STAGE` | R32 | Which stage config the optimizer runs for |
+| `STAGE` | QF (compose; code default R32) | Which stage config the optimizer runs for |
 
 Override at compose run time:
 
 ```bash
-SNAPSHOT_INTERVAL_HOURS=3 STAGE=R16 docker compose --profile snapshot up -d
+FIFA_INTERVAL_HOURS=6 STAGE=SF docker compose --profile snapshot up -d
 ```
 
 ## Data persistence
@@ -82,7 +99,8 @@ line in `Dockerfile` to use the system solver.
 
 ## Disk usage budget
 
-A single tick writes about 1.5 MB of Parquet (raw + features +
-predictions) plus a few KB of JSON results. Over the remaining
-tournament (~3 weeks at 6h ticks = ~84 ticks): roughly 130 MB. Easily
-manageable. The prediction-market JSONL snapshots add ~200 KB each.
+A single FIFA tick writes about 1.5 MB of Parquet (raw + features +
+predictions) plus a few KB of JSON results; at the default 12h cadence
+that is a few MB per day. The prediction-market JSONL snapshots add
+~200 KB each, and the news article cache is capped by `NEWS_BUDGET_MB`
+(default 2048 MB). Easily manageable.

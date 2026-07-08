@@ -1,0 +1,59 @@
+{
+  "_comment": "Player-signal extraction config. Each signal has a class (risk lowers availability confidence, boost is positive form intel, info is neutral) and a list of case-insensitive patterns. A signal fires when a pattern AND a player name occur within proximity_chars of each other in an article's title or body. This file IS the vocabulary: the extractor code contains no hardcoded words. To reuse in another domain, replace the signals (e.g. earnings-call phrases, CVE terms) and point NEWS_SIGNALS_CONFIG or --signals-config at your file.",
+  "proximity_chars": 220,
+  "min_lastname_len": 5,
+  "signals": {
+    "injury": {
+      "class": "risk",
+      "patterns": [
+        "injur", "ruled out", "out for the", "sidelined", "hamstring",
+        "groin", "ankle", "knee problem", "muscle", "knock", "strain",
+        "will miss", "misses the", "unavailable", "out of the squad",
+        "stretchered"
+      ]
+    },
+    "fitness_doubt": {
+      "class": "risk",
+      "patterns": [
+        "doubt", "doubtful", "fitness test", "fitness concern", "race to be fit",
+        "50-50", "assessed ahead of", "late call"
+      ]
+    },
+    "suspension": {
+      "class": "risk",
+      "patterns": [
+        "suspended", "suspension", "banned", "yellow card accumulation",
+        "red card", "sent off"
+      ]
+    },
+    "rotation": {
+      "class": "risk",
+      "patterns": [
+        "rested", "rotated", "benched", "dropped to the bench", "left out",
+        "out of favour", "lost his place"
+      ]
+    },
+    "returning": {
+      "class": "boost",
+      "patterns": [
+        "returns to", "back in training", "passed fit", "fit again",
+        "recovered from", "available again", "back in the squad",
+        "returns from suspension"
+      ]
+    },
+    "player_of_the_match": {
+      "class": "boost",
+      "patterns": [
+        "player of the match", "man of the match", "potm", "motm",
+        "player of the tournament", "mvp"
+      ]
+    },
+    "penalty_duty": {
+      "class": "info",
+      "patterns": [
+        "penalty taker", "on penalties", "spot-kick duty", "free-kick taker",
+        "set-piece"
+      ]
+    }
+  }
+}

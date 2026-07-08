@@ -13,7 +13,7 @@ from pathlib import Path
 
 from ..scraping import StealthClient
 from .collector import DEFAULT_BUDGET_MB, collect
-from .feeds import DEFAULT_FEEDS
+from .feeds import load_feeds
 from .store import DEFAULT_DIR
 
 
@@ -26,6 +26,9 @@ def main() -> int:
     p.add_argument("--cache-dir", type=Path,
                    default=Path("data/external/cache/scraping"))
     p.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
+    p.add_argument("--feeds-config", type=Path, default=None,
+                   help="Feed registry JSON (default: packaged config/feeds.json"
+                        " or NEWS_FEEDS_CONFIG env var)")
     args = p.parse_args()
 
     logging.basicConfig(level=logging.INFO,
@@ -39,7 +42,7 @@ def main() -> int:
         max_retries=2,
     )
     summary = collect(
-        client, feeds=DEFAULT_FEEDS,
+        client, feeds=load_feeds(args.feeds_config),
         out_dir=args.out_dir,
         budget_mb=args.budget_mb,
         max_items_per_feed=args.max_per_feed,

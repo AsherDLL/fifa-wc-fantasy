@@ -1,4 +1,4 @@
-# `fifa_fantasy.external.scraping` — Reusable stealth scraping module
+# `fifa_fantasy.external.scraping` - Reusable stealth scraping module
 
 A small, focused Python HTTP client with TLS-fingerprint impersonation,
 per-host rate limiting, on-disk caching, retries, and optional proxy
@@ -9,12 +9,12 @@ code, no FIFA-fantasy dependencies, just a clean public API.
 
 Modern websites use a four-layer bot-detection stack:
 
-1. **TLS fingerprinting (JA3/JA4)** — identifies the TLS client BEFORE
+1. **TLS fingerprinting (JA3/JA4)** - identifies the TLS client BEFORE
    the HTTP request reaches the application. Python's `requests` library
    has a trivially-identifiable fingerprint.
-2. **Browser fingerprinting** — Canvas, WebGL, navigator props.
-3. **Behavioral analysis** — mouse movement, click timing, scroll.
-4. **IP reputation** — datacenter vs residential vs known-bot pools.
+2. **Browser fingerprinting** - Canvas, WebGL, navigator props.
+3. **Behavioral analysis** - mouse movement, click timing, scroll.
+4. **IP reputation** - datacenter vs residential vs known-bot pools.
 
 This module addresses **layer 1** (TLS) via `curl_cffi` browser
 impersonation, and gives you knobs for **layer 4** (proxy rotation).
@@ -59,9 +59,9 @@ The defenses each layer:
 | Site type | Tool sufficient? |
 |---|---|
 | Open public APIs (JSON, no cookies) | Plain `httpx` or stdlib; you don't need this module |
-| TLS-fingerprinted sites (most modern news, ESPN, BBC, Reddit) | ✓ **This module (`StealthClient`)** |
-| JS-challenged sites (Cloudflare Turnstile, DataDome interactive) | ✗ Escalate to `playwright-stealth` |
-| Heavy fingerprinting (Akamai Bot Manager, PerimeterX advanced mode) | ✗ Escalate to `nodriver` or paid services |
+| TLS-fingerprinted sites (most modern news, ESPN, BBC, Reddit) | yes **This module (`StealthClient`)** |
+| JS-challenged sites (Cloudflare Turnstile, DataDome interactive) | no Escalate to `playwright-stealth` |
+| Heavy fingerprinting (Akamai Bot Manager, PerimeterX advanced mode) | no Escalate to `nodriver` or paid services |
 | Behind-login content | This module supports cookies; escalate to playwright if login requires JS |
 
 ### Escalation path
@@ -115,9 +115,9 @@ Then `from scraping import StealthClient` works the same way.
 
 Two demonstrations of out-of-project use:
 
-1. `docs/scraping/example_other_project.py` — minimal 30-line script
+1. `docs/scraping/example_other_project.py` - minimal 30-line script
    that fetches the Hacker News front page using just `StealthClient`.
-2. `docs/scraping/startup_research_demo.py` — configures the `news`
+2. `docs/scraping/startup_research_demo.py` - configures the `news`
    collector with custom feeds (TechCrunch, Crunchbase, The Information,
    VentureBeat, Hacker News) and keyword filters for startup / VC
    research. Demonstrates that the `news` package is reusable outside

@@ -76,6 +76,9 @@ data/external/cache/scraping/
 
 # News article cache (RSS-collected, disk-budget capped)
 data/external/news_articles/
+# Player signals extracted from the article cache (regenerable via
+# `python -m fifa_fantasy.external.news.signals`)
+data/external/player_signals/
 
 # Demo scraping outputs (out-of-project reusability)
 data/external/startup_articles_demo/
