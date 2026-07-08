@@ -1,4 +1,4 @@
-# Phase 2 — Features
+# Phase 2 - Features
 
 The feature builder produces a single Parquet file at
 `data/processed/features_<UTC-date>.parquet` containing **one row per
@@ -26,7 +26,7 @@ into the pool at cheap prices. The top-N mean approximates "how good is
 the side they'll actually start" without needing any tactical info.
 
 Empirically on the day-1 pool: England, France, Spain, Portugal,
-Argentina are top; Curaçao, Jordan, Haiti are bottom — matches the broad
+Argentina are top; Curaçao, Jordan, Haiti are bottom - matches the broad
 consensus.
 
 ## Column dictionary
@@ -56,25 +56,25 @@ avoid collision with the player's `status`).
 ### Derived
 | Column | Definition |
 |---|---|
-| `is_home` | Boolean — true if the player's squad is the home side. |
+| `is_home` | Boolean - true if the player's squad is the home side. |
 | `strength_diff` | `squad_top_n_avg_price - opp_squad_top_n_avg_price`. Positive = strength advantage. |
 | `days_since_prev_match` | Days between the player's squad's previous match's kickoff and this one. NaN for the first match. |
 | `days_to_next_match` | Same in the forward direction. NaN for the last match. |
 
 Rest-day features are computed at the (squad, round) level on a deduped
-schedule table, then merged back — every player on the same squad in the
+schedule table, then merged back - every player on the same squad in the
 same round shares the same rest figure.
 
 ## Snapshot semantics
 
 - Inner join on `(player.squad_id, fixture.{home,away}_squad_id)`. A
   squad with no fixture in a given round (e.g. eliminated knockout side)
-  generates no rows for that round — they're naturally absent.
+  generates no rows for that round - they're naturally absent.
 - The API's `rounds.json` populates knockout brackets only as group stage
   finishes. Re-running the feature build picks up new fixtures
   automatically.
 - The table is rebuilt from scratch each invocation, so there's no
-  incremental write path — simpler to reason about, fast enough at this
+  incremental write path - simpler to reason about, fast enough at this
   size (~4,500 rows × 35 cols).
 
 ## What's intentionally not here yet

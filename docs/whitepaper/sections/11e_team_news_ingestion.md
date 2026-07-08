@@ -1,4 +1,4 @@
-# 11e — Team-news ingestion: reusable stealth scraping + predicted-XI signal
+# 11e - Team-news ingestion: reusable stealth scraping + predicted-XI signal
 
 Status: **DRAFT** (scaffold shipped; empirical impact measured as data accumulates)
 
@@ -13,11 +13,11 @@ had no such input.
 The implementation deliberately separates two concerns into two
 packages:
 
-1. **`src/fifa_fantasy/external/scraping/`** — a **reusable** stealth
+1. **`src/fifa_fantasy/external/scraping/`** - a **reusable** stealth
    HTTP client module. No domain-specific code. The user can extract
    this directory and drop it into an unrelated project. The
    `README.md` and `ethics.md` are written for an external audience.
-2. **`src/fifa_fantasy/external/team_news/`** — the FIFA fantasy
+2. **`src/fifa_fantasy/external/team_news/`** - the FIFA fantasy
    application that consumes the scraping module. Contains the
    per-source parsers (ESPN, Sportsgambler, soccerdata proxy),
    name-matching logic against the FIFA player_id catalog, and the
@@ -97,12 +97,12 @@ get(url, headers)
 
 Components implemented:
 
-- `client.py` — public class
-- `rate_limit.py` — per-host token bucket, thread-safe
-- `cache.py` — disk-backed with SHA256 key, JSON metadata, TTL
-- `retry.py` — exponential backoff with ±25% jitter
-- `session.py` — optional homepage warm-up
-- `proxies.py` — env-var-driven proxy rotator (random or round-robin)
+- `client.py` - public class
+- `rate_limit.py` - per-host token bucket, thread-safe
+- `cache.py` - disk-backed with SHA256 key, JSON metadata, TTL
+- `retry.py` - exponential backoff with ±25% jitter
+- `session.py` - optional homepage warm-up
+- `proxies.py` - env-var-driven proxy rotator (random or round-robin)
 
 ## 11e.4 The team-news application
 
@@ -137,9 +137,9 @@ per (fixture, player, status) tuple.
 join function. When news is available, the per-(player, round)
 feature grid gains two columns:
 
-- `predicted_starting_xi`: bool — True (confirmed start), False
+- `predicted_starting_xi`: bool - True (confirmed start), False
   (confirmed bench), NaN (no news)
-- `xi_confidence`: float in [0, 1] — per-source reliability
+- `xi_confidence`: float in [0, 1] - per-source reliability
 
 NaN-safe: when no news is available for a player, the columns are
 NaN and downstream models keep current behaviour.
@@ -233,7 +233,7 @@ news.collector.collect(client, feeds, out_dir, budget_mb)
       extract body text via news.extractor.extract()
       append row to today's parquet (snappy-compressed)
     dedup by URL within 12-hour window
-  after writing: enforce disk budget (default 200MB cap)
+  after writing: enforce disk budget (default 2048 MB cap)
     if over budget, delete oldest day's parquet until under cap
 ```
 

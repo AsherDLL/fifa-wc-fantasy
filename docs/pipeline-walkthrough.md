@@ -1,8 +1,8 @@
-# Pipeline Walkthrough — Lautaro Martínez through every stage
+# Pipeline Walkthrough - Lautaro Martínez through every stage
 
 A worked example. Traces one player from the raw FIFA Fantasy API record
 through to his selection as captain in the MD1 recommendation. Every
-number below was computed by the actual code in this repo — same one you
+number below was computed by the actual code in this repo - same one you
 get by running:
 
 ```bash
@@ -16,7 +16,7 @@ Reference run: 2026-06-07 group-stage snapshot. Player: Lautaro Martínez.
 
 ---
 
-## Step 1 — Collector (from FIFA API)
+## Step 1 - Collector (from FIFA API)
 
 `src/fifa_fantasy/collector/` hits
 `https://play.fifa.com/json/fantasy/players.json`, validates with
@@ -35,7 +35,7 @@ eliminated  = False
 
 ---
 
-## Step 2 — Features (one row per round)
+## Step 2 - Features (one row per round)
 
 `src/fifa_fantasy/features/` joins his player record with Argentina's
 three group-stage fixtures and the per-squad strength proxy
@@ -44,15 +44,15 @@ each squad's pool). Argentina's top-11 average price = **$7.19M**.
 
 | Round | Opponent | Home | Opp top-11 | strength_diff |
 |---|---|---|---|---|
-| MD1 | ALG | ✓ | 5.79 | **+1.40** |
-| MD2 | AUT | ✓ | 6.00 | **+1.19** |
+| MD1 | ALG | yes | 5.79 | **+1.40** |
+| MD2 | AUT | yes | 6.00 | **+1.19** |
 | MD3 | JOR | × | 4.51 | **+2.68** |
 
 Stored in `data/processed/features_<UTC-date>.parquet`.
 
 ---
 
-## Step 3 — Heuristic predictor
+## Step 3 - Heuristic predictor
 
 `src/fifa_fantasy/model/baseline.py` applies the Phase 3a formula:
 
@@ -76,7 +76,7 @@ Stored in `data/processed/predictions_<UTC-date>.parquet`.
 
 ---
 
-## Step 4 — Scouting bonus + horizon aggregation
+## Step 4 - Scouting bonus + horizon aggregation
 
 `src/fifa_fantasy/optimizer/pipeline.py` injects the official scouting
 bonus (rule reused from `fifa_fantasy.scoring`): **+2 if
@@ -96,7 +96,7 @@ The aggregator sums this per player across the horizon
 
 ---
 
-## Step 5 — Squad MILP (15-player optimization)
+## Step 5 - Squad MILP (15-player optimization)
 
 `src/fifa_fantasy/optimizer/solvers.py::solve_squad` builds a PuLP/CBC
 MILP that **maximizes total horizon effective_points** subject to:
@@ -118,7 +118,7 @@ The solver picks Lautaro because of points-per-dollar:
 
 Lautaro returns the highest projected points-per-dollar of any forward
 in the pool. The £10.5M premiums (Kane, Mbappé, Haaland) don't return
-their price advantage under the heuristic — the MILP correctly
+their price advantage under the heuristic - the MILP correctly
 reallocates that budget to a second / third premium forward (Watkins,
 Torres) instead. **Total horizon = 263.87 pts** beats any squad that
 includes Mbappé.
@@ -126,11 +126,11 @@ includes Mbappé.
 This is the heuristic's known blind spot: it can't see that premium
 forwards have a non-linear ceiling (fatter right tail in their
 distribution of match outcomes). Phase 3b's quantile regression on Euro
-2024 data should fix this — see `docs/baseline.md`.
+2024 data should fix this - see `docs/baseline.md`.
 
 ---
 
-## Step 6 — Captain pick
+## Step 6 - Captain pick
 
 `src/fifa_fantasy/optimizer/solvers.py::solve_lineup` runs a second MILP
 to pick the starting XI under one of the seven valid formations,

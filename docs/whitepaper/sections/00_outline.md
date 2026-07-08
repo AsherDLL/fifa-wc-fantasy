@@ -1,4 +1,4 @@
-# 00 — Outline and section list
+# 00 - Outline and section list
 
 Working title:
 

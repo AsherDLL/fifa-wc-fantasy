@@ -2,7 +2,7 @@
 
 How the system handles substitutions, injuries, knockout eliminations,
 boosters, and when each component is supposed to run. Phase 0 doesn't
-implement any of this yet — this document is the contract later phases
+implement any of this yet - this document is the contract later phases
 will satisfy. Every rule quoted here comes from
 [`docs/Fantasy.md`](./Fantasy.md), the official FIFA WC 2026 Fantasy
 guidelines.
@@ -15,7 +15,7 @@ From Fantasy.md:
 - **Unlocked player**: a player whose team is yet to play.
 
 A finished player is also unlocked in the sense that their match is over,
-but the rules treat them as "completed" — they can be removed from the XI
+but the rules treat them as "completed" - they can be removed from the XI
 but cannot be brought back, and they cannot be brought *into* the XI.
 
 ## Substitutions
@@ -55,7 +55,7 @@ with every Phase 4 squad recommendation, ranked by expected points ×
 probability of playing.
 
 Auto-subs only fire **at the end of the round**, so manual subs remain
-possible up until the start of the round's final match — and crucially,
+possible up until the start of the round's final match - and crucially,
 auto-subs only fire if **no** manual changes were made during the round.
 
 ### 3. Manual mid-round substitutions
@@ -74,8 +74,8 @@ Constraints from Fantasy.md:
   circumstance.
 - A finished bench player cannot replace an unlocked starter.
 
-**Important:** any manual change — including changing captain or
-vice-captain — **cancels all automatic substitutions for that round.** The
+**Important:** any manual change - including changing captain or
+vice-captain - **cancels all automatic substitutions for that round.** The
 trade-off is therefore an EV calculation handled by Phase 5
 (`live/sub_advisor.py`): is the expected gain from this manual sub worth
 forfeiting auto-subs on any remaining unplayed starters?
@@ -84,7 +84,7 @@ forfeiting auto-subs on any remaining unplayed starters?
 
 - Captain scores double points.
 - If the captain plays 0 minutes, the vice-captain scores double points
-  instead — but **only** if no manual changes were made to the team during
+  instead - but **only** if no manual changes were made to the team during
   the live round.
 - Captain and vice-captain can be changed unlimited times before lockout.
 - During a live round, captain can be changed unlimited times **as long as
@@ -135,7 +135,7 @@ confirmed.
 | Booster | Effect | Availability |
 |---|---|---|
 | **Wildcard** | Unlimited transfers within one specific round. | Any round **except** MD1 and R32 (both already unlimited). |
-| **12th Man** | Adds 1 extra player to score points for your team that round. The 12th man cannot be substituted, captained, or transferred. The player can be anyone not already in your squad — **budget and nationality caps do not apply** to this pick. | Any round. |
+| **12th Man** | Adds 1 extra player to score points for your team that round. The 12th man cannot be substituted, captained, or transferred. The player can be anyone not already in your squad - **budget and nationality caps do not apply** to this pick. | Any round. |
 | **Maximum Captain** | Doubles points from whichever starting-XI player scores the most in that round; captaincy is auto-assigned to that player. | Any round. |
 | **Qualification Booster** | +2 points to **any starting-XI player whose team advances** to the next knockout round (or wins the Final). Player must play **at least 1 minute** to qualify. If the captain is eligible for this bonus, the +2 is **not doubled**. | Round of 32 onwards. |
 | **Mystery Booster** | Effect revealed once Round 3 locks and the Round of 32 opens. Usable in one knockout-stage round including the Final. | Knockout stage (R32 onwards), once revealed. |

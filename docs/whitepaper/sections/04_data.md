@@ -1,4 +1,4 @@
-# 04 — Data sources and schemas
+# 04 - Data sources and schemas
 
 Status: **DRAFT**
 
@@ -6,14 +6,14 @@ Status: **DRAFT**
 
 Three JSON endpoints under `play.fifa.com/json/fantasy/`:
 
-- `players.json` — per-player record with `id`, position, price (in
+- `players.json` - per-player record with `id`, position, price (in
   millions), `percentSelected` (ownership, 0-100), `status`
   (playing/transferred/etc.), `oneToWatch`, `stats` block with
   `totalPoints`, `lastRoundPoints`, `form`, `roundPoints`,
   `nextFixtureFromActiveRound`.
-- `squads.json` — per-team record with `id`, `name`, `abbr`, `group`,
+- `squads.json` - per-team record with `id`, `name`, `abbr`, `group`,
   `isEliminated`.
-- `rounds.json` — per-round record with status, start and end dates, and
+- `rounds.json` - per-round record with status, start and end dates, and
   a `tournaments` array of fixtures (home/away squad ids, kickoff,
   scores once played).
 

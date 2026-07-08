@@ -1,4 +1,4 @@
-# 07 — Held-out validation on EPL 2024-25 GW 30-38
+# 07 - Held-out validation on EPL 2024-25 GW 30-38
 
 Status: **DRAFT**
 
@@ -14,8 +14,10 @@ The hold-out split is GW 30-38 of the 2024-25 season (the last nine
 gameweeks). All earlier rows from all three seasons (2022-23, 2023-24,
 and 2024-25 GW 1-29) form the training set:
 
-- Training: ~78,500 rows
-- Holdout: ~7,400 rows
+- Raw: ~78,500 player-gameweek rows across the three seasons
+- After dropping did-not-play rows: 34,221 rows (the modelling set)
+- Holdout: the n values in the RMSE table below are the after-filter
+  per-position counts for GW 30-38
 
 The held-out RMSE is computed per position against the realised
 `total_points`. The same rows are scored by all three backends, so the

@@ -1,4 +1,4 @@
-# 11d — Empirical finding: Polymarket WC-winner contracts add no signal
+# 11d - Empirical finding: Polymarket WC-winner contracts add no signal
 
 Status: **DRAFT** (final coefficient values pending post-tournament Bayesian fit)
 

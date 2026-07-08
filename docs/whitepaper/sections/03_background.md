@@ -1,4 +1,4 @@
-# 03 — Background and related work
+# 03 - Background and related work
 
 Status: **DRAFT**
 

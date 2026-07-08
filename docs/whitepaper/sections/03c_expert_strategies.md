@@ -1,4 +1,4 @@
-# 03c — Expert practitioner strategies and how our approach compares
+# 03c - Expert practitioner strategies and how our approach compares
 
 Status: **DRAFT**
 
@@ -74,14 +74,14 @@ Mapping our methodology against expert practice:
 
 | Expert recommendation | Our system | Status |
 |---|---|---|
-| Pick by xPts | Yes — three backends each produce `predicted_points` | ✓ |
-| Anchor on form | Monte Carlo backend explicit form multiplier; heuristic via realised data blend in live scripts | ✓ |
-| Fixture matters | Country Elo signal (from martj42) + opponent strength via top-11 price | ✓ |
+| Pick by xPts | Yes - three backends each produce `predicted_points` | yes |
+| Anchor on form | Monte Carlo backend explicit form multiplier; heuristic via realised data blend in live scripts | yes |
+| Fixture matters | Country Elo signal (from martj42) + opponent strength via top-11 price | yes |
 | Advanced stats (xG, xA) | Poisson backend uses team xG; we don't have player-level Opta xG | partial |
 | Rotation/injury risk | Per-country rotation multiplier in scripts; no team-news scraper | partial (Section 11) |
 | Double gameweek captaining | Not applicable in WC group stage; will surface in knockout 2-legged ties if used | N/A |
 | Standings-aware differential | Documented framework in Section 10.4; not yet automated in optimiser | partial |
-| Vice = next-highest xPts | Yes — lineup solver picks second-highest predicted scorer | ✓ |
+| Vice = next-highest xPts | Yes - lineup solver picks second-highest predicted scorer | yes |
 | Booster strategy | Documented in this section; we have used Wildcard | partial |
 
 ## 3c.5 What our approach does that experts don't

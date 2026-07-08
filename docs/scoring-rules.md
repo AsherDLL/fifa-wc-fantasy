@@ -3,7 +3,7 @@
 Source: [`docs/Fantasy.md`](./Fantasy.md), the verbatim official FIFA World Cup
 2026 Fantasy guidelines from <https://play.fifa.com/fantasy/help/guidelines>.
 This document is a code-aligned table view of what `src/fifa_fantasy/scoring.py`
-encodes — if they ever diverge, the code is wrong or this doc is stale. The
+encodes - if they ever diverge, the code is wrong or this doc is stale. The
 tests in `tests/test_scoring.py` pin every value below.
 
 ## All positions
@@ -20,7 +20,7 @@ tests in `tests/test_scoring.py` pin every value below.
 | Penalty conceded | −1 |
 | Direct free-kick goal (bonus on top of the goal) | +1 |
 
-A player on 0 minutes scores 0 — every component below also requires being on the pitch.
+A player on 0 minutes scores 0 - every component below also requires being on the pitch.
 
 ## Goalkeeper
 
@@ -64,7 +64,7 @@ by **strictly less than 5%** of managers, they receive **+2 bonus points**.
 Both inequalities are strict: a base of exactly 4 or ownership of exactly 5%
 does not qualify.
 
-## Goals conceded — the "after the first" wording
+## Goals conceded - the "after the first" wording
 
 The official rule docks 1 point for each goal conceded after the first. So:
 

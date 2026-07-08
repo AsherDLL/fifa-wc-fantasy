@@ -1,4 +1,4 @@
-# 09 — Critical analysis
+# 09 - Critical analysis
 
 Status: **DRAFT** (matures as live-results section fills in)
 

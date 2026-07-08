@@ -1,4 +1,4 @@
-# Phase 3a — Heuristic Baseline Predictor
+# Phase 3a - Heuristic Baseline Predictor
 
 A non-trained, deterministic predictor of `predicted_points` per (player,
 round) row. Exists so Phase 4 (the optimizer) has something concrete to
@@ -20,9 +20,9 @@ or whose squad is eliminated.
 
 | Constant | Value | Reasoning |
 |---|---|---|
-| `points_per_price_unit[GK]` | 0.50 | Lower ceiling — clean sheet is binary, save bonuses bounded. |
+| `points_per_price_unit[GK]` | 0.50 | Lower ceiling - clean sheet is binary, save bonuses bounded. |
 | `points_per_price_unit[DEF]` | 0.55 | Clean sheet + occasional goal, capped upside. |
-| `points_per_price_unit[MID]` | 0.60 | Balanced — goals, assists, chances, tackles. |
+| `points_per_price_unit[MID]` | 0.60 | Balanced - goals, assists, chances, tackles. |
 | `points_per_price_unit[FWD]` | 0.65 | Highest goal frequency, highest ceiling. |
 | `STRENGTH_DIFF_SCALE` | 2.0 | `strength_diff` (top-11 avg price difference) is roughly ±3 in practice; `tanh(x/2)` saturates by ±5. |
 | `STRENGTH_DIFF_ALPHA` | 0.25 | At saturation, fixture is worth ±25% of base prediction. |
@@ -34,7 +34,7 @@ trained on Euro 2024 (same scoring rubric).
 
 ## What this predictor captures
 
-- The market's pricing signal — strongest single feature available
+- The market's pricing signal - strongest single feature available
   pre-tournament.
 - Fixture difficulty via opponent strength.
 - A small home-advantage bias.
@@ -43,8 +43,8 @@ trained on Euro 2024 (same scoring rubric).
 ## What it does NOT capture
 
 - Per-player form, expected goals (xG), defensive contributions, set-piece
-  duties — none of these are knowable from price alone.
-- Rotation risk — a star priced for 90 min might play 30.
+  duties - none of these are knowable from price alone.
+- Rotation risk - a star priced for 90 min might play 30.
 - Booster effects (Phase 4 problem).
 - Captaincy doubling (Phase 4 problem).
 - The scouting bonus from `scoring.py` (Phase 4 will inject this at the

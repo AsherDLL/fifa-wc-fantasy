@@ -1,4 +1,4 @@
-# 05b — Algorithms (formal specifications)
+# 05b - Algorithms (formal specifications)
 
 Status: **DRAFT**
 
@@ -108,20 +108,23 @@ GOAL_POINTS     = {GK: 9, DEF: 7, MID: 6, FWD: 5}
 CS_POINTS       = {GK: 5, DEF: 5, MID: 1, FWD: 0}
 APPEARANCE_POINTS = 2     (60-minute baseline)
 ASSIST_POINTS   = 3
-GK_SAVE_BONUS   = 1.0     (flat expected from saves)
+GK_SAVE_BONUS_PER_OPP_XG = 0.50   (expected save points per unit of opponent xG; see 09c)
 DEF_GC_FACTOR   = 0.5     (DEF concedes-after-first penalty rate)
 
 y = APPEARANCE_POINTS
   + player_xg · GOAL_POINTS[position]
   + player_xa · ASSIST_POINTS
   + P(clean sheet) · CS_POINTS[position]
-  + (1[position == GK]) · GK_SAVE_BONUS
+  + (1[position == GK]) · opp_xg · GK_SAVE_BONUS_PER_OPP_XG
   + (1[position == GK]) · (-E(extra conceded))
   + (1[position == DEF]) · DEF_GC_FACTOR · (-E(extra conceded))
-  + scouting bonus (+2 if y > 4 and ownership < 0.05)
 
 predicted_points = max(0, y) if available else 0
 ```
+
+The scouting bonus (+2 if predicted > 4 and ownership < 0.05) is not
+baked into the Poisson sum; it is applied exactly once for every
+backend, downstream in `optimizer/pipeline.apply_scouting_bonus`.
 
 ## 5b.3 LightGBM v2
 
@@ -133,7 +136,7 @@ Per-position regressor with four heads.
 
 ```
 X = [price_millions, is_home (0/1), strength_diff,
-     squad_top_n_avg_price, opp_squad_top_n_avg_price]
+     squad_top_n_avg_price, opp_squad_top_n_avg_price, form_lag]
 ```
 
 **Targets:** `total_points` per (player, gameweek) row from FPL data.
@@ -164,7 +167,7 @@ deterministic       = True
 ```
 
 **Inference contract:** the inference path drops `rank_diff` from the
-column list because EPL training has no rank_diff column; the same five
+column list because EPL training has no rank_diff column; the same six
 features are used at inference.
 
 **Prediction post-processing:**
@@ -237,6 +240,11 @@ Subject to:
 Captain = argmax_{p: y_p = 1} predicted_points[p]
 Vice    = second_argmax
 ```
+
+The solver's captain is a mean-argmax placeholder. In production the
+optimiser overrides it with the ceiling-aware composite selector in
+`optimizer/captain.py`, which interpolates between the mean and the q90
+ceiling by the user's standings percentile (Section 11g.3).
 
 ## 5b.5 Country Elo rolling update
 
@@ -339,12 +347,13 @@ where ROT is hand-set per country per matchday:
 | Needs result | 1.00 |
 | Eliminated | 0.70-0.85 |
 
-A FORCE override applies ROT = 1.0 for individual players in the
+A protect-list override applies ROT = 1.0 for individual players in the
 top-scorer race (Messi, Mbappé) regardless of country rotation:
 
 ```
-FORCE_PLAY = {Messi, Mbappé, Ronaldo, Salah, Kane, Haaland,
-              Bellingham, Vinícius, Gakpo}
+PROTECT_NAMES = {Lionel Messi, Kylian Mbappé, Lautaro Martínez,
+                 Cristiano Ronaldo, Harry Kane, Bukayo Saka,
+                 Mohamed Salah, Erling Haaland}
 ```
 
 This is acknowledged as a code smell in Section 10.2; a proper

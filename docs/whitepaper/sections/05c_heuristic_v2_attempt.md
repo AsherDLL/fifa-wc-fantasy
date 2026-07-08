@@ -1,4 +1,4 @@
-# 05c — Heuristic v2 attempt and failed validation
+# 05c - Heuristic v2 attempt and failed validation
 
 Status: **DRAFT**
 

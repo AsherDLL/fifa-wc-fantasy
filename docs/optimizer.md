@@ -1,4 +1,4 @@
-# Phase 4 — Optimizer
+# Phase 4 - Optimizer
 
 Two MILPs solved with PuLP/CBC: pick the 15-player squad, then pick the
 starting XI + formation + captain. Stage-aware constraints come from
@@ -6,9 +6,9 @@ starting XI + formation + captain. Stage-aware constraints come from
 
 ## Inputs
 
-- `data/processed/predictions_<date>.parquet` — per-(player, round) point
+- `data/processed/predictions_<date>.parquet` - per-(player, round) point
   predictions from Phase 3a (or 3b when it lands).
-- A target `Stage`. Default: `GROUP_MD1`, horizon `(1, 2, 3)` — the
+- A target `Stage`. Default: `GROUP_MD1`, horizon `(1, 2, 3)` - the
   pre-tournament selection must last all three group-stage matchdays.
 
 ## Pipeline
@@ -66,14 +66,14 @@ The CLI also prints a human-readable squad/lineup/captain summary.
 Stage: GROUP_MD1   horizon: [1, 2, 3]
 Budget: $100.0M / $100.0M  (remaining $0.0M)
 Total horizon points: 263.87
-Starting XI (3-4-3) — expected 58.20 pts
+Starting XI (3-4-3) - expected 58.20 pts
 Captain:      Lautaro Martínez (ARG, E=6.91 → 13.83 doubled)
 Vice-captain: Ferran Torres (ESP, E=6.49)
 ```
 
 The optimizer skews toward mid-priced starters and skips the £10.5M
 premiums (Mbappé, Kane, Haaland) because the Phase 3a heuristic is
-near-linear in price — freeing budget buys better marginal points
+near-linear in price - freeing budget buys better marginal points
 elsewhere. Phase 3b's quantile regression should give the premium
 forwards a non-linear ceiling boost and shift the optimum back toward
 them. Track this as a known signal.
@@ -81,7 +81,7 @@ them. Track this as a known signal.
 ## Why MILP, not greedy
 
 A greedy "highest points-per-$M" pick blows past the position counts and
-the nationality cap, then repairs by swapping — and there's no
+the nationality cap, then repairs by swapping - and there's no
 guarantee of optimality. A 1481-variable MILP is solved by CBC in well
 under a second; the integer constraints are exactly what we need.
 
@@ -102,7 +102,7 @@ objective only loses points to `extra`, CBC pushes it down to exactly
 
 Stages with unlimited free transfers (`free_transfers is None` → MD1 and
 R32) short-circuit to a fresh `solve_squad` and report the resulting diff
-against the previous squad with zero cost — same `TransferSolution`
+against the previous squad with zero cost - same `TransferSolution`
 shape, so the CLI and report don't branch.
 
 ### Usage
@@ -137,12 +137,12 @@ IN : Marquinhos (BRA, DEF), Ederson (BRA, GK)
 
 Germany's MD2/MD3 schedule has weaker matchup signals than Brazil's for
 those positions, so the planner spends the free quota to capture the
-expected gain — no hit incurred.
+expected gain - no hit incurred.
 
 ## Still not in scope
 
 - **Booster timing**: the Wildcard / 12th Man / Maximum Captain decisions.
   Heuristics from the sketch §7 are a fine v1.
-- **Live captain switching / sub advisor** — Phase 5.
-- **Multi-round captain optimization** — currently captain is chosen for
+- **Live captain switching / sub advisor** - Phase 5.
+- **Multi-round captain optimization** - currently captain is chosen for
   the target round only, not optimized across the horizon.

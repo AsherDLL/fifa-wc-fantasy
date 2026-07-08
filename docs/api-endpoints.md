@@ -1,4 +1,4 @@
-# FIFA Fantasy WC 2026 — Public Data Endpoints
+# FIFA Fantasy WC 2026 - Public Data Endpoints
 
 The official site (https://play.fifa.com/fantasy) is a JS-rendered SPA. Its
 static gameplay data is served as plain JSON files from the same origin under
@@ -20,9 +20,9 @@ The client-side JS at `https://play.fifa.com/fantasy/static/js/index-*.js` is
 minified, with template literals composed from one- and two-character
 variables. The relevant constants are:
 
-- `Rf = "//play.fifa.com/json/"` — JSON content base
-- `dR = "fantasy/"` — fantasy-specific path prefix
-- `na = new ir({ baseURL: Rf + dR })` — the HTTP client for the fantasy
+- `Rf = "//play.fifa.com/json/"` - JSON content base
+- `dR = "fantasy/"` - fantasy-specific path prefix
+- `na = new ir({ baseURL: Rf + dR })` - the HTTP client for the fantasy
   static JSON
 - The bundle's `na.get(…)` and `Cr.get(…)` calls reveal sibling JSON files
   (`countries.json`, `faq.json`, `settings.json`, `help_pages.json`,
@@ -31,7 +31,7 @@ variables. The relevant constants are:
 
 ## Schemas (verbatim payloads)
 
-### `players.json` — list of player records
+### `players.json` - list of player records
 
 ```jsonc
 {
@@ -65,7 +65,7 @@ variables. The relevant constants are:
 Positions are `GK`, `DEF`, `MID`, `FWD`. Prices are in millions. Squad
 distribution: 181 GK, 482 DEF, 512 MID, 306 FWD.
 
-### `squads.json` — list of 48 national teams
+### `squads.json` - list of 48 national teams
 
 ```jsonc
 { "id": 1, "name": "Algeria", "group": "j", "abbr": "ALG", "isEliminated": false }
@@ -74,7 +74,7 @@ distribution: 181 GK, 482 DEF, 512 MID, 306 FWD.
 `group` is the lowercase group letter for the group stage. Knockout teams
 will keep their original group letter.
 
-### `rounds.json` — list of 8 rounds
+### `rounds.json` - list of 8 rounds
 
 ```jsonc
 {

@@ -1,4 +1,4 @@
-# 05 — Methodology
+# 05 - Methodology
 
 Status: **DRAFT**
 
@@ -92,10 +92,15 @@ Per-position regressors. Each position trains four heads:
 - `q10`, `q50`, `q90`: quantile regression at the 10th, 50th, 90th
   percentiles
 
-Features (five):
+Features (six):
 
 > price_millions, is_home (0/1), strength_diff,
-> squad_top_n_avg_price, opp_squad_top_n_avg_price
+> squad_top_n_avg_price, opp_squad_top_n_avg_price, form_lag
+
+The sixth feature, `form_lag` (a leak-free trailing mean of the
+player's realised fantasy points over the previous three matches), was
+added in the July 2026 overhaul; its addition is documented in
+Section 11f.
 
 Hyperparameters (picked by `tune.py`'s sweep):
 
@@ -124,8 +129,10 @@ Poisson dominates GK, heuristic dominates DEF, GBM dominates MID and
 FWD. The differences are small (RMSE within 0.3 across the three for
 DEF, MID, FWD) but they are stable across runs.
 
-In production we score a single backend per run and pass it to the
-optimiser, rather than averaging across backends. Two reasons:
+In production, individual backends are still scored per run for
+comparison, and the per-position ensemble (Poisson GK, heuristic DEF,
+GBM MID/FWD; Section 11f) is the production default the optimiser
+consumes. Two reasons for this structure:
 
 - The MILP objective consumes one prediction column; ensembling shifts
   the optimum in non-obvious ways. The per-position best-backend choice

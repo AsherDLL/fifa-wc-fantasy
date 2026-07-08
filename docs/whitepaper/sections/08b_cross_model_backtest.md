@@ -1,4 +1,4 @@
-# 08b — Cross-model retrospective backtest
+# 08b - Cross-model retrospective backtest
 
 Status: **DRAFT** (grows as more rounds complete)
 
@@ -32,7 +32,7 @@ each round**. The real user is constrained to 2 free transfers per
 stage transition (with -3 per extra). This means the backtest is an
 **upper bound on the model's standalone performance**, not a direct
 apples-to-apples comparison against the user's actual squad. A
-constrained-transfer version of the backtest is scoped in Section 8c.
+constrained-transfer version of the backtest is planned as future work.
 
 The script is `scripts/model_backtest.py`. Reproducibility: run with a
 fixed seed (default 42 in `_random_baseline`).
@@ -48,7 +48,7 @@ fixed seed (default 42 in `_random_baseline`).
 | GBM | 38 | 6 | 44 | 3-5-2 |
 | poisson | 29 | 2 | 31 | 3-4-3 |
 | user actual | 31 | 1 | **33** (net 33) | 4-4-2 |
-| random baseline | — | — | **mean 22, p90 37** | random |
+| random baseline | - | - | **mean 22, p90 37** | random |
 
 Observations: Monte Carlo's strong MD1 came from sampling the goal-
 scorer distribution well; its mean predicted captain pick produced 14
@@ -65,11 +65,11 @@ user's actual MD1 of 33 reflects the realised Lautaro captain blank.
 | GBM | 60 | 12 | 72 | 3-5-2 |
 | user actual | 75 | 9 | **84** (net 84) | 4-4-2 |
 | poisson | 22 | 0 | 22 | 3-4-3 |
-| random baseline | — | — | **mean 21, p90 36** | random |
+| random baseline | - | - | **mean 21, p90 36** | random |
 
 Observations: Heuristic edged Monte Carlo because the heuristic's
-captain pick (Olise) realised 13 raw points; Monte Carlo's captain
-pick blanked at 4. The user's actual squad scored 84 with no
+captain pick realised 13 raw points; Monte Carlo's captain pick
+blanked at 4. The user's captain (Olise) realised 9 raw (see 8b.4). The user's actual squad scored 84 with no
 transfers used, beating every backend. The user-stated 102 in
 project conversation was incorrect; the realised total from
 `round_points[1]` is 84. The discrepancy may reflect a misremembered
@@ -84,7 +84,7 @@ auto-sub or app-display rounding; we use the realised number.
 | GBM | 37 | 8 | 45 | 3-5-2 |
 | user actual | 46 | 6 | **40** (net, after -6 hit) | 5-2-3 |
 | poisson | 18 | 1 | 19 | 3-4-3 |
-| random baseline | — | — | **mean 22, p90 38** | random |
+| random baseline | - | - | **mean 22, p90 38** | random |
 
 Observations: MD3 was where the heuristic's group-stage edge
 materialised most: 84 points, the round's high. The user took -6 in
@@ -115,7 +115,7 @@ non-EPL stars. The captain decision is single-game leverage; if your
 model under-predicts Messi at $10M, your captain pick goes elsewhere
 and your round score suffers disproportionately.
 
-The Poisson backend trails by 140 points — a true mis-calibration
+The Poisson backend trails by 140 points - a true mis-calibration
 finding (Section 10.5b discussion). Even after the GK formula fix
 (09c), the Poisson model systematically over-predicts mean points
 (4.90 vs realised 2.50) and the resulting squad picks distort toward
@@ -126,8 +126,8 @@ The user's actual squad performed close to GBM. With unlimited
 transfers (as the backtest gives the models) the user would have
 been beaten by both heuristic and Monte Carlo. With realistic
 constraints (only 2 free transfers per round, hit cost for extras)
-the user's 157 is much closer to a fair model upper bound — see
-Section 8c when written.
+the user's 157 is much closer to a fair model upper bound; a planned
+constrained-transfer backtest (future work) will quantify this.
 
 ## 8b.4 Per-round captain pick comparison
 

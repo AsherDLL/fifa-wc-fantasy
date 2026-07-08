@@ -1,4 +1,4 @@
-# 12 — Conclusion
+# 12 - Conclusion
 
 Status: **TODO** (write last, after Section 8 is final and we know how the season ended)
 

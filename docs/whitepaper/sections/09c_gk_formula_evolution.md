@@ -1,4 +1,4 @@
-# 09c — Goalkeeper save-bonus formula evolution
+# 09c - Goalkeeper save-bonus formula evolution
 
 Status: **DRAFT**
 

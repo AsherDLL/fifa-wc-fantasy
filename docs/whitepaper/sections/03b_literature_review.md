@@ -1,4 +1,4 @@
-# 03b — Literature review: prior work and our positioning
+# 03b - Literature review: prior work and our positioning
 
 Status: **DRAFT**
 

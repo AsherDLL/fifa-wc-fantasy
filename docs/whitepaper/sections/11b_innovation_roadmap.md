@@ -1,4 +1,4 @@
-# 11b — Innovation roadmap: prediction markets and beyond
+# 11b - Innovation roadmap: prediction markets and beyond
 
 Status: **DRAFT**
 

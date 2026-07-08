@@ -1,4 +1,4 @@
-# 09b — The goalkeeper paradox: defensive strength as a fantasy penalty
+# 09b - The goalkeeper paradox: defensive strength as a fantasy penalty
 
 Status: **DRAFT**
 

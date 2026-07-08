@@ -1,4 +1,4 @@
-# 13 — References (BibTeX-ready)
+# 13 - References (BibTeX-ready)
 
 Status: **DRAFT** (add entries as drafted sections cite them)
 

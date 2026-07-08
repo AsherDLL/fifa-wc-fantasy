@@ -1,4 +1,4 @@
-# 02 — Introduction
+# 02 - Introduction
 
 Status: **DRAFT**
 

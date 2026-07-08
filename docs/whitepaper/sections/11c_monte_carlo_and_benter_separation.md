@@ -1,4 +1,4 @@
-# 11c — Monte Carlo simulator and the Benter separation
+# 11c - Monte Carlo simulator and the Benter separation
 
 Status: **DRAFT**
 
@@ -39,10 +39,10 @@ backend's `predicted_points` per run; we choose the backend per stage
 based on:
 
 - **Group stage (multi-round horizon, partial information)**:
-  heuristic — best held-out RMSE on DEF, robust to distribution
+  heuristic - best held-out RMSE on DEF, robust to distribution
   shift.
 - **Knockout rounds (single game, full information from group
-  stage)**: Monte Carlo — uses realised group-stage data as anchor,
+  stage)**: Monte Carlo - uses realised group-stage data as anchor,
   produces uncertainty bands useful for captain decisions.
 - **All stages**: GBM as a check on the heuristic when both agree
   the pick is solid.

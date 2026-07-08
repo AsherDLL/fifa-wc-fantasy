@@ -1,4 +1,4 @@
-# 06 — Implementation and architecture
+# 06 - Implementation and architecture
 
 Status: **DRAFT**
 
@@ -28,7 +28,7 @@ fifa_wc_fantasy/
                              hyperparameter sweep
     web/                     Static HTML report generator
     scoring.py               Canonical scoring functions
-  tests/                     Pytest tests (~50 cases against scoring rules)
+  tests/                     Pytest tests (289 passing cases)
 ```
 
 ## 6.2 Pipeline dataflow
@@ -79,8 +79,9 @@ on `--no-refresh-cache=false`.
 ## 6.3 Engineering decisions worth flagging
 
 **Parquet over CSV everywhere.** Faster I/O, smaller files, typed
-columns. The only CSVs in the repo are hand-maintained static files
-(`fifa_rankings.csv`, `country_elo.csv`).
+columns. The only hand-maintained CSV is `fifa_rankings.csv`;
+`country_elo.csv` is a derived file refreshed daily by the snapshot
+daemon's Elo tick.
 
 **Hostname-prefixed timestamps on every result file.** Pattern:
 `<host>_recommendation_<backend>_<stage>_<UTC-timestamp>.{json,md}`.
@@ -121,16 +122,18 @@ binary-decision problem in under a second on commodity hardware.
 
 ## 6.5 Testing strategy
 
-The bulk of the test surface is in `tests/test_scoring.py`: about 50
-parametrised test cases that pin every per-position scoring component
-(appearance, goal scored, assist, clean sheet, goals conceded penalty,
-saves bonus, tackles, chances created, shots on target, scouting bonus
-threshold conditions). Realistic end-to-end scenarios (Mbappé scoring
-two, Donnarumma keeping a clean sheet with five saves) are also pinned
-to known totals.
+The suite currently totals 289 passing tests, run locally via pytest.
+A large share is in `tests/test_scoring.py`: many parametrised test
+cases that pin every per-position scoring component (appearance, goal
+scored, assist, clean sheet, goals conceded penalty, saves bonus,
+tackles, chances created, shots on target, scouting bonus threshold
+conditions). Realistic end-to-end scenarios (Mbappé scoring two,
+Donnarumma keeping a clean sheet with five saves) are also pinned to
+known totals.
 
-The collector, features, and optimiser modules are tested indirectly
-via the end-to-end pipeline runs. The held-out validation
+The collector, features, and optimiser modules have direct test files
+(`test_collector.py`, `test_features.py`, `test_optimizer.py`), backed
+by end-to-end pipeline runs. The held-out validation
 (`training/validate.py`) is the model-correctness regression: any change
 to a backend that drifts RMSE more than 0.05 in either direction is
-flagged in the CI output.
+caught when the validation is re-run locally.

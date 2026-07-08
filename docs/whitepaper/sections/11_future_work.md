@@ -1,4 +1,4 @@
-# 11 — Better approaches and future work
+# 11 - Better approaches and future work
 
 Status: **DRAFT**
 

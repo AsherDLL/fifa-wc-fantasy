@@ -30,10 +30,10 @@ means more accurate predictions.
 
 | Position | n (rows held out) | heuristic | poisson | gbm-v1 | gbm-v2 |
 |---|---|---|---|---|---|
-| GK | 180 | 2.698 | **2.503** | 2.710 | 2.645 |
-| DEF | 910 | **3.141** | 3.400 | 3.297 | 3.195 |
-| MID | 1228 | 2.874 | 4.371 | 2.898 | **2.795** |
-| FWD | 368 | 3.515 | 4.560 | 3.281 | **3.160** |
+| GK | 180 | 2.698 | **2.503** | 2.710 | 2.650 |
+| DEF | 910 | **3.141** | 3.400 | 3.297 | 3.187 |
+| MID | 1228 | 2.874 | 4.371 | 2.898 | **2.767** |
+| FWD | 368 | 3.515 | 4.560 | 3.281 | **3.153** |
 
 Each backend wins one or two positions. Poisson is the right choice
 for goalkeepers; the heuristic is the right choice for defenders; the
@@ -53,23 +53,29 @@ they differ from each other and from neural networks.
 
 ## Approaches available
 
-Three predictor backends. Each maps the per-(player, round) feature
-table into a `predicted_points` column for the full squad (not partial,
-not captain-only). Full write-up in [`docs/approaches.md`](./docs/approaches.md).
+Six predictor backends, selectable via `--backend`: `heuristic`,
+`heuristic_v2`, `gbm`, `poisson`, `monte_carlo`, and `ensemble`. The
+per-position `ensemble` (Poisson GK, heuristic DEF, GBM MID/FWD) is the
+production default the optimizer consumes. Each backend maps the
+per-(player, round) feature table into a `predicted_points` column for
+the full squad (not partial, not captain-only). The three core
+approaches are summarised below; full write-up in
+[`docs/approaches.md`](./docs/approaches.md).
 
 | Backend | Idea | Trained on | When to use |
 |---|---|---|---|
 | `heuristic` (default) | position_coef x price x matchup x home, with a small premium-tier knob | nothing | conservative, transparent, the right call for MD1 submission |
-| `gbm` | LightGBM mean + q10/q50/q90 per position | three seasons of Premier League FPL (2022-23, 2023-24, 2024-25 via the vaastav community mirror plus the live API) | wins midfielder and forward on held-out EPL RMSE; competitive at GK and DEF. Lighter hyperparameters than v1 (15 leaves, 200 trees), tuned by sweep |
+| `gbm` | LightGBM mean + q10/q50/q90 per position | three seasons of Premier League FPL (2022-23, 2023-24, 2024-25 via the vaastav community mirror plus the live API) plus completed WC rounds when retrained with `--include-wc` | wins midfielder and forward on held-out EPL RMSE; competitive at GK and DEF. Lighter hyperparameters than v1 (15 leaves, 200 trees), tuned by sweep |
 | `poisson` | structural Poisson goals: team xG, per-position goal/assist share, clean-sheet probability | nothing | independent of price and of EPL; a useful third opinion when the heuristic and the GBM disagree |
 
 Pick a backend on the model CLI:
 
 ```bash
-python -m fifa_fantasy.model                    # default: heuristic
-python -m fifa_fantasy.model --backend gbm      # LightGBM
-python -m fifa_fantasy.model --backend poisson  # structural goals
-python -m fifa_fantasy.optimizer                # consumes the latest predictions, whichever backend wrote them
+python -m fifa_fantasy.model                     # default: heuristic
+python -m fifa_fantasy.model --backend gbm       # LightGBM
+python -m fifa_fantasy.model --backend poisson   # structural goals
+python -m fifa_fantasy.model --backend ensemble  # per-position routing (production default)
+python -m fifa_fantasy.optimizer                 # consumes the latest predictions, whichever backend wrote them
 ```
 
 The backend is stamped into the predictions Parquet, the recommendation
@@ -140,8 +146,10 @@ match your clone).
 
 The HTML page lists every recommendation under `results/` with stage,
 backend, host, formation, expected points, and a collapsible squad
-table. Direct links to the underlying `.json` and `.md`. No web
-server, no Docker; just a file you open.
+table. Direct links to the underlying `.json` and `.md`. The Docker
+snapshot daemon also serves this dashboard on port 8770, rendering it
+fresh on each request; the static `results/index.html` remains as a
+fallback you can open directly as a file.
 
 ## Status
 
@@ -152,7 +160,7 @@ server, no Docker; just a file you open.
 | 1b Live stats | total/last-round/form/round_points in the same Parquet | done |
 | 2 Features | Per-(player, round) table with rest days and matchup signal | done |
 | 3a Predictor | Heuristic, price-coef x matchup x home, with optional premium tilt | done |
-| 3b Predictor | LightGBM mean + q10/q50/q90 per position, trained on one EPL FPL season | done (opt-in via `--backend gbm`) |
+| 3b Predictor | LightGBM mean + q10/q50/q90 per position, trained on three EPL FPL seasons plus completed WC rounds | done (opt-in via `--backend gbm`) |
 | 3c Predictor | Structural Poisson goals: team xG, per-position share, clean sheets | done (opt-in via `--backend poisson`) |
 | 4 Optimizer | PuLP MILPs: squad, transfer with -3 hit, lineup + captain | done |
 | 4.5 Polish | `--compare-to`, `--report-alternatives`, `oneToWatch` flag | done |
@@ -195,8 +203,9 @@ one round of WC matches has finished):
 python -m fifa_fantasy.model.train --include-wc
 ```
 
-To browse all generated recommendations as a static HTML page (no
-server, just a file you open in any browser):
+To browse all generated recommendations as a static HTML page (a file
+you can open in any browser; the snapshot daemon additionally serves a
+live-rendered copy on port 8770):
 
 ```bash
 python -m fifa_fantasy.web
@@ -225,7 +234,8 @@ pytest
 
 Output filenames make every dimension visible: the host that ran the
 pipeline, the model backend that produced the predictions
-(`heuristic` or `gbm`), the tournament stage (`GROUP_MD1`, `R32`, ...),
+(`heuristic`, `poisson`, `gbm`, `ensemble`, ...), the tournament stage
+(`GROUP_MD1`, `R32`, ...),
 and a UTC timestamp. Two files per run (json + md) carry the same
 data: the JSON is the structured payload for `python -m fifa_fantasy.web`
 or any other consumer; the markdown is a human-readable squad table
@@ -289,7 +299,7 @@ Run **once before lockout** (within an hour of the first MD1 kickoff):
 
 ```bash
 ./scripts/daily-snapshot.sh
-python -m fifa_fantasy.live --recommendation results/<host>_recommendation_GROUP_MD1_<date>.json
+python -m fifa_fantasy.live --recommendation results/<host>_recommendation_<backend>_GROUP_MD1_<date>.json
 ```
 
 The live module produces the captain playbook: initial captain plus the
@@ -310,7 +320,7 @@ Between kickoff windows (typically a 3 to 6 hour gap), run:
 
 ```bash
 python -m fifa_fantasy.collector              # refresh live points
-python -m fifa_fantasy.live --recommendation results/<host>_recommendation_<STAGE>_<date>.json
+python -m fifa_fantasy.live --recommendation results/<host>_recommendation_<backend>_<STAGE>_<date>.json
 ```
 
 The live module will detect that at least one fixture has finished and
@@ -335,7 +345,7 @@ transfers from your previous squad:
 
 python -m fifa_fantasy.optimizer \
     --stage GROUP_MD2 \
-    --from results/<host>_recommendation_GROUP_MD1_<date>.json \
+    --from results/<host>_recommendation_<backend>_GROUP_MD1_<date>.json \
     --rolled-over 1                           # if you carried a free transfer
 ```
 
@@ -354,7 +364,7 @@ From R16 onward, transfer mode is the right choice again:
 
 ```bash
 python -m fifa_fantasy.optimizer --stage R16 \
-    --from results/<host>_recommendation_R32_<date>.json
+    --from results/<host>_recommendation_<backend>_R32_<date>.json
 ```
 
 ## Refreshing the FIFA World Ranking

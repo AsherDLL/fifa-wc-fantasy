@@ -1,4 +1,4 @@
-# 10 — Lessons learned
+# 10 - Lessons learned
 
 Status: **DRAFT**
 

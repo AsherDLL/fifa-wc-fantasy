@@ -1,4 +1,4 @@
-# 01 — Abstract
+# 01 - Abstract
 
 Status: **TODO** (write last, after results section is final)
 
@@ -6,15 +6,15 @@ Status: **TODO** (write last, after results section is final)
 
 A typical academic abstract has four moves:
 
-1. **Problem** — fantasy football point prediction for FIFA World Cup
+1. **Problem** - fantasy football point prediction for FIFA World Cup
    2026, a cross-domain transfer challenge (club-game training data, international play at inference).
-2. **Approach** — three predictor backends combined with a MILP
+2. **Approach** - three predictor backends combined with a MILP
    optimiser; Elo derived from full international match history; live
    decision tools driven by post-match snapshots.
-3. **Results** — held-out RMSE per backend per position on EPL 2024-25 GW
+3. **Results** - held-out RMSE per backend per position on EPL 2024-25 GW
    30-38; live tournament finish position; per-round MAE on the personal
    league.
-4. **Lessons** — distribution shift between club and international play
+4. **Lessons** - distribution shift between club and international play
    makes a single model wrong; ensembling with structural and
    formula-based backends recovers ground; user domain priors on minutes
    and rotation outperformed the model when team news landed.

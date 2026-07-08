@@ -1,4 +1,4 @@
-# Appendix — Reproducibility, schemas, and artefact formats
+# Appendix - Reproducibility, schemas, and artefact formats
 
 Status: **DRAFT**
 
@@ -23,8 +23,10 @@ columns at inference time (after the country Elo join) are:
   `opp_country_elo`, `country_elo_diff`, `country_last10_form`,
   `opp_country_last10_form`, `days_since_prev_match`,
   `days_to_next_match`.
+- Form and lineup signals (5 columns): `form_lag`, `start_rate_lag`,
+  `team_gc_form`, `predicted_starting_xi`, `xi_confidence`.
 
-Total: 51 columns at the most recent dump.
+Total: 57 columns at the most recent dump.
 
 ## B. LightGBM model artefact format
 
@@ -107,9 +109,10 @@ Per-run output under `results/`:
 }
 ```
 
-The `predicted_q10`, `q50`, `q90` fields are populated only when the
-GBM backend was used. The `transfer` block is absent for fresh squad
-selections (e.g. MD1 and R32 Wildcard rounds).
+The `predicted_q10`, `q50`, `q90` fields are populated by the GBM
+backend, and by the ensemble for the gbm-routed positions (MID and
+FWD). The `transfer` block is absent for fresh squad selections (e.g.
+MD1 and R32 Wildcard rounds).
 
 ## D. Reproducibility checklist
 
@@ -117,18 +120,19 @@ To reproduce a result file:
 
 1. `git clone` the repo, `cd` into it, `python3 -m venv .venv && source .venv/bin/activate`
 2. `pip install -r requirements.txt`
-3. `python -m fifa_fantasy.collector` (refresh FIFA API snapshot)
-4. `python -m fifa_fantasy.external` (refresh martj42 + football-data)
-5. `python -m fifa_fantasy.features`
-6. `python -m fifa_fantasy.model --backend <heuristic|poisson|gbm>`
-7. `python -m fifa_fantasy.optimizer --stage <STAGE>`
+3. `pip install -e .`
+4. `python -m fifa_fantasy.collector` (refresh FIFA API snapshot)
+5. `python -m fifa_fantasy.external` (refresh martj42 + football-data)
+6. `python -m fifa_fantasy.features`
+7. `python -m fifa_fantasy.model --backend <heuristic|poisson|gbm>`
+8. `python -m fifa_fantasy.optimizer --stage <STAGE>`
 
 The result JSON lands under `results/`. Compare against the
 hostname-prefixed result file we committed for the same date.
 
 For the held-out validation:
 
-1. Steps 1-2 above
+1. Steps 1-3 above
 2. `python -m fifa_fantasy.training.vaastav --season 2022-23`
 3. Repeat for 2023-24 and 2024-25
 4. `python -m fifa_fantasy.training.validate_main`

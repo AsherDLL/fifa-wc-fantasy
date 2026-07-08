@@ -3,7 +3,7 @@
 A lightweight ADR. Append a new entry whenever we make a non-obvious choice.
 Each entry: date, decision, rationale, alternatives considered.
 
-## 2026-06-06 — Project skeleton
+## 2026-06-06 - Project skeleton
 
 ### `src/` layout with single `fifa_fantasy` package
 
@@ -28,7 +28,7 @@ defaults, rather than the sketch's 14-parameter function signature.
 callers), cleaner tests. Frozen makes it implicitly hashable and prevents
 accidental mutation.
 
-**Alternative considered.** Plain positional args. Rejected — 14-arg
+**Alternative considered.** Plain positional args. Rejected - 14-arg
 signatures are a code smell.
 
 ### Goals-conceded encoded as `-max(0, gc - 1)` per official rules
@@ -37,7 +37,7 @@ signatures are a code smell.
 
 **Why.** Verified against the official FIFA WC 2026 Fantasy rules via a
 third-party guide that quotes the exact wording. Differs from FPL-style
-"−1 per 2 conceded" — easy to mis-encode.
+"−1 per 2 conceded" - easy to mis-encode.
 
 ### Strict inequalities on the scouting bonus
 
@@ -46,7 +46,7 @@ ownership is **strictly < 5%**. A base of exactly 4 or ownership of exactly
 5% does **not** trigger.
 
 **Why.** The official rule wording is "more than 4 points" and "fewer than
-5%" — both strict. Encoded explicitly with `>` and `<`; tests pin both
+5%" - both strict. Encoded explicitly with `>` and `<`; tests pin both
 boundaries.
 
 ### Scoring functions return `int`
@@ -68,7 +68,7 @@ each per-position function simpler. Tests verify this with a "great stats but
 0 minutes" case.
 
 
-## 2026-06-07 — Phase 1 collector
+## 2026-06-07 - Phase 1 collector
 
 ### Two-stage validation (raw → normalized)
 
@@ -78,7 +78,7 @@ that the rest of the codebase imports.
 
 **Why.** If FIFA renames a field or changes a type, the raw layer fails loud
 at the boundary instead of silently producing wrong rows downstream. The
-normalized layer is a stable contract — we control its field names.
+normalized layer is a stable contract - we control its field names.
 
 ### Persist raw JSON next to Parquet
 
@@ -118,7 +118,7 @@ three target files turned out to be siblings of the already-known
 the collector ever grows subcommands beyond `--only`.
 
 
-## 2026-06-07 — Phase 2 features
+## 2026-06-07 - Phase 2 features
 
 ### Squad strength = top-N price average
 
@@ -164,7 +164,7 @@ playable matchups; missing rows are unambiguous. No need to invent
 sentinel rows.
 
 
-## 2026-06-07 — Phase 3a baseline predictor
+## 2026-06-07 - Phase 3a baseline predictor
 
 ### Heuristic over a trained model for the first pass
 
@@ -173,7 +173,7 @@ position-coef × price × matchup-factor × home-factor, zeroed for
 unavailable players. The LightGBM models from the sketch are deferred to
 Phase 3b.
 
-**Why.** No labelled data exists yet — the World Cup hasn't started. A
+**Why.** No labelled data exists yet - the World Cup hasn't started. A
 heuristic gets the optimizer end-to-end before kickoff and lets us
 sanity-check the full pipeline. The market's price IS a reasonable
 expected-points signal (the game's pricing model encodes it explicitly).
@@ -195,7 +195,7 @@ rather than a raw linear factor.
 
 **Why.** Caps the matchup effect at ±alpha so an unrealistically large
 strength gap doesn't multiply a prediction by 3×. Smooth and
-differentiable — won't surprise anyone debugging it later.
+differentiable - won't surprise anyone debugging it later.
 
 ### Constants live in module-level globals, not a config file
 
@@ -208,7 +208,7 @@ machinery than the predictor itself. When the constants need tuning, edit
 the file and re-run.
 
 
-## 2026-06-07 — Phase 4 optimizer
+## 2026-06-07 - Phase 4 optimizer
 
 ### MILP via PuLP/CBC
 
@@ -231,7 +231,7 @@ not `model/baseline.py`.
 external to the scoring function. Keeping it out of the predictor lets
 the predictor speak purely to expected match performance; the optimizer
 combines that with ownership to compute the effective objective. Also
-keeps the LightGBM models (Phase 3b) free of differential reasoning —
+keeps the LightGBM models (Phase 3b) free of differential reasoning -
 they predict points, we add the +2 if applicable.
 
 ### Horizon-summed squad, round-specific lineup
@@ -268,7 +268,7 @@ quantile regression will let captain selection prefer higher-variance
 players (P90 ceiling) over higher-mean ones; revisit then.
 
 
-## 2026-06-07 — Transfer planner (Option C)
+## 2026-06-07 - Transfer planner (Option C)
 
 ### Slack-variable encoding of the −3 hit
 
@@ -278,7 +278,7 @@ constraint `new_picks ≤ free + extra` and a `−3·extra` term in the
 objective.
 
 **Why.** Standard LP trick: maximization pushes `extra` to its lower
-bound (0), unless squeezed by the constraint — in which case it equals
+bound (0), unless squeezed by the constraint - in which case it equals
 the overage exactly. No big-M needed, no extra binary variables,
 fractional solutions can't appear at the optimum because `new_picks` is
 already an integer.
@@ -314,7 +314,7 @@ so the user supplies it. Simpler than tracking transfer history in
 state.
 
 
-## 2026-06-08 — Phase 4.5 pre-lockout polish
+## 2026-06-08 - Phase 4.5 pre-lockout polish
 
 ### `oneToWatch` surfaced but not weighted
 

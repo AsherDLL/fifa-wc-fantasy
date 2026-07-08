@@ -1,4 +1,4 @@
-# 08 — Live tournament results
+# 08 - Live tournament results
 
 Status: **DRAFT** (grows match-by-match through the tournament)
 
@@ -39,7 +39,9 @@ IN, captain Messi.
 The user opted for a hybrid: Lautaro OUT, Olise to vice captain, captain
 swap to Olise.
 
-Realised result: **102 points.** Massive improvement on MD1.
+Realised result: **84 points (net).** Massive improvement on MD1. (An
+earlier draft cited 102; the realised total from `round_points` is 84,
+as documented in Section 8b.2.)
 
 Highlights:
 
@@ -64,7 +66,9 @@ Deniz Undav while keeping Messi (captain). The user's intuition on
 rotation in clinched matches was largely right; the model's was too
 conservative.
 
-Realised result: **42 points (after the -6 transfer hit).**
+Realised result: **46 points gross, -6 transfer hit, 40 net.** (The
+user's app displayed 42; the 2-point discrepancy is noted in Section
+8b.)
 
 Diagnosis:
 
@@ -73,9 +77,8 @@ Diagnosis:
   multiplier.
 - The user's "Pacho out because Mexico beats Ecuador" call was correct
   in spirit; Mexico did win and Pacho's defensive return was modest.
-- Captain Messi (14 captained, 7 raw vs Cape Verde... wait MD3 was
-  Argentina vs Jordan; Messi played, scored modestly) -- captain choice
-  was defensible but Olise vice was not in form.
+- Captain Messi (7 raw, 14 captained, vs Jordan): captain choice was
+  defensible but Olise vice was not in form.
 
 ## 8.4 R32 (Wildcard rebuild)
 
@@ -104,13 +107,13 @@ Final squad:
 | FWD | Haaland | NOR | 10.5 | 30 | 28.0% |
 | FWD | Undav | GER | 6.6 | 29 | 3.3% |
 
-Total cost: $105.6M / $107.5M.
+Total cost: $102.9M against the $105.0M R32 cap.
 
 Captain: **Dembélé** (user's choice; the model marginally preferred
 Messi but the differential argument for Dembélé at 19.7% ownership vs
 Messi at 37.8% was strong).
 
-Realised result: [PENDING — update after R32 matches conclude].
+Realised result: [PENDING - update after R32 matches conclude].
 
 ## 8.5 R16, QF, SF, Final
 

@@ -1,4 +1,4 @@
-# 00b — Authors and contributors
+# 00b - Authors and contributors
 
 Status: **DRAFT**
 

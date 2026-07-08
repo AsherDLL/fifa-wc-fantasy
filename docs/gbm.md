@@ -77,7 +77,7 @@ training. RMSE per position (lower is better):
 (GBM v2 numbers above are the deterministic-seed reproduction; pre-seed
 runs floated within ±0.05 due to LightGBM bagging RNG.)
 
-### GBM v3 candidate — rejected
+### GBM v3 candidate - rejected
 
 A v3 candidate was tested with an additional `team_elo_diff` feature
 (club Elo from football-data.co.uk during training, country Elo from
@@ -91,7 +91,7 @@ martj42 during WC inference). Same hyperparameters, deterministic seed:
 | FWD | 3.153 | 3.168 | +0.015 (worse) |
 
 Net: roughly a wash on EPL (±1%). The new feature also introduces
-distribution-shift risk at WC inference — country-Elo gaps span
+distribution-shift risk at WC inference - country-Elo gaps span
 ~480 points (Argentina 2072 vs Curaçao 1592), well outside the EPL
 club-Elo range the GBM was trained on. v3 was not shipped. The Elo
 columns are still produced for the heuristic and Poisson backends,

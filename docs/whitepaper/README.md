@@ -1,4 +1,4 @@
-# Whitepaper — A Multi-Backend Predictive Framework for FIFA WC 2026 Fantasy
+# Whitepaper - A Multi-Backend Predictive Framework for FIFA WC 2026 Fantasy
 
 Master's-level technical write-up of the FIFA Fantasy WC 2026 prediction
 system. Drafted in Markdown during the tournament; converted to LaTeX
@@ -36,6 +36,9 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 11c | [monte_carlo_and_benter_separation.md](sections/11c_monte_carlo_and_benter_separation.md) | Monte Carlo simulator + Benter separation architecture | DRAFT |
 | 11d | [market_integration_negative_result.md](sections/11d_market_integration_negative_result.md) | Empirical negative result: Polymarket WC-winner contracts add no signal | DRAFT |
 | 11e | [team_news_ingestion.md](sections/11e_team_news_ingestion.md) | Team-news ingestion: reusable stealth scraping + predicted-XI signal | DRAFT |
+| 11f | [model_improvement_retrospective.md](sections/11f_model_improvement_retrospective.md) | Model improvement retrospective: form-blindness, undeployed retrain loop, per-position ensemble | DRAFT |
+| 11g | [minutes_captaincy_variance.md](sections/11g_minutes_captaincy_variance.md) | Minutes discount, ceiling-aware captaincy, GK negative result, scoring-variance analysis | DRAFT |
+| 11h | [full_system_review.md](sections/11h_full_system_review.md) | July 8 full-system review: decision-layer bugs, round_points truncation, three negatives, what to do differently from day one | DRAFT |
 | 12 | [conclusion.md](sections/12_conclusion.md) | Conclusion | TODO |
 | 13 | [references.bib.md](sections/13_references.bib.md) | References (BibTeX-ready) | DRAFT |
 | AA | [appendix.md](sections/AA_appendix.md) | Appendix: model artefacts | DRAFT |
@@ -74,8 +77,6 @@ at conversion time, not now.
 - How much of the squad-recommendation conversation log is appropriate to
   include as evidence? Anonymize player names from the league? (Probably
   not relevant beyond aggregate stats.)
-- Position on AI assistance: this whitepaper documents a system built with
-  AI pair-programming. Disclose model use; treat decisions as collaborative.
 - Format for the validation tables: per-position RMSE plus full distribution
   (mean, p10, p90) per backend, comparable across all four positions and
   three backends.
