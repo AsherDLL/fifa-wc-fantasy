@@ -109,8 +109,9 @@ def main() -> int:
         return 0
 
     matcher = PlayerNameMatcher.from_latest(args.raw_dir)
+    # Coherent, rotating identity pool from kewpie (not a single pinned,
+    # empty-UA target). See news/__main__ for the rationale.
     client = StealthClient(
-        impersonate="chrome124",
         rate_limit_per_second=0.5,        # be conservative for ethics
         cache_dir=str(args.cache_dir),
         cache_ttl_hours=3.0,

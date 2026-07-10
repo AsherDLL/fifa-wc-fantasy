@@ -34,8 +34,11 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
+    # Use kewpie's coherent, rotating identity pool (modern Chrome/Firefox
+    # builds with matching Sec-CH-UA + Accept-Language) rather than pinning a
+    # single stale target. Pinning impersonate="chrome124" sent a Chrome TLS
+    # handshake with an empty User-Agent, a contradiction WAFs flag.
     client = StealthClient(
-        impersonate="chrome124",
         rate_limit_per_second=0.5,    # conservative
         cache_dir=str(args.cache_dir),
         cache_ttl_hours=2.0,

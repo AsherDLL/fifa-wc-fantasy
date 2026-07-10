@@ -68,6 +68,24 @@
       "base_confidence": 0.70
     },
     {
+      "name": "ESPN Soccer RSS",
+      "url": "https://www.espn.com/espn/rss/soccer/news",
+      "source_id": "espn_rss",
+      "base_confidence": 0.70
+    },
+    {
+      "name": "Football.London",
+      "url": "https://www.football.london/?service=rss",
+      "source_id": "football_london",
+      "base_confidence": 0.55
+    },
+    {
+      "name": "Mirror Football",
+      "url": "https://www.mirror.co.uk/sport/football/rss.xml",
+      "source_id": "mirror_football",
+      "base_confidence": 0.50
+    },
+    {
       "name": "Reddit r/soccer (arctic-shift)",
       "url": "https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=soccer&limit=50&sort=desc&sort_type=created_utc",
       "source_id": "reddit_soccer",
@@ -84,8 +102,11 @@
   ],
   "dropped_feeds_log": [
     "BBC Sport World Football (feeds.bbci.co.uk/sport/football/world/rss.xml): 404 as of 2026-06-29; general BBC feed covers WC",
-    "ESPN Soccer RSS (www.espn.com/espn/rss/soccer/news): AWS WAF challenge; replaced by site.api.espn.com JSON",
     "Goal.com (www.goal.com/feeds/en/news): 404, no replacement found",
-    "reddit.com native .rss/.json: 403/429 from datacenter IPs since 2026-05/06; arctic-shift mirror used instead (or Reddit OAuth via REDDIT_CLIENT_ID/_SECRET/_USERNAME/_PASSWORD)"
+    "reddit.com native .rss/.json: 403/429 from datacenter IPs; persists even with the coherent identity pool because it is IP-reputation / rate-limiting, not a fingerprint block. arctic-shift mirror used instead (or Reddit OAuth via REDDIT_CLIENT_ID/_SECRET/_USERNAME/_PASSWORD)"
+  ],
+  "re_enabled_log": [
+    "ESPN Soccer RSS (www.espn.com/espn/rss/soccer/news) and ESPN article pages: were AWS-WAF 202 JS-challenged under the old impersonate=chrome124 empty-UA pin; re-enabled 2026-07-09 after switching to the coherent identity pool (matching User-Agent + Sec-CH-UA + Accept-Language). Now return 200 with full article bodies; added as source_id espn_rss (the site.api.espn.com JSON feed is kept for targeted WC summaries).",
+    "Football.London (?service=rss) and Mirror Football (/sport/football/rss.xml): were 403 during feed selection (whitepaper 11e); re-enabled 2026-07-09 with the coherent identity pool. Added as football_london and mirror_football."
   ]
 }
