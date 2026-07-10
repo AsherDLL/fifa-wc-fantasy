@@ -9,6 +9,7 @@ What it shows:
 - Sanity flags: models that disagree, MD1 hauls outside the squad
 """
 from __future__ import annotations
+import sys
 import subprocess
 import socket
 import re
@@ -22,6 +23,10 @@ from fifa_fantasy.optimizer.solvers import (
     SQUAD_SIZE, SQUAD_POSITION_COUNTS, solve_lineup, TRANSFER_HIT_POINTS,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS, DEFAULT_ROUND_HORIZON
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SQUAD = {
     45:   ("Emiliano Martínez",  "ARG", "GK",  "Start"),
@@ -57,8 +62,8 @@ EZE = 1710
 tables = {}; preds_by = {}
 for b in ("heuristic", "poisson", "gbm"):
     subprocess.check_call(
-        [".venv/bin/python", "-m", "fifa_fantasy.model", "--backend", b],
-        cwd="/opt/fifa_wc_fantasy", stdout=subprocess.DEVNULL,
+        [sys.executable, "-m", "fifa_fantasy.model", "--backend", b],
+        cwd=REPO_ROOT, stdout=subprocess.DEVNULL,
     )
     preds = pd.read_parquet("data/processed/predictions_2026-06-18.parquet")
     preds_by[b] = apply_scouting_bonus(preds)

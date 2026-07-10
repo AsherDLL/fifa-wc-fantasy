@@ -7,6 +7,7 @@ an ensemble (mean of three backends) and the same per-player breakdown
 showing who each backend wants in/out and at what MD2 expected points.
 """
 from __future__ import annotations
+import sys
 import subprocess
 from collections import defaultdict
 import pandas as pd
@@ -18,6 +19,10 @@ from fifa_fantasy.optimizer.solvers import (
     SQUAD_SIZE, SQUAD_POSITION_COUNTS, solve_lineup,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS, DEFAULT_ROUND_HORIZON
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SQUAD = {
     45:   ("Emiliano Martínez",  "ARG", "GK",  "Start"),
@@ -79,8 +84,8 @@ def solve_capped_transfer(players: pd.DataFrame, current_ids: list[int]) -> tupl
 
 def run_backend(backend):
     subprocess.check_call(
-        [".venv/bin/python", "-m", "fifa_fantasy.model", "--backend", backend],
-        cwd="/opt/fifa_wc_fantasy", stdout=subprocess.DEVNULL,
+        [sys.executable, "-m", "fifa_fantasy.model", "--backend", backend],
+        cwd=REPO_ROOT, stdout=subprocess.DEVNULL,
     )
     preds = pd.read_parquet("data/processed/predictions_2026-06-18.parquet")
     preds = apply_scouting_bonus(preds)

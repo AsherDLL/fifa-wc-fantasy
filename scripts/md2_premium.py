@@ -11,6 +11,7 @@ Position math forces a FWD-out per FWD-in. France cap is already at 3
 player. The user wants Olise kept, so the candidates are Doué and Dembélé.
 """
 from __future__ import annotations
+import sys
 import subprocess
 import pandas as pd
 import pulp
@@ -21,6 +22,10 @@ from fifa_fantasy.optimizer.solvers import (
     SQUAD_SIZE, SQUAD_POSITION_COUNTS, solve_lineup,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS, DEFAULT_ROUND_HORIZON
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SQUAD = {
     45:("Emi Martínez","ARG","GK"), 1709:("Reece James","ENG","DEF"),
@@ -72,8 +77,8 @@ def solve(table, locked_in, forced_out):
 
 tables = {}; preds_by = {}
 for b in ("heuristic","poisson","gbm"):
-    subprocess.check_call([".venv/bin/python","-m","fifa_fantasy.model","--backend",b],
-        cwd="/opt/fifa_wc_fantasy", stdout=subprocess.DEVNULL)
+    subprocess.check_call([sys.executable,"-m","fifa_fantasy.model","--backend",b],
+        cwd=REPO_ROOT, stdout=subprocess.DEVNULL)
     preds = pd.read_parquet("data/processed/predictions_2026-06-18.parquet")
     preds = apply_scouting_bonus(preds)
     preds_by[b] = preds; tables[b] = aggregate_to_player(preds, HORIZON)

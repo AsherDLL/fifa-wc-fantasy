@@ -6,6 +6,7 @@ also wants Lautaro out after a 1-pt captain blank. We honor both and let the
 solver pick the second transfer freely (capped at 2 total).
 """
 from __future__ import annotations
+import sys
 import subprocess
 import pandas as pd
 import pulp
@@ -16,6 +17,10 @@ from fifa_fantasy.optimizer.solvers import (
     SQUAD_SIZE, SQUAD_POSITION_COUNTS, solve_lineup,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS, DEFAULT_ROUND_HORIZON
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SQUAD = {
     45:   ("Emiliano Martínez",  "ARG", "GK",  "Start"),
@@ -74,8 +79,8 @@ def solve(table, current_ids):
     return sorted(int(pid) for pid, v in x.items() if v.value() > 0.5), float(pulp.value(prob.objective))
 
 def run_backend(b):
-    subprocess.check_call([".venv/bin/python", "-m", "fifa_fantasy.model", "--backend", b],
-        cwd="/opt/fifa_wc_fantasy", stdout=subprocess.DEVNULL)
+    subprocess.check_call([sys.executable, "-m", "fifa_fantasy.model", "--backend", b],
+        cwd=REPO_ROOT, stdout=subprocess.DEVNULL)
     preds = pd.read_parquet("data/processed/predictions_2026-06-18.parquet")
     preds = apply_scouting_bonus(preds)
     return preds, aggregate_to_player(preds, HORIZON)

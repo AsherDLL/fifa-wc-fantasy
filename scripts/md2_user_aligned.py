@@ -5,6 +5,7 @@ Constrain the transfer solver to drop those two and pick the best replacements
 (same position counts) under MD2+MD3 ensemble expected points.
 """
 from __future__ import annotations
+import sys
 import subprocess
 import pandas as pd
 import pulp
@@ -15,6 +16,10 @@ from fifa_fantasy.optimizer.solvers import (
     SQUAD_SIZE, SQUAD_POSITION_COUNTS, solve_lineup,
 )
 from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS, DEFAULT_ROUND_HORIZON
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SQUAD_IDS = [45, 1709, 2053, 523, 521, 505, 57, 517, 501, 804, 1338,
              1523, 918, 1711, 2000]
@@ -60,8 +65,8 @@ def solve_constrained(table, current_ids, forced_out):
 
 def run_backend(backend):
     subprocess.check_call(
-        [".venv/bin/python", "-m", "fifa_fantasy.model", "--backend", backend],
-        cwd="/opt/fifa_wc_fantasy", stdout=subprocess.DEVNULL,
+        [sys.executable, "-m", "fifa_fantasy.model", "--backend", backend],
+        cwd=REPO_ROOT, stdout=subprocess.DEVNULL,
     )
     preds = pd.read_parquet("data/processed/predictions_2026-06-18.parquet")
     preds = apply_scouting_bonus(preds)
