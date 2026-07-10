@@ -21,10 +21,15 @@ same holdout, so the comparison is clean:
 Output: per-round, per-position RMSE for each configuration, then the
 pooled RMSE across all held-out rounds. Lower is better.
 
-No file writes; prints to stdout. Deterministic (seed pinned in gbm).
+Prints to stdout and persists the same tables to a JSON artifact
+(default data/evaluation/wc_forward_validation.json) so the research
+page and the notebook can chart them. Deterministic (seed pinned in gbm).
 """
 from __future__ import annotations
 
+import argparse
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import lightgbm as lgb
@@ -73,7 +78,10 @@ def _rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
 
-def run() -> None:
+DEFAULT_OUT = Path("data/evaluation/wc_forward_validation.json")
+
+
+def run(out_path: Path | None = DEFAULT_OUT) -> dict:
     epl_raw = pd.concat(
         [pd.read_parquet(p) for p in sorted(TRAINING_DIR.glob("fpl_player_gameweek_*.parquet"))],
         ignore_index=True,
@@ -100,6 +108,7 @@ def run() -> None:
 
     common = [c for c in epl.columns if c in wc.columns]
 
+    per_round_rows: list[dict] = []
     for k in holdout_rounds:
         holdout = wc[wc["gameweek"] == k].copy()
         wc_prior = wc[wc["gameweek"] < k]
@@ -119,14 +128,21 @@ def run() -> None:
                 booster = _train_mean_head(train_df, pos, feats)
                 pred = _predict(booster, hpos, feats)
                 yt = hpos["target"].astype(float).to_numpy()
-                line += f"{_rmse(yt, pred):>7.3f} "
+                rmse = _rmse(yt, pred)
+                line += f"{rmse:>7.3f} "
                 pooled[cname][pos].append(np.column_stack([yt, pred]))
+                per_round_rows.append({
+                    "round": k, "config": cname, "position": pos,
+                    "n": int(len(hpos)), "rmse": rmse,
+                })
             print(line)
 
     print("\n=== POOLED RMSE across all held-out WC rounds ===")
     print(f"{'config':<14} " + " ".join(f"{p:>7}" for p in POSITIONS) + f" {'ALL':>7}")
+    pooled_out: dict[str, dict[str, float]] = {}
     for cname in configs:
         line = f"{cname:<14} "
+        pooled_out[cname] = {}
         all_stack = []
         for pos in POSITIONS:
             chunks = pooled[cname][pos]
@@ -134,13 +150,35 @@ def run() -> None:
                 line += f"{'-':>7} "
                 continue
             m = np.vstack(chunks)
-            line += f"{_rmse(m[:, 0], m[:, 1]):>7.3f} "
+            rmse = _rmse(m[:, 0], m[:, 1])
+            pooled_out[cname][pos] = rmse
+            line += f"{rmse:>7.3f} "
             all_stack.append(m)
         if all_stack:
             m = np.vstack(all_stack)
-            line += f"{_rmse(m[:, 0], m[:, 1]):>7.3f}"
+            pooled_out[cname]["ALL"] = _rmse(m[:, 0], m[:, 1])
+            line += f"{pooled_out[cname]['ALL']:>7.3f}"
         print(line)
+
+    payload = {
+        "generated_at_utc": datetime.now(timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"),
+        "holdout_rounds": holdout_rounds,
+        "configs": {name: feats for name, (feats, _) in configs.items()},
+        "per_round": per_round_rows,
+        "pooled": pooled_out,
+    }
+    if out_path is not None:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(payload, indent=1))
+        print(f"\nwritten: {out_path}")
+    return payload
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(
+        description="Leak-free walk-forward GBM validation on realized WC rounds.")
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT,
+                        help="JSON artifact path (default: %(default)s)")
+    args = parser.parse_args()
+    run(args.out)
