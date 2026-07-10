@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algorithms - WC 2026 Prediction Desk</title>
+<style>
+  :root {
+    --paper: #f6f3ec;
+    --panel: #fffdf8;
+    --ink: #1c1814;
+    --ink-soft: #6d6457;
+    --line: #e0d9c8;
+    --line-hard: #c4baa5;
+    --accent: #1f5f38;
+    --accent-soft: #e7efe6;
+    --risk: #a8620a;
+    --risk-soft: #f7ecdc;
+    --boost: #1f5f38;
+    --boost-soft: #e7efe6;
+    --bad: #9c2b2b;
+    --pitch: #24462f;
+    --pitch-line: rgba(255,255,255,0.16);
+    --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --serif: Charter, "Bitstream Charter", Georgia, Cambria, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans); background: var(--paper); color: var(--ink);
+    margin: 0; padding: 0; line-height: 1.5;
+    font-feature-settings: "tnum" 1, "cv01" 1;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px 64px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+
+  /* Masthead and navigation */
+  header.mast {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    padding: 24px 0 12px; border-bottom: 2px solid var(--ink);
+  }
+  .mast .brand { font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 1.0rem; }
+  .mast .brand small { display: block; font-weight: 500; letter-spacing: 0.28em;
+    font-size: 0.62rem; color: var(--ink-soft); margin-top: 3px; }
+  .mast .status { font-family: var(--mono); font-size: 0.7rem; text-align: right;
+    color: var(--ink-soft); }
+  nav.pages { display: flex; gap: 4px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line-hard); margin-bottom: 26px; }
+  nav.pages a {
+    padding: 9px 16px 7px; font-size: 0.74rem; letter-spacing: 0.1em;
+    text-transform: uppercase; text-decoration: none; color: var(--ink-soft);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  nav.pages a:hover { color: var(--ink); }
+  nav.pages a.here { color: var(--ink); font-weight: 700;
+    border-bottom-color: var(--accent); }
+  .provenance { font-family: var(--mono); font-size: 0.68rem;
+    color: var(--ink-soft); padding: 0 0 18px; display: flex; gap: 18px;
+    flex-wrap: wrap; }
+  .provenance b { color: var(--ink); font-weight: 600; }
+
+  /* Typography */
+  h1.page { font-family: var(--serif); font-size: 1.7rem; font-weight: 700;
+    margin: 4px 0 6px; letter-spacing: -0.01em; }
+  p.lede { font-family: var(--serif); font-size: 1.02rem; color: var(--ink);
+    max-width: 72ch; margin: 0 0 26px; }
+  .srule { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 14px; }
+  .srule h2 { font-size: 0.76rem; letter-spacing: 0.16em; text-transform: uppercase;
+    margin: 0; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+  .srule .no { font-family: var(--mono); font-size: 0.7rem; color: var(--line-hard); }
+  .srule::after { content: ""; flex: 1; height: 1px; background: var(--line-hard);
+    align-self: center; }
+  .prose { font-family: var(--serif); max-width: 76ch; font-size: 0.96rem; }
+  .prose p { margin: 0 0 12px; }
+  .note { font-size: 0.8rem; color: var(--ink-soft); max-width: 80ch; }
+  .caveat { border-left: 3px solid var(--risk); background: var(--risk-soft);
+    padding: 10px 14px; font-size: 0.84rem; max-width: 80ch; margin: 14px 0; }
+  .caveat b { color: var(--risk); }
+
+  /* Panels and tiles */
+  .panel { border: 1px solid var(--line-hard); background: var(--panel); }
+  .panel .head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .panel .head h2 { font-family: var(--serif); font-size: 1.3rem; margin: 0; }
+  .panel .head .meta { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); }
+  .official { border-left: 4px solid var(--accent); }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 0.64rem;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px;
+    border: 1px solid var(--line-hard); color: var(--ink-soft); }
+  .badge.official-badge { background: var(--accent); border-color: var(--accent);
+    color: #fff; }
+  .badge.shipped { color: var(--accent); border-color: var(--accent); }
+  .badge.experimental { color: var(--risk); border-color: var(--risk); }
+  .badge.rejected { color: var(--bad); border-color: var(--bad); }
+  .badge.superseded { color: var(--ink-soft); }
+
+  .tiles { display: grid; grid-template-columns: repeat(6, 1fr);
+    border-bottom: 1px solid var(--line); }
+  .tile { padding: 12px 16px; border-left: 1px solid var(--line); }
+  .tile:first-child { border-left: 0; }
+  .tile .k { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-soft); }
+  .tile .v { font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 1.22rem; margin-top: 4px; line-height: 1.1; }
+  .tile .v small { font-size: 0.72rem; color: var(--ink-soft); }
+  @media (max-width: 860px) { .tiles { grid-template-columns: repeat(3, 1fr); }
+    .tile { border-top: 1px solid var(--line); } }
+
+  /* Tables */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  th, td { padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--line);
+    white-space: nowrap; }
+  thead th { font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 700; border-bottom: 1px solid var(--line-hard); }
+  td.n, th.n { text-align: right; font-family: var(--mono);
+    font-variant-numeric: tabular-nums; }
+  td.wraps { white-space: normal; min-width: 260px; max-width: 480px; }
+  tr.cap td { background: color-mix(in srgb, var(--risk) 9%, transparent); }
+  tr.cap td:first-child { box-shadow: inset 3px 0 0 var(--risk); }
+  td.best { font-weight: 700; color: var(--accent); }
+  .role { font-family: var(--mono); font-size: 0.64rem; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .flag-out { color: var(--bad); font-family: var(--mono); font-size: 0.6rem;
+    margin-left: 5px; }
+  .otw { color: var(--risk); font-family: var(--mono); font-size: 0.6rem;
+    margin-left: 5px; }
+
+  /* Pitch */
+  .body2 { display: grid; grid-template-columns: 340px 1fr; gap: 0; }
+  @media (max-width: 860px) { .body2 { grid-template-columns: 1fr; } }
+  .pitch { background: var(--pitch); padding: 16px 10px; position: relative;
+    border-right: 1px solid var(--line); overflow: hidden; }
+  @media (max-width: 860px) { .pitch { border-right: 0;
+    border-bottom: 1px solid var(--line); } }
+  .pitch::before { content: ""; position: absolute; inset: 10px;
+    border: 1px solid var(--pitch-line); pointer-events: none; }
+  .pitch::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%;
+    height: 0; border-top: 1px solid var(--pitch-line); pointer-events: none; }
+  .line { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    position: relative; z-index: 1; margin: 10px 0; }
+  .p { background: var(--panel); color: var(--ink); border: 1px solid var(--line-hard);
+    min-width: 76px; max-width: 96px; padding: 5px 6px; text-align: center; }
+  .p .nm { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; }
+  .p .sub { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-soft);
+    margin-top: 2px; display: flex; justify-content: space-between; gap: 4px; }
+  .p .ceil { color: var(--risk); font-weight: 700; }
+  .p.captain { border-color: var(--risk); border-width: 2px; padding: 4px 5px; }
+  .p .tag { position: relative; }
+  .p .tag b { position: absolute; top: -13px; right: -8px; font-family: var(--mono);
+    font-size: 0.58rem; background: var(--risk); color: #fff; padding: 0 3px; }
+  .p.vice .tag b { background: var(--ink-soft); }
+  .bench { padding: 10px 12px; border-top: 1px solid var(--line); font-size: 0.78rem; }
+  .bench .lbl { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-soft); margin-right: 8px; }
+  .bench span.b { font-family: var(--mono); margin-right: 14px; }
+  .bench span.b i { font-style: normal; color: var(--ink-soft); }
+  .capnote { padding: 10px 18px; border-top: 1px solid var(--line);
+    font-size: 0.78rem; color: var(--ink-soft); }
+  .capnote b { color: var(--ink); }
+
+  /* Signals */
+  .sig-strip { border: 1px solid var(--line-hard); background: var(--panel); }
+  .sig-row { display: grid; grid-template-columns: auto auto 1fr auto;
+    gap: 14px; align-items: baseline; padding: 8px 14px;
+    border-bottom: 1px solid var(--line); font-size: 0.8rem; }
+  .sig-row:last-child { border-bottom: 0; }
+  .sig-row.risk { box-shadow: inset 3px 0 0 var(--risk); background: var(--risk-soft); }
+  .sig-row.boost { box-shadow: inset 3px 0 0 var(--boost); background: var(--boost-soft); }
+  .sig-row .who { font-weight: 600; white-space: nowrap; }
+  .sig-row .what { font-family: var(--mono); font-size: 0.66rem;
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .sig-row.risk .what { color: var(--risk); }
+  .sig-row.boost .what { color: var(--boost); }
+  .sig-row .ev { color: var(--ink-soft); overflow: hidden; white-space: nowrap;
+    text-overflow: ellipsis; }
+  .sig-row .age { font-family: var(--mono); font-size: 0.66rem;
+    color: var(--ink-soft); white-space: nowrap; }
+
+  /* Figures */
+  figure.fig { margin: 18px 0 26px; border: 1px solid var(--line);
+    background: var(--panel); padding: 14px; }
+  figure.fig svg { max-width: 100%; height: auto; }
+  figure.fig figcaption { font-size: 0.78rem; color: var(--ink-soft);
+    padding-top: 10px; border-top: 1px solid var(--line); margin-top: 10px;
+    max-width: 90ch; }
+  figure.fig figcaption b { color: var(--ink); }
+  figure.formula { margin: 12px 0; padding: 12px 16px; border: 1px solid var(--line);
+    background: var(--panel); overflow-x: auto; }
+  figure.formula svg { max-width: 100%; height: auto; display: block; }
+  pre.formula-text { font-family: var(--mono); font-size: 0.74rem;
+    background: var(--paper); border: 1px solid var(--line); padding: 10px 12px;
+    overflow-x: auto; margin: 8px 0 0; line-height: 1.55; }
+
+  /* Algorithm tabs (CSS only; JS adds hash deep-linking) */
+  .tabset > input { display: none; }
+  .tabbar { display: flex; gap: 2px; flex-wrap: wrap;
+    border-bottom: 2px solid var(--ink); }
+  .tabbar label { padding: 9px 16px 7px; cursor: pointer; font-size: 0.74rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft);
+    border: 1px solid transparent; border-bottom: 0; }
+  .tabbar label:hover { color: var(--ink); }
+  .tabpanels > section { display: none; padding: 20px 0 0; }
+  #tab-heuristic:checked ~ .tabbar label[for="tab-heuristic"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-heuristic:checked ~ .tabpanels #panel-heuristic { display: block; }
+  #tab-poisson:checked ~ .tabbar label[for="tab-poisson"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-poisson:checked ~ .tabpanels #panel-poisson { display: block; }
+  #tab-gbm:checked ~ .tabbar label[for="tab-gbm"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-gbm:checked ~ .tabpanels #panel-gbm { display: block; }
+  #tab-monte_carlo:checked ~ .tabbar label[for="tab-monte_carlo"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-monte_carlo:checked ~ .tabpanels #panel-monte_carlo { display: block; }
+  #tab-ensemble:checked ~ .tabbar label[for="tab-ensemble"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-ensemble:checked ~ .tabpanels #panel-ensemble { display: block; }
+  
+
+  /* Intelligence filters */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin: 10px 0 14px; }
+  .filters input[type=search] { font: inherit; font-size: 0.82rem;
+    padding: 6px 10px; border: 1px solid var(--line-hard);
+    background: var(--panel); color: var(--ink); min-width: 220px; }
+  .filters button { font: inherit; font-size: 0.7rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+    border: 1px solid var(--line-hard); background: var(--panel);
+    color: var(--ink-soft); }
+  .filters button.on { color: #fff; background: var(--ink); border-color: var(--ink); }
+
+  /* Timeline */
+  ol.timeline { list-style: none; margin: 0; padding: 0 0 0 2px; }
+  ol.timeline li { display: grid; grid-template-columns: 110px 1fr; gap: 16px;
+    padding: 10px 0; border-bottom: 1px solid var(--line); }
+  ol.timeline .d { font-family: var(--mono); font-size: 0.74rem;
+    color: var(--ink-soft); padding-top: 2px; }
+  ol.timeline .t b { font-family: var(--serif); font-size: 0.98rem; }
+  ol.timeline .t p { margin: 2px 0 0; font-size: 0.86rem; color: var(--ink-soft);
+    max-width: 78ch; }
+
+  /* History */
+  details.hist { border: 1px solid var(--line); background: var(--panel);
+    margin-bottom: 8px; }
+  details.hist > summary { cursor: pointer; padding: 8px 14px;
+    font-family: var(--mono); font-size: 0.74rem; list-style: none;
+    display: flex; justify-content: space-between; }
+  details.hist > summary::-webkit-details-marker { display: none; }
+  details.hist[open] > summary { border-bottom: 1px solid var(--line); }
+  .hrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
+    align-items: baseline; padding: 6px 14px; border-bottom: 1px solid var(--line);
+    font-size: 0.76rem; }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow .hm { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); }
+  .hrow a { font-family: var(--mono); font-size: 0.68rem; text-decoration: none; }
+  .hrow a:hover { text-decoration: underline; }
+
+  /* Freshness footer */
+  .fresh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .fcell { background: var(--panel); padding: 10px 14px; display: flex;
+    align-items: center; gap: 10px; }
+  .fcell .fdot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .fcell.fresh .fdot { background: var(--accent); }
+  .fcell.warn .fdot { background: var(--risk); }
+  .fcell.stale .fdot { background: var(--bad); }
+  .fcell.missing .fdot { background: var(--line-hard); }
+  .fcell .ft { line-height: 1.25; }
+  .fcell .ft .fl { font-size: 0.74rem; }
+  .fcell .ft .fa { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-soft); }
+
+  .empty { color: var(--ink-soft); font-style: italic; padding: 24px 0; }
+  footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div class="brand">WC 2026 Prediction Desk<small>FIFA Fantasy World Cup 2026</small></div>
+    <div class="status">
+      <div>Quarter-final</div>
+      <div>rendered 2026-07-10 01:52:26 UTC</div>
+    </div>
+  </header>
+
+  <nav class="pages">
+    <a href="index.html" class="">Overview</a>
+    <a href="algorithms.html" class="here">Algorithms</a>
+    <a href="intelligence.html" class="">Intelligence</a>
+    <a href="research.html" class="">Research</a>
+  </nav>
+
+  
+
+<h1 class="page">Algorithms</h1>
+<p class="lede">Five prediction backends coexist in this project. Each tab
+states what the model computes, shows the formula it actually runs, and puts
+its current Quarter-final squad next to its measured record, so the choice
+of the production backend is an argument you can check rather than a habit.</p>
+
+<div class="tabset">
+  
+  <input type="radio" name="algo" id="tab-heuristic" checked>
+  
+  <input type="radio" name="algo" id="tab-poisson" >
+  
+  <input type="radio" name="algo" id="tab-gbm" >
+  
+  <input type="radio" name="algo" id="tab-monte_carlo" >
+  
+  <input type="radio" name="algo" id="tab-ensemble" >
+  
+
+  <div class="tabbar">
+    
+    <label for="tab-heuristic">Heuristic</label>
+    
+    <label for="tab-poisson">Poisson</label>
+    
+    <label for="tab-gbm">GBM</label>
+    
+    <label for="tab-monte_carlo">Monte Carlo</label>
+    
+    <label for="tab-ensemble">Ensemble</label>
+    
+  </div>
+
+  <div class="tabpanels">
+  
+    <section id="panel-heuristic">
+
+      <div class="provenance">
+        <span class="badge shipped">shipped</span>
+        <span>Heuristic v1</span>
+        <span>introduced <b>2026-06-07</b></span>
+        <span>routed the def position by the ensemble</span>
+      </div>
+
+      <div class="prose">
+        <p>A price-anchored formula with no training step. Each player's expectation is a position coefficient times price, adjusted by a saturating matchup term that blends squad-price gap with national-team strength (live Elo when available, FIFA ranking as the fallback), plus a small home boost. It is transparent, immune to distribution shift, and has been the defender workhorse since matchday 1.</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      
+      <figure class="formula"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="251.78pt" height="76.395pt" viewBox="0 0 251.78 76.395" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-10T01:52:25.125001</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 76.395 
+L 251.78 76.395 
+L 251.78 0 
+L 0 0 
+L 0 76.395 
+z
+" style="fill: none; opacity: 0"/>
+  </g>
+  <g id="text_1">
+   <!-- $\hat{y} = c_{pos}\, p\,\left(1 + 0.40\,\tanh z\right)\left(1 + 0.05\,h\right)$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 19.16)">
+    <text>
+     <tspan x="8.20459" y="-1.609375" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="10.226074" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="59.712487" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="64.784264" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="75.587975" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="89.013268" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="97.284264" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="101.416588" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">4</tspan>
+     <tspan x="109.687584" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="120.069218" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">t</tspan>
+     <tspan x="125.166386" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="133.132695" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="141.371953" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">h</tspan>
+     <tspan x="158.545579" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="163.617356" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="168.689134" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="179.492845" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="192.918138" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="201.189134" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="205.321458" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="213.592454" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="232.213346" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="0" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="23.651367" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="49.349896" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="151.721849" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">z</tspan>
+     <tspan x="223.974088" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">h</tspan>
+     <tspan x="30.798828" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="36.575195" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="42.142725" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+    </text>
+   </g>
+  </g>
+  <g id="text_2">
+   <!-- $z = 0.35\,\frac{\Delta_{price}}{2.0} + 0.65\,\frac{\Delta_{elo}}{400}$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 64.255)">
+    <text>
+     <tspan x="0" y="-0.202661" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">z</tspan>
+     <tspan x="9.356445" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="22.781738" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="31.052734" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="35.185059" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">3</tspan>
+     <tspan x="43.456055" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="80.40993" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="93.835223" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="102.106219" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="106.238543" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">6</tspan>
+     <tspan x="114.509539" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="54.650189" y="-7.360938" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">Δ</tspan>
+     <tspan x="58.650189" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">2</tspan>
+     <tspan x="64.439886" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="67.332513" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="125.703673" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">4</tspan>
+     <tspan x="126.703673" y="-6.128281" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">Δ</tspan>
+     <tspan x="131.493371" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="137.283068" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="60.962425" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="65.005882" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="67.624798" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="69.394588" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="72.896844" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="133.01591" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="136.934953" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">l</tspan>
+     <tspan x="138.704743" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+    </text>
+    <rect x="54.650189" y="-4.046411" width="22.414526" height="0.8125"/>
+    <rect x="125.703673" y="-4.046411" width="17.369092" height="0.8125"/>
+   </g>
+  </g>
+ </g>
+</svg>
+</figure>
+      
+      <pre class="formula-text">predicted = c[pos] * price * (1 + 0.40*tanh(z)) * (1 + 0.05*home)
+z = 0.35*(strength_diff / 2.0) + 0.65*(elo_diff / 400)
+    (rank_diff / 250 when Elo is missing; price-only when both are)
+c = {GK 0.50, DEF 0.55, MID 0.60, FWD 0.65}
+zeroed when status != playing, squad eliminated, or news says benched</pre>
+      <p class="note">Source
+        <a href="../data/training/validation_report.json">data/training/validation_report.json</a>; <a href="../src/fifa_fantasy/model/baseline.py">src/fifa_fantasy/model/baseline.py</a>.
+        Whitepaper
+        <a href="../docs/whitepaper/sections/05_methodology.md">05_methodology.md</a>; <a href="../docs/whitepaper/sections/07_validation.md">07_validation.md</a>.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        
+        Live routing derived from the held-out validation report puts
+        <b>DEF</b>
+        with this backend. The full per-position picture below, winners in bold.
+        
+        
+      </p>
+      
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Position</th><th class="n">n</th>
+          <th class="n">Heuristic RMSE</th><th class="n">Poisson RMSE</th><th class="n">GBM RMSE</th>
+          <th>Routed to</th></tr></thead>
+        <tbody>
+        
+          <tr>
+            <td class="role">GK</td>
+            <td class="n">180</td>
+            <td class="n ">2.698</td>
+            <td class="n best">2.491</td>
+            <td class="n ">2.650</td>
+            <td class="role">poisson</td>
+          </tr>
+        
+          <tr>
+            <td class="role">DEF</td>
+            <td class="n">910</td>
+            <td class="n best">3.141</td>
+            <td class="n ">3.400</td>
+            <td class="n ">3.187</td>
+            <td class="role">heuristic</td>
+          </tr>
+        
+          <tr>
+            <td class="role">MID</td>
+            <td class="n">1228</td>
+            <td class="n ">2.874</td>
+            <td class="n ">4.371</td>
+            <td class="n best">2.767</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+          <tr>
+            <td class="role">FWD</td>
+            <td class="n">368</td>
+            <td class="n ">3.515</td>
+            <td class="n ">4.560</td>
+            <td class="n best">3.153</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Held-out EPL 2024-25, gameweeks 30-38. Lower is better.</p>
+      
+
+      <div class="srule"><h2>Current squad, Quarter-final</h2></div>
+      
+      <div class="provenance">
+        <span>generated <b>2026-07-10T01:52:17+00:00</b></span>
+        <span>XI expected <b>71.4</b></span>
+        <span>budget <b>104.9M</b></span>
+        <span><a href="1237d0b5837d_recommendation_heuristic_QF_2026-07-10T01-52-17Z.json">json</a> <a href="1237d0b5837d_recommendation_heuristic_QF_2026-07-10T01-52-17Z.md">md</a></span>
+      </div>
+      <div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr class="">
+      <td class="role">GK</td>
+      <td>Emiliano Martínez</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">5.0</td>
+      <td class="n">36%</td>
+      <td class="n">1.7</td>
+      <td class="n">-</td>
+      <td class="n">3.1</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Aymeric Laporte</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.5</td>
+      <td class="n">20%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.8</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Jules Koundé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">5.4</td>
+      <td class="n">12%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.7</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>William Saliba</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">5.3</td>
+      <td class="n">16%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Bukayo Saka</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">9.5</td>
+      <td class="n">5%</td>
+      <td class="n">5.3</td>
+      <td class="n">-</td>
+      <td class="n">6.5</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Dani Olmo</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">7.7</td>
+      <td class="n">3%</td>
+      <td class="n">2.7</td>
+      <td class="n">-</td>
+      <td class="n">5.7</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Rodri</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">7.5</td>
+      <td class="n">2%</td>
+      <td class="n">4.0</td>
+      <td class="n">-</td>
+      <td class="n">5.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Désiré Doué</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">7.5</td>
+      <td class="n">4%</td>
+      <td class="n">4.0</td>
+      <td class="n">-</td>
+      <td class="n">5.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="cap">
+      <td class="role">FWD C</td>
+      <td>Kylian Mbappé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.5</td>
+      <td class="n">70%</td>
+      <td class="n">12.0</td>
+      <td class="n">-</td>
+      <td class="n">8.5</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD V</td>
+      <td>Lautaro Martínez</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">8.8</td>
+      <td class="n">3%</td>
+      <td class="n">5.0</td>
+      <td class="n">-</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Ferran Torres</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">7.8</td>
+      <td class="n">2%</td>
+      <td class="n">1.7</td>
+      <td class="n">-</td>
+      <td class="n">6.3</td>
+      <td class="n">-</td>
+    </tr>
+  
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  
+    <span class="b">1. Nasraoui Ebana <i>ESP MID</i></span>
+  
+    <span class="b">2. Upamecano <i>FRA DEF</i></span>
+  
+    <span class="b">3. Tagliafico <i>ARG DEF</i></span>
+  
+    <span class="b">4. Pickford <i>ENG GK</i></span>
+  
+</div>
+      
+
+      
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th><th class="n">GROUP_MD1</th><th class="n">GROUP_MD2</th><th class="n">GROUP_MD3</th><th class="n">R32</th><th class="n">R16</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">Heuristic realized pts</td>
+            <td class="n">46</td><td class="n">81</td><td class="n">84</td><td class="n">73</td><td class="n">41</td>
+            <td class="n"><b>325</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            <td class="n">33</td><td class="n">84</td><td class="n">40</td><td class="n">83</td><td class="n">0</td>
+            <td class="n">240</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      
+
+    </section>
+  
+    <section id="panel-poisson">
+
+      <div class="provenance">
+        <span class="badge shipped">shipped</span>
+        <span>Poisson (GK formula v2)</span>
+        <span>introduced <b>2026-06-07</b></span>
+        <span>routed the gk position by the ensemble</span>
+      </div>
+
+      <div class="prose">
+        <p>A structural expected-goals model with no training step. Team xG is built from strength signals, distributed across positions with fixed goal and assist shares, then mapped to fantasy points through the official scoring rules, including a Poisson clean-sheet probability. The goalkeeper save bonus scales with opponent xG at an empirically calibrated 0.50 per unit, the v2 formula that replaced the flat constant on 2026-06-28. It owns goalkeepers in the ensemble.</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      
+      <figure class="formula"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="530.63pt" height="77.63pt" viewBox="0 0 530.63 77.63" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-10T01:52:25.184759</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 77.63 
+L 530.63 77.63 
+L 530.63 0 
+L 0 0 
+L 0 77.63 
+z
+" style="fill: none; opacity: 0"/>
+  </g>
+  <g id="text_1">
+   <!-- $\lambda_{own} = 1.30\,e^{\,\mathrm{clip}(m,\,\pm 1.2)}\left(1 + 0.10\,h\right),\quad m = \frac{\Delta_{elo}}{400} + \frac{\Delta_{price}}{6}$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 21.11)">
+    <text>
+     <tspan x="0" y="-0.202661" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="73.840423" y="-0.202661" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="208.219502" y="-0.202661" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">h</tspan>
+     <tspan x="240.859151" y="-0.202661" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="7.693359" y="1.747333" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="13.260889" y="1.747333" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">w</tspan>
+     <tspan x="20.703516" y="1.747333" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="103.306955" y="-5.571661" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="29.35918" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="42.784473" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="51.055469" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="55.187793" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">3</tspan>
+     <tspan x="63.458789" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="147.862771" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="152.934548" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="163.738259" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="177.163552" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="185.434548" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="189.566872" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="197.837868" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="216.45876" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="221.530537" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="256.05544" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="291.007539" y="-0.202661" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="83.920578" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="88.923801" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">l</tspan>
+     <tspan x="91.452072" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="93.980344" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="99.756711" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="112.171457" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="120.087331" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">±</tspan>
+     <tspan x="129.485036" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="135.274733" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="138.16736" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">2</tspan>
+     <tspan x="143.957058" y="-5.571661" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="270.293233" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">4</tspan>
+     <tspan x="271.293233" y="-6.128281" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">Δ</tspan>
+     <tspan x="276.08293" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="281.872627" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="305.245332" y="-7.360938" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">Δ</tspan>
+     <tspan x="313.245332" y="4.525464" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">6</tspan>
+     <tspan x="277.605469" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="281.524512" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">l</tspan>
+     <tspan x="283.294302" y="-4.763286" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="311.557569" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="315.601026" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="318.219942" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="319.989732" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="323.491988" y="-5.995942" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+    </text>
+    <rect x="270.293233" y="-4.046411" width="17.369092" height="0.8125"/>
+    <rect x="305.245332" y="-4.046411" width="22.414526" height="0.8125"/>
+   </g>
+  </g>
+  <g id="text_2">
+   <!-- $\hat{y} = 2 + \lambda_{own}\,s^{G}_{pos}\,G_{pos} + 2.1\,\lambda_{own}\,s^{A}_{pos} + e^{-\lambda_{opp}}\,C_{pos} + \mathrm{GK{:}}\ 0.50\,\lambda_{opp} - E[\max(0,k{-}1)]$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 64.45)">
+    <text>
+     <tspan x="8.20459" y="-2.171625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="10.226074" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="23.651367" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">2</tspan>
+     <tspan x="34.455078" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="131.188366" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="144.613659" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">2</tspan>
+     <tspan x="152.884655" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="157.016979" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="222.081809" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="299.869379" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">+</tspan>
+     <tspan x="313.294672" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="323.368403" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">K</tspan>
+     <tspan x="334.42602" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">:</tspan>
+     <tspan x="345.559767" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="353.830763" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="357.963087" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="366.234083" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="404.317524" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="425.956684" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">[</tspan>
+     <tspan x="431.028461" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="443.692036" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="451.658344" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">x</tspan>
+     <tspan x="459.351704" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="464.423481" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="472.694477" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="486.887836" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="497.780415" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="506.051411" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="511.123188" y="-0.7185" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">]</tspan>
+     <tspan x="0" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="47.880371" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="76.817474" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="102.141491" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="167.398613" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="196.335716" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="235.507102" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="271.819086" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">C</tspan>
+     <tspan x="376.615717" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="417.742817" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">E</tspan>
+     <tspan x="479.359516" y="-0.7185" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">k</tspan>
+     <tspan x="55.57373" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="61.14126" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">w</tspan>
+     <tspan x="68.583887" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="83.590423" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="84.195085" y="-6.0875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="89.36679" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="94.93432" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="112.215221" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="117.991588" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="123.559118" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="175.091972" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="180.659502" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">w</tspan>
+     <tspan x="188.102129" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="203.108665" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="203.713326" y="-6.0875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">A</tspan>
+     <tspan x="208.885032" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="214.452561" y="3.2985" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="251.734615" y="-6.0875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="280.896235" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="286.672602" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="292.240131" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="384.309077" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="389.876606" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="395.652973" y="1.231494" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="244.109811" y="-6.0875" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="257.119967" y="-4.722504" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="261.017238" y="-4.722504" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="265.060695" y="-4.722504" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+    </text>
+   </g>
+  </g>
+ </g>
+</svg>
+</figure>
+      
+      <pre class="formula-text">own_xg = 1.30 * exp(clip(m, +-1.2)) * (1 + 0.10*home)
+m = elo_diff/400 (or rank_diff/800) + strength_diff/6
+predicted = 2 + own_xg*goal_share[pos]*goal_pts[pos]
+          + 0.7*own_xg*assist_share[pos]*3
+          + exp(-opp_xg)*cs_pts[pos] + gk_and_def_terms
+gk: +0.50*opp_xg - E[max(0,k-1)];  def: -0.5*E[max(0,k-1)]
+E[max(0,k-1)] = opp_xg - 1 + exp(-opp_xg)   (k ~ Poisson(opp_xg))</pre>
+      <p class="note">Source
+        <a href="../data/evaluation/gk_formula_ab_2026-06-29.json">data/evaluation/gk_formula_ab_2026-06-29.json</a>; <a href="../src/fifa_fantasy/model/poisson.py">src/fifa_fantasy/model/poisson.py</a>.
+        Whitepaper
+        <a href="../docs/whitepaper/sections/09c_gk_formula_evolution.md">09c_gk_formula_evolution.md</a>; <a href="../docs/whitepaper/sections/09b_gk_insight.md">09b_gk_insight.md</a>.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        
+        Live routing derived from the held-out validation report puts
+        <b>GK</b>
+        with this backend. The full per-position picture below, winners in bold.
+        
+        
+      </p>
+      
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Position</th><th class="n">n</th>
+          <th class="n">Heuristic RMSE</th><th class="n">Poisson RMSE</th><th class="n">GBM RMSE</th>
+          <th>Routed to</th></tr></thead>
+        <tbody>
+        
+          <tr>
+            <td class="role">GK</td>
+            <td class="n">180</td>
+            <td class="n ">2.698</td>
+            <td class="n best">2.491</td>
+            <td class="n ">2.650</td>
+            <td class="role">poisson</td>
+          </tr>
+        
+          <tr>
+            <td class="role">DEF</td>
+            <td class="n">910</td>
+            <td class="n best">3.141</td>
+            <td class="n ">3.400</td>
+            <td class="n ">3.187</td>
+            <td class="role">heuristic</td>
+          </tr>
+        
+          <tr>
+            <td class="role">MID</td>
+            <td class="n">1228</td>
+            <td class="n ">2.874</td>
+            <td class="n ">4.371</td>
+            <td class="n best">2.767</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+          <tr>
+            <td class="role">FWD</td>
+            <td class="n">368</td>
+            <td class="n ">3.515</td>
+            <td class="n ">4.560</td>
+            <td class="n best">3.153</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Held-out EPL 2024-25, gameweeks 30-38. Lower is better.</p>
+      
+
+      <div class="srule"><h2>Current squad, Quarter-final</h2></div>
+      
+      <div class="provenance">
+        <span>generated <b>2026-07-10T01:52:19+00:00</b></span>
+        <span>XI expected <b>114.2</b></span>
+        <span>budget <b>90.5M</b></span>
+        <span><a href="1237d0b5837d_recommendation_poisson_QF_2026-07-10T01-52-19Z.json">json</a> <a href="1237d0b5837d_recommendation_poisson_QF_2026-07-10T01-52-19Z.md">md</a></span>
+      </div>
+      <div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr class="">
+      <td class="role">GK</td>
+      <td>Emiliano Martínez</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">5.0</td>
+      <td class="n">36%</td>
+      <td class="n">1.7</td>
+      <td class="n">-</td>
+      <td class="n">4.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Nicolás Otamendi</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">4.4</td>
+      <td class="n">2%</td>
+      <td class="n">1.3</td>
+      <td class="n">-</td>
+      <td class="n">7.1</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Nicolás Tagliafico</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">4.3</td>
+      <td class="n">1%</td>
+      <td class="n">2.3</td>
+      <td class="n">-</td>
+      <td class="n">7.1</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Djed Spence</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">4.5</td>
+      <td class="n">1%</td>
+      <td class="n">1.3</td>
+      <td class="n">-</td>
+      <td class="n">6.0</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Rodri</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">7.5</td>
+      <td class="n">2%</td>
+      <td class="n">4.0</td>
+      <td class="n">-</td>
+      <td class="n">10.2</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Mikel Merino</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">6.2</td>
+      <td class="n">1%</td>
+      <td class="n">4.3</td>
+      <td class="n">-</td>
+      <td class="n">10.2</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Fabián Ruiz</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">6.8</td>
+      <td class="n">0%</td>
+      <td class="n">1.0</td>
+      <td class="n">-</td>
+      <td class="n">10.2</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Leandro Paredes</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">5.6</td>
+      <td class="n">0%</td>
+      <td class="n">2.0</td>
+      <td class="n">-</td>
+      <td class="n">9.9</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Adrien Rabiot</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">6.4</td>
+      <td class="n">1%</td>
+      <td class="n">3.0</td>
+      <td class="n">-</td>
+      <td class="n">9.7</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="cap">
+      <td class="role">FWD C</td>
+      <td>Ferran Torres</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">7.8</td>
+      <td class="n">2%</td>
+      <td class="n">1.7</td>
+      <td class="n">-</td>
+      <td class="n">10.5</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD V</td>
+      <td>Lautaro Martínez</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">8.8</td>
+      <td class="n">3%</td>
+      <td class="n">5.0</td>
+      <td class="n">-</td>
+      <td class="n">10.2</td>
+      <td class="n">-</td>
+    </tr>
+  
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  
+    <span class="b">1. Oyarzabal <i>ESP FWD</i></span>
+  
+    <span class="b">2. Gusto <i>FRA DEF</i></span>
+  
+    <span class="b">3. Digne <i>FRA DEF</i></span>
+  
+    <span class="b">4. Maignan <i>FRA GK</i></span>
+  
+</div>
+      
+
+      
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th><th class="n">GROUP_MD1</th><th class="n">GROUP_MD2</th><th class="n">GROUP_MD3</th><th class="n">R32</th><th class="n">R16</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">Poisson realized pts</td>
+            <td class="n">30</td><td class="n">56</td><td class="n">44</td><td class="n">42</td><td class="n">24</td>
+            <td class="n"><b>196</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            <td class="n">33</td><td class="n">84</td><td class="n">40</td><td class="n">83</td><td class="n">0</td>
+            <td class="n">240</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      
+
+    </section>
+  
+    <section id="panel-gbm">
+
+      <div class="provenance">
+        <span class="badge shipped">shipped</span>
+        <span>GBM v3form</span>
+        <span>introduced <b>2026-07-08</b></span>
+        <span>routed the mid and fwd positions by the ensemble</span>
+      </div>
+
+      <div class="prose">
+        <p>A LightGBM model per position with four heads each, a mean regression plus pinball-loss quantile heads at the 10th, 50th and 90th percentiles. Trained on three EPL FPL seasons and, since v3form, retrained every tick on the completed World Cup rounds as well, with a leak-free trailing-form feature. The earlier v1 and v2 generations were form-blind, which is why the model missed in-form cheap players until July. It owns midfielders and forwards in the ensemble, and its q90 head drives the ceiling-seeking captain pick.</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      
+      <figure class="formula"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="407.78pt" height="74.901523pt" viewBox="0 0 407.78 74.901523" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-10T01:52:25.264541</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 74.901523 
+L 407.78 74.901523 
+L 407.78 0 
+L 0 0 
+L 0 74.901523 
+z
+" style="fill: none; opacity: 0"/>
+  </g>
+  <g id="text_1">
+   <!-- $\hat{y}_{pos} = f^{\,\mathrm{LGBM}}_{pos}\!\left(p,\ h,\ \Delta_{price},\ \bar{p}_{11},\ \bar{p}^{\,opp}_{11},\ \mathrm{form\_lag}\right)$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 19.94)">
+    <text>
+     <tspan x="8.20459" y="-1.776563" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="26.790918" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="86.371134" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="105.49658" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="116.382768" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">Δ</tspan>
+     <tspan x="148.40352" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="167.462072" y="-0.479688" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̄</tspan>
+     <tspan x="179.600939" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="198.65949" y="-0.479688" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̄</tspan>
+     <tspan x="217.816673" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="228.702861" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">f</tspan>
+     <tspan x="233.279522" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="241.233135" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="246.577861" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="259.241436" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">_</tspan>
+     <tspan x="265.741436" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">l</tspan>
+     <tspan x="269.353252" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="277.319561" y="-0.323438" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">g</tspan>
+     <tspan x="0" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="40.216211" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">f</tspan>
+     <tspan x="78.119181" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="97.257322" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">h</tspan>
+     <tspan x="159.289708" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="190.487127" y="-0.323438" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="7.817773" y="2.834687" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="13.594141" y="2.834687" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="19.16167" y="2.834687" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="44.792871" y="3.693562" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="50.569238" y="3.693562" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="56.136768" y="3.693562" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="125.400249" y="1.626556" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="131.176616" y="1.626556" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="134.917924" y="1.626556" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="137.446196" y="1.626556" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="142.449418" y="1.626556" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="200.340941" y="-7.903125" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="205.90847" y="-7.903125" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="211.684837" y="-7.903125" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="47.238104" y="-5.692438" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">L</tspan>
+     <tspan x="52.307977" y="-5.692438" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="59.359588" y="-5.692438" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">B</tspan>
+     <tspan x="65.602508" y="-5.692438" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">M</tspan>
+     <tspan x="167.666076" y="2.834687" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="173.455773" y="2.834687" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="198.863494" y="3.878125" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="204.653191" y="3.878125" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="71.698755" y="1.628125" style="font-size: 13.726882px; font-family: 'STIXSizeOneSym'; fill: #1b1712">(</tspan>
+     <tspan x="285.571514" y="1.628125" style="font-size: 13.726882px; font-family: 'STIXSizeOneSym'; fill: #1b1712">)</tspan>
+    </text>
+   </g>
+  </g>
+  <g id="text_2">
+   <!-- $L_{\tau}(y, q) = \max\!\left(\tau\,(y-q),\ (\tau - 1)\,(y-q)\right),\quad \tau \in \{0.1,\ 0.5,\ 0.9\}$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 64.578477)">
+    <text>
+     <tspan x="0" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">L</tspan>
+     <tspan x="18.148584" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="32.506982" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="95.18374" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">τ</tspan>
+     <tspan x="110.192816" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="133.844183" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="163.125879" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">τ</tspan>
+     <tspan x="207.435736" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="231.087103" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="268.811224" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">τ</tspan>
+     <tspan x="7.242676" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">τ</tspan>
+     <tspan x="13.076807" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="25.841943" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="40.758936" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="48.363428" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="61.788721" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="74.452295" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="82.418604" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">x</tspan>
+     <tspan x="90.111963" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="105.121038" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="120.41889" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="142.096136" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="147.167913" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="158.054102" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="173.485254" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="186.910547" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="195.181543" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="202.363958" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="217.66181" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">−</tspan>
+     <tspan x="239.339056" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="244.410833" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="249.482611" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="279.170599" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">∈</tspan>
+     <tspan x="293.027532" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">{</tspan>
+     <tspan x="301.298529" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="309.569525" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="313.701849" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="321.972845" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="332.859033" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="341.130029" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="345.262354" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="353.53335" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="364.419538" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="372.690534" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">.</tspan>
+     <tspan x="376.822858" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">9</tspan>
+     <tspan x="385.093854" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">}</tspan>
+    </text>
+   </g>
+  </g>
+ </g>
+</svg>
+</figure>
+      
+      <pre class="formula-text">predicted[pos] = LightGBM_pos(price_millions, is_home, strength_diff,
+                              squad_top_n_avg_price,
+                              opp_squad_top_n_avg_price, form_lag)
+heads: mean (L2) and quantiles tau in {0.10, 0.50, 0.90}
+pinball loss L_tau(y, q) = max(tau*(y-q), (tau-1)*(y-q))
+15 leaves, 200 trees, lr 0.05, seed 42, deterministic</pre>
+      <p class="note">Source
+        <a href="../data/evaluation/wc_forward_validation.json">data/evaluation/wc_forward_validation.json</a>; <a href="../data/models/">data/models/</a>; <a href="../src/fifa_fantasy/model/gbm.py">src/fifa_fantasy/model/gbm.py</a>.
+        Whitepaper
+        <a href="../docs/whitepaper/sections/11f_model_improvement_retrospective.md">11f_model_improvement_retrospective.md</a>; <a href="../docs/whitepaper/sections/07_validation.md">07_validation.md</a>.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        
+        Live routing derived from the held-out validation report puts
+        <b>MID, FWD</b>
+        with this backend. The full per-position picture below, winners in bold.
+        This table is held-out EPL, so the in-sample caveat does not apply here.
+        
+      </p>
+      
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Position</th><th class="n">n</th>
+          <th class="n">Heuristic RMSE</th><th class="n">Poisson RMSE</th><th class="n">GBM RMSE</th>
+          <th>Routed to</th></tr></thead>
+        <tbody>
+        
+          <tr>
+            <td class="role">GK</td>
+            <td class="n">180</td>
+            <td class="n ">2.698</td>
+            <td class="n best">2.491</td>
+            <td class="n ">2.650</td>
+            <td class="role">poisson</td>
+          </tr>
+        
+          <tr>
+            <td class="role">DEF</td>
+            <td class="n">910</td>
+            <td class="n best">3.141</td>
+            <td class="n ">3.400</td>
+            <td class="n ">3.187</td>
+            <td class="role">heuristic</td>
+          </tr>
+        
+          <tr>
+            <td class="role">MID</td>
+            <td class="n">1228</td>
+            <td class="n ">2.874</td>
+            <td class="n ">4.371</td>
+            <td class="n best">2.767</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+          <tr>
+            <td class="role">FWD</td>
+            <td class="n">368</td>
+            <td class="n ">3.515</td>
+            <td class="n ">4.560</td>
+            <td class="n best">3.153</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Held-out EPL 2024-25, gameweeks 30-38. Lower is better.</p>
+      
+
+      <div class="srule"><h2>Current squad, Quarter-final</h2></div>
+      
+      <div class="provenance">
+        <span>generated <b>2026-07-10T01:52:20+00:00</b></span>
+        <span>XI expected <b>74.7</b></span>
+        <span>budget <b>104.5M</b></span>
+        <span><a href="1237d0b5837d_recommendation_gbm_QF_2026-07-10T01-52-20Z.json">json</a> <a href="1237d0b5837d_recommendation_gbm_QF_2026-07-10T01-52-20Z.md">md</a></span>
+      </div>
+      <div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr class="">
+      <td class="role">GK</td>
+      <td>Unai Simón</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.0</td>
+      <td class="n">19%</td>
+      <td class="n">7.0</td>
+      <td class="n">1.1</td>
+      <td class="n">4.7</td>
+      <td class="n">7.3</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Marc Cucurella</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.1</td>
+      <td class="n">49%</td>
+      <td class="n">9.0</td>
+      <td class="n">0.4</td>
+      <td class="n">4.1</td>
+      <td class="n">8.8</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Aymeric Laporte</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.5</td>
+      <td class="n">20%</td>
+      <td class="n">7.0</td>
+      <td class="n">0.7</td>
+      <td class="n">4.1</td>
+      <td class="n">8.7</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Jules Koundé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">5.4</td>
+      <td class="n">12%</td>
+      <td class="n">7.0</td>
+      <td class="n">0.8</td>
+      <td class="n">4.9</td>
+      <td class="n">8.6</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Ousmane Dembélé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.0</td>
+      <td class="n">45%</td>
+      <td class="n">6.3</td>
+      <td class="n">1.2</td>
+      <td class="n">8.5</td>
+      <td class="n">12.7</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID V</td>
+      <td>Bukayo Saka</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">9.5</td>
+      <td class="n">5%</td>
+      <td class="n">5.3</td>
+      <td class="n">1.3</td>
+      <td class="n">6.5</td>
+      <td class="n">12.2</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Désiré Doué</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">7.5</td>
+      <td class="n">4%</td>
+      <td class="n">4.0</td>
+      <td class="n">1.0</td>
+      <td class="n">4.7</td>
+      <td class="n">10.0</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Adrien Rabiot</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">6.4</td>
+      <td class="n">1%</td>
+      <td class="n">3.0</td>
+      <td class="n">0.9</td>
+      <td class="n">4.1</td>
+      <td class="n">9.7</td>
+    </tr>
+  
+    <tr class="cap">
+      <td class="role">FWD C</td>
+      <td>Kylian Mbappé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.5</td>
+      <td class="n">70%</td>
+      <td class="n">12.0</td>
+      <td class="n">1.3</td>
+      <td class="n">11.5</td>
+      <td class="n">14.1</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Harry Kane</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">10.5</td>
+      <td class="n">45%</td>
+      <td class="n">10.0</td>
+      <td class="n">1.3</td>
+      <td class="n">8.6</td>
+      <td class="n">11.9</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Lautaro Martínez</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">8.8</td>
+      <td class="n">3%</td>
+      <td class="n">5.0</td>
+      <td class="n">1.0</td>
+      <td class="n">5.1</td>
+      <td class="n">8.2</td>
+    </tr>
+  
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  
+    <span class="b">1. Baena <i>ESP MID</i></span>
+  
+    <span class="b">2. Cubarsí <i>ESP DEF</i></span>
+  
+    <span class="b">3. Tagliafico <i>ARG DEF</i></span>
+  
+    <span class="b">4. Martínez <i>ARG GK</i></span>
+  
+</div>
+      
+
+      
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th><th class="n">GROUP_MD1</th><th class="n">GROUP_MD2</th><th class="n">GROUP_MD3</th><th class="n">R32</th><th class="n">R16</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">GBM realized pts</td>
+            <td class="n">105</td><td class="n">148</td><td class="n">115</td><td class="n">108</td><td class="n">101</td>
+            <td class="n"><b>577</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            <td class="n">33</td><td class="n">84</td><td class="n">40</td><td class="n">83</td><td class="n">0</td>
+            <td class="n">240</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      <div class="caveat"><b>In-sample caveat.</b> The GBM retrains on completed
+      World Cup rounds, so its backtest rows score rounds the model saw during
+      training. Treat these totals as an upper bound; the leak-free numbers live
+      on the <a href="research.html">Research</a> page under walk-forward validation.</div>
+      
+      
+
+    </section>
+  
+    <section id="panel-monte_carlo">
+
+      <div class="provenance">
+        <span class="badge experimental">experimental</span>
+        <span>Monte Carlo simulator</span>
+        <span>introduced <b>2026-06-28</b></span>
+        
+      </div>
+
+      <div class="prose">
+        <p>A per-match simulator rather than a point estimator. It samples team xG around the Poisson backend's estimate, draws goals, distributes them with form-weighted player multipliers, samples goalkeeper saves, and scores each simulated match with the official rules, so the output is a full points distribution. Its mean has never passed held-out validation, so it is not run by the production tick; its backtest row appears here for comparison and its distributional ideas fed the captain work.</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      
+      <figure class="formula"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="352.53pt" height="73.083047pt" viewBox="0 0 352.53 73.083047" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-10T01:52:25.326904</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 73.083047 
+L 352.53 73.083047 
+L 352.53 0 
+L 0 0 
+L 0 73.083047 
+z
+" style="fill: none; opacity: 0"/>
+  </g>
+  <g id="text_1">
+   <!-- $G_{team} \sim \mathrm{Poisson}\!\left(\lambda_{own}\,\varepsilon\right),\quad \varepsilon \sim \mathrm{LogNormal}(0, \sigma)$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 17.08)">
+    <text>
+     <tspan x="0" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="102.09947" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">λ</tspan>
+     <tspan x="131.036572" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">ε</tspan>
+     <tspan x="162.463818" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">ε</tspan>
+     <tspan x="276.169385" y="-0.125" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">σ</tspan>
+     <tspan x="10.07373" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">t</tspan>
+     <tspan x="13.641748" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="19.240381" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="24.816797" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="109.792829" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="115.360358" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">w</tspan>
+     <tspan x="122.802985" y="1.824994" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="36.569482" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">∼</tspan>
+     <tspan x="49.994775" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">P</tspan>
+     <tspan x="57.834131" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="65.787744" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="69.399561" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="76.17251" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="82.945459" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="90.899072" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="97.027692" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="138.063428" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="143.135205" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="172.023389" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">∼</tspan>
+     <tspan x="185.448682" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">L</tspan>
+     <tspan x="192.691357" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="200.644971" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">g</tspan>
+     <tspan x="208.896924" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">N</tspan>
+     <tspan x="218.621533" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="226.575146" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="231.919873" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="244.583447" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="252.549756" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">l</tspan>
+     <tspan x="256.161572" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="261.23335" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="269.504346" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="284.408643" y="-0.125" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+    </text>
+   </g>
+  </g>
+  <g id="text_2">
+   <!-- $\hat{y} = \mathrm{mean}(Y_{sim}),\quad q_{10},\ q_{50},\ q_{90}\ \mathrm{from}\ Y_{sim},\quad N = 1000$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 62.76)">
+    <text>
+     <tspan x="8.20459" y="-1.609375" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="10.226074" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="23.651367" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="36.314941" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="44.312988" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">a</tspan>
+     <tspan x="52.279297" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="60.518555" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="90.020557" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="95.092334" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="134.607764" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="165.680768" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="200.974922" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">f</tspan>
+     <tspan x="205.551582" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="210.896309" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="218.849922" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="260.16487" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="291.750808" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="305.176101" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="313.447097" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="321.718093" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="329.989089" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="0" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="65.590332" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">Y</tspan>
+     <tspan x="114.420947" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="145.493952" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="176.566957" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">q</tspan>
+     <tspan x="235.734646" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">Y</tspan>
+     <tspan x="279.493483" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">N</tspan>
+     <tspan x="73.53125" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="78.272314" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="80.800586" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="243.675564" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="248.416628" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="250.9449" y="1.793744" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="122.6729" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">1</tspan>
+     <tspan x="128.462598" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="153.745905" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">5</tspan>
+     <tspan x="159.535602" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+     <tspan x="184.81891" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">9</tspan>
+     <tspan x="190.608607" y="1.793744" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">0</tspan>
+    </text>
+   </g>
+  </g>
+ </g>
+</svg>
+</figure>
+      
+      <pre class="formula-text">team_xg ~ own_xg * LogNormal(0, sigma)
+goals ~ Poisson(team_xg), assigned by position share * form multiplier
+assists ~ 0.7 * goals, same shape
+gk saves ~ Binomial(shots(opp_xg), save_pct)
+predicted = mean(simulated points); p10/p50/p90 from the same draws</pre>
+      <p class="note">Source
+        <a href="../data/evaluation/backtest_summary.json">data/evaluation/backtest_summary.json</a>; <a href="../src/fifa_fantasy/model/monte_carlo.py">src/fifa_fantasy/model/monte_carlo.py</a>.
+        Whitepaper
+        <a href="../docs/whitepaper/sections/11c_monte_carlo_and_benter_separation.md">11c_monte_carlo_and_benter_separation.md</a>.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        
+        Not part of the production tick. Its backtest record below is the comparison basis.
+        
+      </p>
+      
+
+      <div class="srule"><h2>Current squad, Quarter-final</h2></div>
+      
+      <p class="note">The Monte Carlo backend is experimental and is not run by the
+      production tick, so it has no current squad. Its simulated squads were scored
+      in the cross-model backtest below, which is the fair place to judge it.</p>
+      
+
+      
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th><th class="n">GROUP_MD1</th><th class="n">GROUP_MD2</th><th class="n">GROUP_MD3</th><th class="n">R32</th><th class="n">R16</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">Monte Carlo realized pts</td>
+            <td class="n">77</td><td class="n">79</td><td class="n">44</td><td class="n">81</td><td class="n">56</td>
+            <td class="n"><b>337</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            <td class="n">33</td><td class="n">84</td><td class="n">40</td><td class="n">83</td><td class="n">0</td>
+            <td class="n">240</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      
+
+    </section>
+  
+    <section id="panel-ensemble">
+
+      <div class="provenance">
+        <span class="badge shipped">shipped</span>
+        <span>Per-position ensemble</span>
+        <span>introduced <b>2026-07-08</b></span>
+        <span>the production default; the official squad comes from it</span>
+      </div>
+
+      <div class="prose">
+        <p>Not a new formula but a routing decision. The held-out EPL validation showed no single backend wins every position, so the ensemble runs the component backends and keeps, per position, the prediction from the documented winner. Poisson takes goalkeepers, the heuristic takes defenders, the GBM takes midfielders and forwards and contributes its quantiles. This is the backend the optimizer consumes and the squad this desk recommends.</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      
+      <figure class="formula"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="485.52pt" height="31.43pt" viewBox="0 0 485.52 31.43" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-10T01:52:25.381204</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 31.43 
+L 485.52 31.43 
+L 485.52 -0 
+L 0 -0 
+L 0 31.43 
+z
+" style="fill: none; opacity: 0"/>
+  </g>
+  <g id="text_1">
+   <!-- $\hat{y}(i) = \hat{y}_{r(pos_i)}(i),\quad r = \{\mathrm{GK}\!:\mathrm{poisson},\ \mathrm{DEF}\!:\mathrm{heuristic},\ \mathrm{MID}\!:\mathrm{gbm},\ \mathrm{FWD}\!:\mathrm{gbm}\}$ -->
+   <g style="fill: #1b1712" transform="translate(7.2 19.16)">
+    <text>
+     <tspan x="7.693359" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="8.20459" y="-1.609375" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="16.376953" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="23.981445" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="45.611328" y="-1.609375" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">̂</tspan>
+     <tspan x="74.525356" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="83.20895" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="88.280728" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="115.486782" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">=</tspan>
+     <tspan x="128.912075" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">{</tspan>
+     <tspan x="137.183071" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">G</tspan>
+     <tspan x="147.256802" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">K</tspan>
+     <tspan x="156.203781" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">:</tspan>
+     <tspan x="163.116379" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="171.368332" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="179.321945" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="182.933761" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="189.706711" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="196.47966" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="204.433273" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">n</tspan>
+     <tspan x="212.672531" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="223.558719" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">D</tspan>
+     <tspan x="233.568973" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">E</tspan>
+     <tspan x="241.78284" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">F</tspan>
+     <tspan x="249.682456" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">:</tspan>
+     <tspan x="256.595054" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">h</tspan>
+     <tspan x="264.834312" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">e</tspan>
+     <tspan x="272.832359" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">u</tspan>
+     <tspan x="281.071617" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="286.416343" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="290.028159" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="296.801109" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">t</tspan>
+     <tspan x="301.898277" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="305.510093" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">c</tspan>
+     <tspan x="312.657554" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="323.543742" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">M</tspan>
+     <tspan x="334.760051" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">I</tspan>
+     <tspan x="338.594035" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">D</tspan>
+     <tspan x="349.026366" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">:</tspan>
+     <tspan x="355.938964" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">g</tspan>
+     <tspan x="364.190917" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">b</tspan>
+     <tspan x="372.44287" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="385.106444" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">,</tspan>
+     <tspan x="395.992632" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">F</tspan>
+     <tspan x="403.470172" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">W</tspan>
+     <tspan x="416.324175" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">D</tspan>
+     <tspan x="426.756506" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">:</tspan>
+     <tspan x="433.669104" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">g</tspan>
+     <tspan x="441.921057" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">b</tspan>
+     <tspan x="450.17301" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">m</tspan>
+     <tspan x="462.836584" y="-0.15625" style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">}</tspan>
+     <tspan x="0" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="12.765137" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="37.406738" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">y</tspan>
+     <tspan x="79.597134" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+     <tspan x="107.609341" y="-0.15625" style="font-style: oblique; font-size: 13px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="45.224512" y="3.001875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">r</tspan>
+     <tspan x="52.516064" y="3.001875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">p</tspan>
+     <tspan x="58.292432" y="3.001875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">o</tspan>
+     <tspan x="63.859961" y="3.001875" style="font-style: oblique; font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">s</tspan>
+     <tspan x="48.96582" y="3.001875" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">(</tspan>
+     <tspan x="70.619644" y="3.001875" style="font-size: 9.1px; font-family: 'DejaVu Sans'; fill: #1b1712">)</tspan>
+     <tspan x="68.601025" y="4.366871" style="font-style: oblique; font-size: 6.37px; font-family: 'DejaVu Sans'; fill: #1b1712">i</tspan>
+    </text>
+   </g>
+  </g>
+ </g>
+</svg>
+</figure>
+      
+      <pre class="formula-text">predicted(i) = predicted_route(pos_i)(i)
+route = {GK: poisson, DEF: heuristic, MID: gbm, FWD: gbm}
+route is re-derived from data/training/validation_report.json
+(lowest held-out RMSE per position); quantiles carried where gbm</pre>
+      <p class="note">Source
+        <a href="../data/training/validation_report.json">data/training/validation_report.json</a>; <a href="../src/fifa_fantasy/model/ensemble.py">src/fifa_fantasy/model/ensemble.py</a>.
+        Whitepaper
+        <a href="../docs/whitepaper/sections/11f_model_improvement_retrospective.md">11f_model_improvement_retrospective.md</a>.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        
+        The production tick runs the optimizer on this backend; the Overview squad is its output.
+        
+      </p>
+      
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Position</th><th class="n">n</th>
+          <th class="n">Heuristic RMSE</th><th class="n">Poisson RMSE</th><th class="n">GBM RMSE</th>
+          <th>Routed to</th></tr></thead>
+        <tbody>
+        
+          <tr>
+            <td class="role">GK</td>
+            <td class="n">180</td>
+            <td class="n ">2.698</td>
+            <td class="n best">2.491</td>
+            <td class="n ">2.650</td>
+            <td class="role">poisson</td>
+          </tr>
+        
+          <tr>
+            <td class="role">DEF</td>
+            <td class="n">910</td>
+            <td class="n best">3.141</td>
+            <td class="n ">3.400</td>
+            <td class="n ">3.187</td>
+            <td class="role">heuristic</td>
+          </tr>
+        
+          <tr>
+            <td class="role">MID</td>
+            <td class="n">1228</td>
+            <td class="n ">2.874</td>
+            <td class="n ">4.371</td>
+            <td class="n best">2.767</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+          <tr>
+            <td class="role">FWD</td>
+            <td class="n">368</td>
+            <td class="n ">3.515</td>
+            <td class="n ">4.560</td>
+            <td class="n best">3.153</td>
+            <td class="role">gbm</td>
+          </tr>
+        
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Held-out EPL 2024-25, gameweeks 30-38. Lower is better.</p>
+      
+
+      <div class="srule"><h2>Current squad, Quarter-final</h2></div>
+      
+      <div class="provenance">
+        <span>generated <b>2026-07-10T01:52:22+00:00</b></span>
+        <span>XI expected <b>73.3</b></span>
+        <span>budget <b>105.0M</b></span>
+        <span><a href="1237d0b5837d_recommendation_ensemble_QF_2026-07-10T01-52-22Z.json">json</a> <a href="1237d0b5837d_recommendation_ensemble_QF_2026-07-10T01-52-22Z.md">md</a></span>
+      </div>
+      <div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr class="">
+      <td class="role">GK</td>
+      <td>Unai Simón</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.0</td>
+      <td class="n">19%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">4.7</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Aymeric Laporte</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.5</td>
+      <td class="n">20%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.8</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>William Saliba</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">5.3</td>
+      <td class="n">16%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Pau Cubarsí</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.0</td>
+      <td class="n">15%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.4</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Ousmane Dembélé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.0</td>
+      <td class="n">45%</td>
+      <td class="n">6.3</td>
+      <td class="n">1.2</td>
+      <td class="n">8.5</td>
+      <td class="n">12.7</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID V</td>
+      <td>Bukayo Saka</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">9.5</td>
+      <td class="n">5%</td>
+      <td class="n">5.3</td>
+      <td class="n">1.3</td>
+      <td class="n">6.5</td>
+      <td class="n">12.2</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Désiré Doué</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">7.5</td>
+      <td class="n">4%</td>
+      <td class="n">4.0</td>
+      <td class="n">1.0</td>
+      <td class="n">4.7</td>
+      <td class="n">10.0</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Adrien Rabiot</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">6.4</td>
+      <td class="n">1%</td>
+      <td class="n">3.0</td>
+      <td class="n">0.9</td>
+      <td class="n">4.1</td>
+      <td class="n">9.7</td>
+    </tr>
+  
+    <tr class="cap">
+      <td class="role">FWD C</td>
+      <td>Kylian Mbappé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.5</td>
+      <td class="n">70%</td>
+      <td class="n">12.0</td>
+      <td class="n">1.3</td>
+      <td class="n">11.5</td>
+      <td class="n">14.1</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Lionel Messi</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">10.0</td>
+      <td class="n">55%</td>
+      <td class="n">9.3</td>
+      <td class="n">1.1</td>
+      <td class="n">8.0</td>
+      <td class="n">12.3</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Harry Kane</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">10.5</td>
+      <td class="n">45%</td>
+      <td class="n">10.0</td>
+      <td class="n">1.3</td>
+      <td class="n">8.6</td>
+      <td class="n">11.9</td>
+    </tr>
+  
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  
+    <span class="b">1. Baena <i>ESP MID</i></span>
+  
+    <span class="b">2. Tagliafico <i>ARG DEF</i></span>
+  
+    <span class="b">3. Spence <i>ENG DEF</i></span>
+  
+    <span class="b">4. Martínez <i>ARG GK</i></span>
+  
+</div>
+      
+
+      
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th><th class="n">GROUP_MD1</th><th class="n">GROUP_MD2</th><th class="n">GROUP_MD3</th><th class="n">R32</th><th class="n">R16</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">Ensemble realized pts</td>
+            <td class="n">105</td><td class="n">130</td><td class="n">94</td><td class="n">104</td><td class="n">84</td>
+            <td class="n"><b>517</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            <td class="n">33</td><td class="n">84</td><td class="n">40</td><td class="n">83</td><td class="n">0</td>
+            <td class="n">240</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      <div class="caveat"><b>In-sample caveat.</b> The GBM retrains on completed
+      World Cup rounds, so its backtest rows score rounds the model saw during
+      training. Treat these totals as an upper bound; the leak-free numbers live
+      on the <a href="research.html">Research</a> page under walk-forward validation.</div>
+      
+      
+
+    </section>
+  
+  </div>
+</div>
+
+
+
+  <div class="srule"><h2>Data freshness</h2></div>
+  <div class="fresh-grid">
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Squad + fixtures</div>
+        <div class="fa">21s ago &middot; 2026-07-10 01:52 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">GBM retrain</div>
+        <div class="fa">10s ago &middot; 2026-07-10 01:52 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Report + figures</div>
+        <div class="fa">1s ago &middot; 2026-07-10 01:52 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Prediction markets</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:07 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">News feed</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:04 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">News signals</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:05 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Elo ratings</div>
+        <div class="fa">13.9h ago &middot; 2026-07-09 12:00 UTC</div>
+      </div>
+    </div>
+    
+  </div>
+
+  <footer>
+    <span>Rendered on request from the latest artifacts in results/ and data/.</span>
+    <span>Authors A. D. Lopez, D. Guajardo</span>
+  </footer>
+</div>
+
+<script>
+// Deep-linkable tabs: #gbm selects the GBM tab, and switching tabs updates
+// the hash so links can be shared. CSS handles the actual visibility.
+(function () {
+  var keys = ["heuristic","poisson","gbm","monte_carlo","ensemble"];
+  function select(key) {
+    var radio = document.getElementById("tab-" + key);
+    if (radio) radio.checked = true;
+  }
+  var initial = location.hash.replace("#", "");
+  if (keys.indexOf(initial) !== -1) select(initial);
+  keys.forEach(function (key) {
+    var radio = document.getElementById("tab-" + key);
+    if (radio) radio.addEventListener("change", function () {
+      if (radio.checked) history.replaceState(null, "", "#" + key);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

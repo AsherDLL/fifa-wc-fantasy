@@ -3,201 +3,285 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>WC2026 Prediction Desk - Quarter-final</title>
+<title>Overview - WC 2026 Prediction Desk</title>
 <style>
   :root {
-    --paper: #f3efe6;
-    --panel: #faf7f0;
-    --ink: #1b1712;
-    --ink-soft: #6a6155;
-    --line: #d8d0c0;
-    --line-hard: #bdb3a0;
-    --accent: #2f6b3f;
-    --signal: #a8620a;
-    --fresh: #2f6b3f;
-    --warn: #a8620a;
-    --stale: #9c2b2b;
+    --paper: #f6f3ec;
+    --panel: #fffdf8;
+    --ink: #1c1814;
+    --ink-soft: #6d6457;
+    --line: #e0d9c8;
+    --line-hard: #c4baa5;
+    --accent: #1f5f38;
+    --accent-soft: #e7efe6;
+    --risk: #a8620a;
+    --risk-soft: #f7ecdc;
+    --boost: #1f5f38;
+    --boost-soft: #e7efe6;
+    --bad: #9c2b2b;
     --pitch: #24462f;
     --pitch-line: rgba(255,255,255,0.16);
     --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #14130f;
-      --panel: #1c1a15;
-      --ink: #e9e3d5;
-      --ink-soft: #9a9384;
-      --line: #302c24;
-      --line-hard: #423d33;
-      --accent: #6fb884;
-      --signal: #e6a94a;
-      --fresh: #6fb884;
-      --warn: #e6a94a;
-      --stale: #e07a6f;
-      --pitch: #1a3322;
-      --pitch-line: rgba(255,255,255,0.13);
-    }
+    --serif: Charter, "Bitstream Charter", Georgia, Cambria, "Times New Roman", serif;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     font-family: var(--sans); background: var(--paper); color: var(--ink);
-    margin: 0; padding: 0; line-height: 1.45;
+    margin: 0; padding: 0; line-height: 1.5;
     font-feature-settings: "tnum" 1, "cv01" 1;
   }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 64px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px 64px; }
   .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
 
-  /* Masthead */
+  /* Masthead and navigation */
   header.mast {
     display: flex; align-items: flex-end; justify-content: space-between;
     gap: 16px; flex-wrap: wrap;
-    padding: 22px 0 12px; border-bottom: 2px solid var(--ink);
-    margin-bottom: 4px;
+    padding: 24px 0 12px; border-bottom: 2px solid var(--ink);
   }
   .mast .brand { font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    font-size: 0.95rem; }
+    font-size: 1.0rem; }
   .mast .brand small { display: block; font-weight: 500; letter-spacing: 0.28em;
     font-size: 0.62rem; color: var(--ink-soft); margin-top: 3px; }
-  .mast .status { font-family: var(--mono); font-size: 0.72rem; text-align: right;
+  .mast .status { font-family: var(--mono); font-size: 0.7rem; text-align: right;
     color: var(--ink-soft); }
-  .live { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fresh);
-    box-shadow: 0 0 0 0 var(--fresh); animation: pulse 2.4s infinite; }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(111,184,132,0.5); }
-    70% { box-shadow: 0 0 0 6px rgba(111,184,132,0); }
-    100% { box-shadow: 0 0 0 0 rgba(111,184,132,0); }
+  nav.pages { display: flex; gap: 4px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line-hard); margin-bottom: 26px; }
+  nav.pages a {
+    padding: 9px 16px 7px; font-size: 0.74rem; letter-spacing: 0.1em;
+    text-transform: uppercase; text-decoration: none; color: var(--ink-soft);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
   }
-  .subline { display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline;
-    font-size: 0.78rem; color: var(--ink-soft); padding: 8px 0 24px; }
-  .chip { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.04em;
-    text-transform: uppercase; border: 1px solid var(--line-hard); padding: 2px 7px;
-    color: var(--ink); }
-  .chip.stage { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  nav.pages a:hover { color: var(--ink); }
+  nav.pages a.here { color: var(--ink); font-weight: 700;
+    border-bottom-color: var(--accent); }
+  .provenance { font-family: var(--mono); font-size: 0.68rem;
+    color: var(--ink-soft); padding: 0 0 18px; display: flex; gap: 18px;
+    flex-wrap: wrap; }
+  .provenance b { color: var(--ink); font-weight: 600; }
 
-  .empty { color: var(--ink-soft); font-style: italic; padding: 40px 0; }
-
-  /* Section rule */
-  .srule { display: flex; align-items: center; gap: 12px; margin: 34px 0 14px; }
-  .srule h2 { font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase;
+  /* Typography */
+  h1.page { font-family: var(--serif); font-size: 1.7rem; font-weight: 700;
+    margin: 4px 0 6px; letter-spacing: -0.01em; }
+  p.lede { font-family: var(--serif); font-size: 1.02rem; color: var(--ink);
+    max-width: 72ch; margin: 0 0 26px; }
+  .srule { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 14px; }
+  .srule h2 { font-size: 0.76rem; letter-spacing: 0.16em; text-transform: uppercase;
     margin: 0; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
-  .srule::after { content: ""; flex: 1; height: 1px; background: var(--line-hard); }
+  .srule .no { font-family: var(--mono); font-size: 0.7rem; color: var(--line-hard); }
+  .srule::after { content: ""; flex: 1; height: 1px; background: var(--line-hard);
+    align-self: center; }
+  .prose { font-family: var(--serif); max-width: 76ch; font-size: 0.96rem; }
+  .prose p { margin: 0 0 12px; }
+  .note { font-size: 0.8rem; color: var(--ink-soft); max-width: 80ch; }
+  .caveat { border-left: 3px solid var(--risk); background: var(--risk-soft);
+    padding: 10px 14px; font-size: 0.84rem; max-width: 80ch; margin: 14px 0; }
+  .caveat b { color: var(--risk); }
 
-  /* Featured pick */
-  .pick { border: 1px solid var(--line-hard); background: var(--panel); }
-  .pick .head { display: flex; justify-content: space-between; align-items: baseline;
+  /* Panels and tiles */
+  .panel { border: 1px solid var(--line-hard); background: var(--panel); }
+  .panel .head { display: flex; justify-content: space-between; align-items: baseline;
     gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--line); }
-  .pick .head h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; }
-  .pick .head .meta { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); }
+  .panel .head h2 { font-family: var(--serif); font-size: 1.3rem; margin: 0; }
+  .panel .head .meta { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); }
+  .official { border-left: 4px solid var(--accent); }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 0.64rem;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px;
+    border: 1px solid var(--line-hard); color: var(--ink-soft); }
+  .badge.official-badge { background: var(--accent); border-color: var(--accent);
+    color: #fff; }
+  .badge.shipped { color: var(--accent); border-color: var(--accent); }
+  .badge.experimental { color: var(--risk); border-color: var(--risk); }
+  .badge.rejected { color: var(--bad); border-color: var(--bad); }
+  .badge.superseded { color: var(--ink-soft); }
 
-  /* Stat strip */
-  .stats { display: grid; grid-template-columns: repeat(5, 1fr);
+  .tiles { display: grid; grid-template-columns: repeat(6, 1fr);
     border-bottom: 1px solid var(--line); }
-  .stat { padding: 12px 16px; border-left: 1px solid var(--line); }
-  .stat:first-child { border-left: 0; }
-  .stat .k { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
+  .tile { padding: 12px 16px; border-left: 1px solid var(--line); }
+  .tile:first-child { border-left: 0; }
+  .tile .k { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
     color: var(--ink-soft); }
-  .stat .v { font-family: var(--mono); font-variant-numeric: tabular-nums;
-    font-size: 1.24rem; margin-top: 4px; line-height: 1.1; }
-  .stat .v small { font-size: 0.72rem; color: var(--ink-soft); }
-  .stat.cap .v { color: var(--signal); }
-  @media (max-width: 720px) {
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .stat { border-top: 1px solid var(--line); }
-  }
+  .tile .v { font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 1.22rem; margin-top: 4px; line-height: 1.1; }
+  .tile .v small { font-size: 0.72rem; color: var(--ink-soft); }
+  @media (max-width: 860px) { .tiles { grid-template-columns: repeat(3, 1fr); }
+    .tile { border-top: 1px solid var(--line); } }
 
-  .body2 { display: grid; grid-template-columns: 340px 1fr; gap: 0; }
-  @media (max-width: 860px) { .body2 { grid-template-columns: 1fr; } }
-
-  /* Pitch */
-  .pitch { background: var(--pitch); padding: 16px 10px; position: relative;
-    border-right: 1px solid var(--line); overflow: hidden; }
-  @media (max-width: 860px) { .pitch { border-right: 0; border-bottom: 1px solid var(--line); } }
-  .pitch::before { content: ""; position: absolute; inset: 10px;
-    border: 1px solid var(--pitch-line); pointer-events: none; }
-  .pitch::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%;
-    height: 0; border-top: 1px solid var(--pitch-line); pointer-events: none; }
-  .line { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
-    position: relative; z-index: 1; margin: 10px 0; }
-  .p {
-    background: var(--panel); color: var(--ink); border: 1px solid var(--line-hard);
-    min-width: 76px; max-width: 96px; padding: 5px 6px; text-align: center;
-  }
-  .p .nm { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; }
-  .p .sub { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-soft);
-    margin-top: 2px; display: flex; justify-content: space-between; gap: 4px; }
-  .p .ceil { color: var(--signal); font-weight: 700; }
-  .p.captain { border-color: var(--signal); border-width: 2px; padding: 4px 5px; }
-  .p .tag { position: relative; }
-  .p .tag b { position: absolute; top: -13px; right: -8px; font-family: var(--mono);
-    font-size: 0.58rem; background: var(--signal); color: #fff; padding: 0 3px; }
-  .p.vice .tag b { background: var(--ink-soft); }
-
-  /* Starters table */
+  /* Tables */
   .tbl-wrap { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
   th, td { padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--line);
     white-space: nowrap; }
   thead th { font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase;
     color: var(--ink-soft); font-weight: 700; border-bottom: 1px solid var(--line-hard); }
-  td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  td.ceil { color: var(--signal); font-weight: 700; }
-  tr.cap td { background: color-mix(in srgb, var(--signal) 10%, transparent); }
-  tr.cap td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
+  td.n, th.n { text-align: right; font-family: var(--mono);
+    font-variant-numeric: tabular-nums; }
+  td.wraps { white-space: normal; min-width: 260px; max-width: 480px; }
+  tr.cap td { background: color-mix(in srgb, var(--risk) 9%, transparent); }
+  tr.cap td:first-child { box-shadow: inset 3px 0 0 var(--risk); }
+  td.best { font-weight: 700; color: var(--accent); }
   .role { font-family: var(--mono); font-size: 0.64rem; color: var(--ink-soft);
     text-transform: uppercase; letter-spacing: 0.05em; }
-  .otw { color: var(--signal); font-family: var(--mono); font-size: 0.6rem; margin-left: 5px; }
-  .flag-out { color: var(--stale); font-family: var(--mono); font-size: 0.6rem; margin-left: 5px; }
+  .flag-out { color: var(--bad); font-family: var(--mono); font-size: 0.6rem;
+    margin-left: 5px; }
+  .otw { color: var(--risk); font-family: var(--mono); font-size: 0.6rem;
+    margin-left: 5px; }
 
+  /* Pitch */
+  .body2 { display: grid; grid-template-columns: 340px 1fr; gap: 0; }
+  @media (max-width: 860px) { .body2 { grid-template-columns: 1fr; } }
+  .pitch { background: var(--pitch); padding: 16px 10px; position: relative;
+    border-right: 1px solid var(--line); overflow: hidden; }
+  @media (max-width: 860px) { .pitch { border-right: 0;
+    border-bottom: 1px solid var(--line); } }
+  .pitch::before { content: ""; position: absolute; inset: 10px;
+    border: 1px solid var(--pitch-line); pointer-events: none; }
+  .pitch::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%;
+    height: 0; border-top: 1px solid var(--pitch-line); pointer-events: none; }
+  .line { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    position: relative; z-index: 1; margin: 10px 0; }
+  .p { background: var(--panel); color: var(--ink); border: 1px solid var(--line-hard);
+    min-width: 76px; max-width: 96px; padding: 5px 6px; text-align: center; }
+  .p .nm { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; }
+  .p .sub { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-soft);
+    margin-top: 2px; display: flex; justify-content: space-between; gap: 4px; }
+  .p .ceil { color: var(--risk); font-weight: 700; }
+  .p.captain { border-color: var(--risk); border-width: 2px; padding: 4px 5px; }
+  .p .tag { position: relative; }
+  .p .tag b { position: absolute; top: -13px; right: -8px; font-family: var(--mono);
+    font-size: 0.58rem; background: var(--risk); color: #fff; padding: 0 3px; }
+  .p.vice .tag b { background: var(--ink-soft); }
   .bench { padding: 10px 12px; border-top: 1px solid var(--line); font-size: 0.78rem; }
   .bench .lbl { font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase;
     color: var(--ink-soft); margin-right: 8px; }
   .bench span.b { font-family: var(--mono); margin-right: 14px; }
   .bench span.b i { font-style: normal; color: var(--ink-soft); }
-
   .capnote { padding: 10px 18px; border-top: 1px solid var(--line);
     font-size: 0.78rem; color: var(--ink-soft); }
   .capnote b { color: var(--ink); }
 
-  /* Transfers */
-  .xfer { padding: 12px 18px; border-top: 1px solid var(--line); font-size: 0.8rem; }
-  .xfer .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 6px; }
-  .xfer ul { margin: 4px 0 0; padding-left: 16px; }
-  .xfer .in b { color: var(--accent); }
-  .xfer .out b { color: var(--stale); }
+  /* Signals */
+  .sig-strip { border: 1px solid var(--line-hard); background: var(--panel); }
+  .sig-row { display: grid; grid-template-columns: auto auto 1fr auto;
+    gap: 14px; align-items: baseline; padding: 8px 14px;
+    border-bottom: 1px solid var(--line); font-size: 0.8rem; }
+  .sig-row:last-child { border-bottom: 0; }
+  .sig-row.risk { box-shadow: inset 3px 0 0 var(--risk); background: var(--risk-soft); }
+  .sig-row.boost { box-shadow: inset 3px 0 0 var(--boost); background: var(--boost-soft); }
+  .sig-row .who { font-weight: 600; white-space: nowrap; }
+  .sig-row .what { font-family: var(--mono); font-size: 0.66rem;
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .sig-row.risk .what { color: var(--risk); }
+  .sig-row.boost .what { color: var(--boost); }
+  .sig-row .ev { color: var(--ink-soft); overflow: hidden; white-space: nowrap;
+    text-overflow: ellipsis; }
+  .sig-row .age { font-family: var(--mono); font-size: 0.66rem;
+    color: var(--ink-soft); white-space: nowrap; }
 
-  /* Freshness */
+  /* Figures */
+  figure.fig { margin: 18px 0 26px; border: 1px solid var(--line);
+    background: var(--panel); padding: 14px; }
+  figure.fig svg { max-width: 100%; height: auto; }
+  figure.fig figcaption { font-size: 0.78rem; color: var(--ink-soft);
+    padding-top: 10px; border-top: 1px solid var(--line); margin-top: 10px;
+    max-width: 90ch; }
+  figure.fig figcaption b { color: var(--ink); }
+  figure.formula { margin: 12px 0; padding: 12px 16px; border: 1px solid var(--line);
+    background: var(--panel); overflow-x: auto; }
+  figure.formula svg { max-width: 100%; height: auto; display: block; }
+  pre.formula-text { font-family: var(--mono); font-size: 0.74rem;
+    background: var(--paper); border: 1px solid var(--line); padding: 10px 12px;
+    overflow-x: auto; margin: 8px 0 0; line-height: 1.55; }
+
+  /* Algorithm tabs (CSS only; JS adds hash deep-linking) */
+  .tabset > input { display: none; }
+  .tabbar { display: flex; gap: 2px; flex-wrap: wrap;
+    border-bottom: 2px solid var(--ink); }
+  .tabbar label { padding: 9px 16px 7px; cursor: pointer; font-size: 0.74rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft);
+    border: 1px solid transparent; border-bottom: 0; }
+  .tabbar label:hover { color: var(--ink); }
+  .tabpanels > section { display: none; padding: 20px 0 0; }
+  #tab-heuristic:checked ~ .tabbar label[for="tab-heuristic"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-heuristic:checked ~ .tabpanels #panel-heuristic { display: block; }
+  #tab-poisson:checked ~ .tabbar label[for="tab-poisson"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-poisson:checked ~ .tabpanels #panel-poisson { display: block; }
+  #tab-gbm:checked ~ .tabbar label[for="tab-gbm"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-gbm:checked ~ .tabpanels #panel-gbm { display: block; }
+  #tab-monte_carlo:checked ~ .tabbar label[for="tab-monte_carlo"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-monte_carlo:checked ~ .tabpanels #panel-monte_carlo { display: block; }
+  #tab-ensemble:checked ~ .tabbar label[for="tab-ensemble"] {
+    color: var(--ink); font-weight: 700; background: var(--panel);
+    border-color: var(--ink); position: relative; top: 0; }
+  #tab-ensemble:checked ~ .tabpanels #panel-ensemble { display: block; }
+  
+
+  /* Intelligence filters */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin: 10px 0 14px; }
+  .filters input[type=search] { font: inherit; font-size: 0.82rem;
+    padding: 6px 10px; border: 1px solid var(--line-hard);
+    background: var(--panel); color: var(--ink); min-width: 220px; }
+  .filters button { font: inherit; font-size: 0.7rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+    border: 1px solid var(--line-hard); background: var(--panel);
+    color: var(--ink-soft); }
+  .filters button.on { color: #fff; background: var(--ink); border-color: var(--ink); }
+
+  /* Timeline */
+  ol.timeline { list-style: none; margin: 0; padding: 0 0 0 2px; }
+  ol.timeline li { display: grid; grid-template-columns: 110px 1fr; gap: 16px;
+    padding: 10px 0; border-bottom: 1px solid var(--line); }
+  ol.timeline .d { font-family: var(--mono); font-size: 0.74rem;
+    color: var(--ink-soft); padding-top: 2px; }
+  ol.timeline .t b { font-family: var(--serif); font-size: 0.98rem; }
+  ol.timeline .t p { margin: 2px 0 0; font-size: 0.86rem; color: var(--ink-soft);
+    max-width: 78ch; }
+
+  /* History */
+  details.hist { border: 1px solid var(--line); background: var(--panel);
+    margin-bottom: 8px; }
+  details.hist > summary { cursor: pointer; padding: 8px 14px;
+    font-family: var(--mono); font-size: 0.74rem; list-style: none;
+    display: flex; justify-content: space-between; }
+  details.hist > summary::-webkit-details-marker { display: none; }
+  details.hist[open] > summary { border-bottom: 1px solid var(--line); }
+  .hrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
+    align-items: baseline; padding: 6px 14px; border-bottom: 1px solid var(--line);
+    font-size: 0.76rem; }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow .hm { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); }
+  .hrow a { font-family: var(--mono); font-size: 0.68rem; text-decoration: none; }
+  .hrow a:hover { text-decoration: underline; }
+
+  /* Freshness footer */
   .fresh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1px; background: var(--line); border: 1px solid var(--line); }
-  .fcell { background: var(--panel); padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .fcell { background: var(--panel); padding: 10px 14px; display: flex;
+    align-items: center; gap: 10px; }
   .fcell .fdot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  .fcell.fresh .fdot { background: var(--fresh); }
-  .fcell.warn .fdot { background: var(--warn); }
-  .fcell.stale .fdot { background: var(--stale); }
+  .fcell.fresh .fdot { background: var(--accent); }
+  .fcell.warn .fdot { background: var(--risk); }
+  .fcell.stale .fdot { background: var(--bad); }
   .fcell.missing .fdot { background: var(--line-hard); }
   .fcell .ft { line-height: 1.25; }
   .fcell .ft .fl { font-size: 0.74rem; }
   .fcell .ft .fa { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-soft); }
 
-  /* History */
-  details.hist { border: 1px solid var(--line); background: var(--panel); margin-bottom: 8px; }
-  details.hist > summary { cursor: pointer; padding: 8px 14px; font-family: var(--mono);
-    font-size: 0.74rem; list-style: none; display: flex; justify-content: space-between; }
-  details.hist > summary::-webkit-details-marker { display: none; }
-  details.hist[open] > summary { border-bottom: 1px solid var(--line); }
-  .hrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: baseline;
-    padding: 6px 14px; border-bottom: 1px solid var(--line); font-size: 0.76rem; }
-  .hrow:last-child { border-bottom: 0; }
-  .hrow .hm { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); }
-  .hrow a { color: var(--accent); text-decoration: none; font-family: var(--mono);
-    font-size: 0.68rem; }
-  .hrow a:hover { text-decoration: underline; }
-
-  footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line);
+  .empty { color: var(--ink-soft); font-style: italic; padding: 24px 0; }
+  footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--line);
     font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 </style>
@@ -206,376 +290,877 @@
 <div class="wrap">
 
   <header class="mast">
-    <div class="brand">WC2026 Prediction Desk<small>FIFA Fantasy World Cup 2026</small></div>
+    <div class="brand">WC 2026 Prediction Desk<small>FIFA Fantasy World Cup 2026</small></div>
     <div class="status">
-      <div>computed 2026-07-08T11:42:38+00:00</div>
-      <div>rendered 2026-07-08 11:42:38 UTC</div>
+      <div>Quarter-final</div>
+      <div>rendered 2026-07-10 01:52:26 UTC</div>
     </div>
   </header>
 
-  <div class="subline">
-    <span class="chip stage">Quarter-final</span>
-    <span>37 runs archived across 5 stages</span>
+  <nav class="pages">
+    <a href="index.html" class="here">Overview</a>
+    <a href="algorithms.html" class="">Algorithms</a>
+    <a href="intelligence.html" class="">Intelligence</a>
+    <a href="research.html" class="">Research</a>
+  </nav>
+
+  
+
+
+
+<div class="provenance">
+  <span>official backend <b>ensemble</b></span>
+  <span>run <b>2026-07-10T01:52:22+00:00</b></span>
+  
+  <span>source <a href="1237d0b5837d_recommendation_ensemble_QF_2026-07-10T01-52-22Z.json">json</a> <a href="1237d0b5837d_recommendation_ensemble_QF_2026-07-10T01-52-22Z.md">md</a></span>
+</div>
+
+
+
+
+<div class="panel official">
+  <div class="head">
+    <h2>Official squad <span class="badge official-badge">Quarter-final</span></h2>
+    <div class="meta">ensemble
+      &middot; generated 2026-07-10T01:52:22+00:00</div>
   </div>
 
-  
-
-  
-  <div class="pick">
-    <div class="head">
-      <h1>Current pick: Quarter-final</h1>
-      <div class="meta">ensemble
-        &middot; 2026-07-08T11:42:38+00:00</div>
+  <div class="tiles">
+    <div class="tile">
+      <div class="k">Budget</div>
+      <div class="v">105.0<small> / 105M</small></div>
     </div>
-
-    <div class="stats">
-      <div class="stat">
-        <div class="k">Budget</div>
-        <div class="v">104.9<small> / 105M</small></div>
-      </div>
-      <div class="stat">
-        <div class="k">Formation</div>
-        <div class="v">3-4-3</div>
-      </div>
-      <div class="stat">
-        <div class="k">XI expected</div>
-        <div class="v">73.4</div>
-      </div>
-      <div class="stat">
-        <div class="k">Horizon expected</div>
-        <div class="v">90.7</div>
-      </div>
-      
-      <div class="stat cap">
-        <div class="k">Captain ceiling</div>
-        <div class="v">14.3<small> Mbappé</small></div>
-      </div>
-      
+    <div class="tile">
+      <div class="k">Formation</div>
+      <div class="v">3-4-3</div>
     </div>
-
-    <div class="body2">
-      
-      <div class="pitch">
-        
-          
-          <div class="line">
-            
-              <div class="p captain">
-                <div class="tag"><b>C</b></div>
-                <div class="nm">Mbappé</div>
-                <div class="sub">
-                  <span>FRA</span>
-                  <span class="ceil">14.3</span>
-                </div>
-              </div>
-            
-              <div class="p vice">
-                <div class="tag"><b>V</b></div>
-                <div class="nm">Messi</div>
-                <div class="sub">
-                  <span>ARG</span>
-                  <span class="ceil">13.1</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Martínez</div>
-                <div class="sub">
-                  <span>ARG</span>
-                  <span class="ceil">9.4</span>
-                </div>
-              </div>
-            
-          </div>
-          
-        
-          
-          <div class="line">
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Dembélé</div>
-                <div class="sub">
-                  <span>FRA</span>
-                  <span class="ceil">13.9</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Saka</div>
-                <div class="sub">
-                  <span>ENG</span>
-                  <span class="ceil">11.9</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Doué</div>
-                <div class="sub">
-                  <span>FRA</span>
-                  <span class="ceil">10.4</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Baena</div>
-                <div class="sub">
-                  <span>ESP</span>
-                  <span class="ceil">8.4</span>
-                </div>
-              </div>
-            
-          </div>
-          
-        
-          
-          <div class="line">
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Koundé</div>
-                <div class="sub">
-                  <span>FRA</span>
-                  <span class="ceil">3.7</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Upamecano</div>
-                <div class="sub">
-                  <span>FRA</span>
-                  <span class="ceil">3.6</span>
-                </div>
-              </div>
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Cucurella</div>
-                <div class="sub">
-                  <span>ESP</span>
-                  <span class="ceil">3.5</span>
-                </div>
-              </div>
-            
-          </div>
-          
-        
-          
-          <div class="line">
-            
-              <div class="p ">
-                <div class="tag"></div>
-                <div class="nm">Simón</div>
-                <div class="sub">
-                  <span>ESP</span>
-                  <span class="ceil">4.7</span>
-                </div>
-              </div>
-            
-          </div>
-          
-        
-      </div>
-
-      
-      <div>
-        <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
-              <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
-              <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
-            </tr>
-          </thead>
-          <tbody>
-          
-            <tr class="">
-              <td class="role">GK</td>
-              <td>Unai Simón</td>
-              <td class="num">ESP</td>
-              <td class="num">v BEL</td>
-              <td class="n">5.0</td>
-              <td class="n">15%</td>
-              <td class="n">7.0</td>
-              <td class="n">-</td>
-              <td class="n">4.7</td>
-              <td class="n ceil">-</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">DEF</td>
-              <td>Jules Koundé</td>
-              <td class="num">FRA</td>
-              <td class="num">v MAR</td>
-              <td class="n">5.4</td>
-              <td class="n">10%</td>
-              <td class="n">5.3</td>
-              <td class="n">-</td>
-              <td class="n">3.7</td>
-              <td class="n ceil">-</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">DEF</td>
-              <td>Dayot Upamecano</td>
-              <td class="num">FRA</td>
-              <td class="num">v MAR</td>
-              <td class="n">5.3</td>
-              <td class="n">11%</td>
-              <td class="n">5.3</td>
-              <td class="n">-</td>
-              <td class="n">3.6</td>
-              <td class="n ceil">-</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">DEF</td>
-              <td>Marc Cucurella</td>
-              <td class="num">ESP</td>
-              <td class="num">v BEL</td>
-              <td class="n">5.1</td>
-              <td class="n">43%</td>
-              <td class="n">9.0</td>
-              <td class="n">-</td>
-              <td class="n">3.5</td>
-              <td class="n ceil">-</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">MID</td>
-              <td>Ousmane Dembélé</td>
-              <td class="num">FRA</td>
-              <td class="num">v MAR</td>
-              <td class="n">10.0</td>
-              <td class="n">43%</td>
-              <td class="n">9.7</td>
-              <td class="n">1.2</td>
-              <td class="n">8.7</td>
-              <td class="n ceil">13.9</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">MID</td>
-              <td>Bukayo Saka</td>
-              <td class="num">ENG</td>
-              <td class="num">@ NOR</td>
-              <td class="n">9.5</td>
-              <td class="n">4%</td>
-              <td class="n">5.3</td>
-              <td class="n">1.1</td>
-              <td class="n">6.7</td>
-              <td class="n ceil">11.9</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">MID</td>
-              <td>Désiré Doué</td>
-              <td class="num">FRA</td>
-              <td class="num">v MAR</td>
-              <td class="n">7.5</td>
-              <td class="n">3%</td>
-              <td class="n">4.7</td>
-              <td class="n">1.0</td>
-              <td class="n">5.2</td>
-              <td class="n ceil">10.4</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">MID</td>
-              <td>Álex Baena</td>
-              <td class="num">ESP</td>
-              <td class="num">v BEL</td>
-              <td class="n">6.0</td>
-              <td class="n">4%</td>
-              <td class="n">7.3</td>
-              <td class="n">1.0</td>
-              <td class="n">4.3</td>
-              <td class="n ceil">8.4</td>
-            </tr>
-          
-            <tr class="cap">
-              <td class="role">FWD C</td>
-              <td>Kylian Mbappé</td>
-              <td class="num">FRA</td>
-              <td class="num">v MAR</td>
-              <td class="n">10.5</td>
-              <td class="n">70%</td>
-              <td class="n">10.7</td>
-              <td class="n">1.3</td>
-              <td class="n">11.4</td>
-              <td class="n ceil">14.3</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">FWD V</td>
-              <td>Lionel Messi</td>
-              <td class="num">ARG</td>
-              <td class="num">v SUI</td>
-              <td class="n">10.0</td>
-              <td class="n">54%</td>
-              <td class="n">9.3</td>
-              <td class="n">1.2</td>
-              <td class="n">8.1</td>
-              <td class="n ceil">13.1</td>
-            </tr>
-          
-            <tr class="">
-              <td class="role">FWD</td>
-              <td>Lautaro Martínez</td>
-              <td class="num">ARG</td>
-              <td class="num">v SUI</td>
-              <td class="n">8.8</td>
-              <td class="n">3%</td>
-              <td class="n">5.0</td>
-              <td class="n">1.1</td>
-              <td class="n">5.6</td>
-              <td class="n ceil">9.4</td>
-            </tr>
-          
-          </tbody>
-        </table>
-        </div>
-
-        <div class="bench">
-          <span class="lbl">Bench</span>
-          
-            <span class="b">1. Hernández Cascante <i>ESP MID</i></span>
-          
-            <span class="b">2. Cubarsí <i>ESP DEF</i></span>
-          
-            <span class="b">3. Tagliafico <i>ARG DEF</i></span>
-          
-            <span class="b">4. Martínez <i>ARG GK</i></span>
-          
-        </div>
-      </div>
+    <div class="tile">
+      <div class="k">XI expected</div>
+      <div class="v">73.3</div>
     </div>
-
-    
-    <div class="capnote">
-      Captaining <b>Kylian Mbappé</b> (FRA):
-      mean 11.4, ceiling
-      14.3.
-      Chasing rewards the ceiling, so the pick leans on the q90 head, not the average.
-      Vice: <b>Lionel Messi</b>.
+    <div class="tile">
+      <div class="k">Horizon expected</div>
+      <div class="v">87.9</div>
     </div>
     
-
+    <div class="tile">
+      <div class="k">Captain ceiling</div>
+      <div class="v">14.1<small> Mbappé</small></div>
+    </div>
     
-
-    <div class="links" style="padding:10px 18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:0.7rem;">
-      <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.json" style="color:var(--accent);text-decoration:none;margin-right:16px;">json</a>
-      <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.md" style="color:var(--accent);text-decoration:none;">markdown</a>
+    <div class="tile">
+      <div class="k">Backend agreement</div>
+      <div class="v">8<small> / 15 across 4 backends</small></div>
     </div>
   </div>
 
+  <div class="body2">
+    <div class="pitch">
   
+    
+    <div class="line">
+      
+        <div class="p captain">
+          <div class="tag"><b>C</b></div>
+          <div class="nm">Mbappé</div>
+          <div class="sub">
+            <span>FRA</span>
+            <span class="ceil">14.1</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Messi</div>
+          <div class="sub">
+            <span>ARG</span>
+            <span class="ceil">12.3</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Kane</div>
+          <div class="sub">
+            <span>ENG</span>
+            <span class="ceil">11.9</span>
+          </div>
+        </div>
+      
+    </div>
+    
+  
+    
+    <div class="line">
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Dembélé</div>
+          <div class="sub">
+            <span>FRA</span>
+            <span class="ceil">12.7</span>
+          </div>
+        </div>
+      
+        <div class="p vice">
+          <div class="tag"><b>V</b></div>
+          <div class="nm">Saka</div>
+          <div class="sub">
+            <span>ENG</span>
+            <span class="ceil">12.2</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Doué</div>
+          <div class="sub">
+            <span>FRA</span>
+            <span class="ceil">10.0</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Rabiot</div>
+          <div class="sub">
+            <span>FRA</span>
+            <span class="ceil">9.7</span>
+          </div>
+        </div>
+      
+    </div>
+    
+  
+    
+    <div class="line">
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Laporte</div>
+          <div class="sub">
+            <span>ESP</span>
+            <span class="ceil">3.8</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Saliba</div>
+          <div class="sub">
+            <span>FRA</span>
+            <span class="ceil">3.6</span>
+          </div>
+        </div>
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Cubarsí</div>
+          <div class="sub">
+            <span>ESP</span>
+            <span class="ceil">3.4</span>
+          </div>
+        </div>
+      
+    </div>
+    
+  
+    
+    <div class="line">
+      
+        <div class="p ">
+          <div class="tag"></div>
+          <div class="nm">Simón</div>
+          <div class="sub">
+            <span>ESP</span>
+            <span class="ceil">4.7</span>
+          </div>
+        </div>
+      
+    </div>
+    
+  
+</div>
+    <div><div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr class="">
+      <td class="role">GK</td>
+      <td>Unai Simón</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.0</td>
+      <td class="n">19%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">4.7</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Aymeric Laporte</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.5</td>
+      <td class="n">20%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.8</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>William Saliba</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">5.3</td>
+      <td class="n">16%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.6</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">DEF</td>
+      <td>Pau Cubarsí</td>
+      <td class="num">ESP</td>
+      <td class="num">v BEL</td>
+      <td class="n">5.0</td>
+      <td class="n">15%</td>
+      <td class="n">7.0</td>
+      <td class="n">-</td>
+      <td class="n">3.4</td>
+      <td class="n">-</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Ousmane Dembélé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.0</td>
+      <td class="n">45%</td>
+      <td class="n">6.3</td>
+      <td class="n">1.2</td>
+      <td class="n">8.5</td>
+      <td class="n">12.7</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID V</td>
+      <td>Bukayo Saka</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">9.5</td>
+      <td class="n">5%</td>
+      <td class="n">5.3</td>
+      <td class="n">1.3</td>
+      <td class="n">6.5</td>
+      <td class="n">12.2</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Désiré Doué</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">7.5</td>
+      <td class="n">4%</td>
+      <td class="n">4.0</td>
+      <td class="n">1.0</td>
+      <td class="n">4.7</td>
+      <td class="n">10.0</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">MID</td>
+      <td>Adrien Rabiot</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">6.4</td>
+      <td class="n">1%</td>
+      <td class="n">3.0</td>
+      <td class="n">0.9</td>
+      <td class="n">4.1</td>
+      <td class="n">9.7</td>
+    </tr>
+  
+    <tr class="cap">
+      <td class="role">FWD C</td>
+      <td>Kylian Mbappé</td>
+      <td class="num">FRA</td>
+      <td class="num">v MAR</td>
+      <td class="n">10.5</td>
+      <td class="n">70%</td>
+      <td class="n">12.0</td>
+      <td class="n">1.3</td>
+      <td class="n">11.5</td>
+      <td class="n">14.1</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Lionel Messi</td>
+      <td class="num">ARG</td>
+      <td class="num">v SUI</td>
+      <td class="n">10.0</td>
+      <td class="n">55%</td>
+      <td class="n">9.3</td>
+      <td class="n">1.1</td>
+      <td class="n">8.0</td>
+      <td class="n">12.3</td>
+    </tr>
+  
+    <tr class="">
+      <td class="role">FWD</td>
+      <td>Harry Kane</td>
+      <td class="num">ENG</td>
+      <td class="num">@ NOR</td>
+      <td class="n">10.5</td>
+      <td class="n">45%</td>
+      <td class="n">10.0</td>
+      <td class="n">1.3</td>
+      <td class="n">8.6</td>
+      <td class="n">11.9</td>
+    </tr>
+  
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  
+    <span class="b">1. Baena <i>ESP MID</i></span>
+  
+    <span class="b">2. Tagliafico <i>ARG DEF</i></span>
+  
+    <span class="b">3. Spence <i>ENG DEF</i></span>
+  
+    <span class="b">4. Martínez <i>ARG GK</i></span>
+  
+</div></div>
+  </div>
+
+  
+  <div class="capnote">
+    Captaining <b>Kylian Mbappé</b> (FRA).
+    Mean 11.5, ceiling
+    14.1.
+    Chasing rewards the ceiling, so the pick leans on the q90 head rather than the average.
+    Vice <b>Bukayo Saka</b>.
+  </div>
+  
+
+  
+</div>
+
+
+<div class="srule"><h2>Squad intelligence, last 3 days</h2></div>
+
+<div class="sig-strip">
+  
+<div class="sig-row risk">
+  <span class="who">Lionel Messi <span class="role">ARG FWD</span></span>
+  <span class="what">injury &times;46</span>
+  <span class="ev">low to his left, before finding a goal in the second that proved crucial in progression. Knockout bracket and fixtures World Cup 2026 fixture schedule - your day-by-day guide Latest World Cup news Download the Sky Sport</span>
+  <span class="age"><a href="https://www.skysports.com/football/news/12040/13562058/kylian-mbappe-produces-a-copy-paste-performance-as-his-world-cup-battle-with-lionel-messi-continues-to-produce-magic">skysports</a> 1.7h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Harry Kane <span class="role">ENG FWD</span></span>
+  <span class="what">suspension &times;32</span>
+  <span class="ev">, Jude Bellingham , Nico O'Reilly and Harry Kane are the England players at risk of being suspended. Tuchel is already facing enough problems at right-back with Reece James in a race against time to be fit, while Djed Sp</span>
+  <span class="age"><a href="https://www.mirror.co.uk/sport/football/news/thomas-tuchel-jarell-quansah-england-37411739">mirror_football</a> 7.7h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Djed Spence <span class="role">ENG DEF</span></span>
+  <span class="what">injury &times;28</span>
+  <span class="ev">obah, who can also play at full-back, being called up as his replacement. When you add in injuries and suspension, Djed Spence was potentially the only natural right-back available for Norway. Guehi's fitness is another</span>
+  <span class="age"><a href="https://www.bbc.co.uk/sport/football/articles/c3eyqdwq392o?at_medium=RSS&at_campaign=rss">bbc</a> 3.3h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Harry Kane <span class="role">ENG FWD</span></span>
+  <span class="what">injury &times;21</span>
+  <span class="ev">Kane 's sword, here are the minutes in which each African side conceded to go home in the knock-out phases of the 2026 World Cup . Shockingly, no African side conceded the goal that sent them home before the 86th minute</span>
+  <span class="age"><a href="https://www.fourfourtwo.com/competition/the-minute-in-which-every-eliminated-african-team-conceded-and-went-home-at-the-2026-world-cup">fourfourtwo</a> 4.8h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Kylian Mbappé <span class="role">FRA FWD</span></span>
+  <span class="what">injury &times;19</span>
+  <span class="ev">his. None as neck and neck as what we are witnessing here. The question is, who lands the knockout blow? Among the fans of Mbappe across this summer's tournament is Sky Sports' Roy Keane. The Irishman waxed lyrical about</span>
+  <span class="age"><a href="https://www.skysports.com/football/news/12040/13562058/kylian-mbappe-produces-a-copy-paste-performance-as-his-world-cup-battle-with-lionel-messi-continues-to-produce-magic">skysports</a> 1.7h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Djed Spence <span class="role">ENG DEF</span></span>
+  <span class="what">suspension &times;16</span>
+  <span class="ev">also play at full-back, being called up as his replacement. When you add in injuries and suspension, Djed Spence was potentially the only natural right-back available for Norway. Guehi's fitness is another headache. Joh</span>
+  <span class="age"><a href="https://www.bbc.co.uk/sport/football/articles/c3eyqdwq392o?at_medium=RSS&at_campaign=rss">bbc</a> 3.3h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Lionel Messi <span class="role">ARG FWD</span></span>
+  <span class="what">suspension &times;13</span>
+  <span class="ev">rnament. Perhaps none bigger than the decision made to suspend USMNT's Folarin Balogun 's red card so that he could suit up in a crucial knockout game for the host nation after an intervention from President Donald Trump</span>
+  <span class="age"><a href="https://talksport.com/football/world-cup/4402420/emmanuel-petit-slams-hydration-breaks-halftime-show-final/">talksport</a> 10.8h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Lionel Messi <span class="role">ARG FWD</span></span>
+  <span class="what">fitness doubt &times;9</span>
+  <span class="ev">S. crest had a reaction that fell somewhere in that range. But, ya know what? I have zero doubt the very next day, less than 24 hours later, that same kid was glued to a screen watching Messi pull off more of Messi stuff</span>
+  <span class="age"><a href="https://bobsturm.substack.com/p/world-cup-journal-match-day-28">bobsturm</a> 9.3h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Bukayo Saka <span class="role">ENG MID</span></span>
+  <span class="what">suspension &times;6</span>
+  <span class="ev">ious' Bukayo Saka has provided the England dressing room response to Jarell Quansah being suspended for two games (Image: (Photo by Richard Pelham/Getty Images)) Bukayo Saka has revealed it is "incredibly frustrating" fo</span>
+  <span class="age"><a href="https://www.mirror.co.uk/sport/football/news/bukayo-saka-jarell-quansah-england-37412001">mirror_football</a> 5.8h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Kylian Mbappé <span class="role">FRA FWD</span></span>
+  <span class="what">suspension &times;5</span>
+  <span class="ev">rnament. Perhaps none bigger than the decision made to suspend USMNT's Folarin Balogun 's red card so that he could suit up in a crucial knockout game for the host nation after an intervention from President Donald Trump</span>
+  <span class="age"><a href="https://talksport.com/football/world-cup/4402420/emmanuel-petit-slams-hydration-breaks-halftime-show-final/">talksport</a> 10.8h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Bukayo Saka <span class="role">ENG MID</span></span>
+  <span class="what">injury &times;5</span>
+  <span class="ev">rday (22:00 BST). Stones came on as a second-half substitute against Mexico Henderson not ruled out of World Cup despite breaking arm World Cup 2026 knockout path How to watch the World Cup on the BBC and ITV Everything</span>
+  <span class="age"><a href="https://www.bbc.co.uk/sport/football/articles/cdej0znl156o?at_medium=RSS&at_campaign=rss">bbc</a> 15.0h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Djed Spence <span class="role">ENG DEF</span></span>
+  <span class="what">fitness doubt &times;3</span>
+  <span class="ev">e James' injury, especially in the huge 3-2 victory against Mexico. The 25-year-old was a doubt for the clash; however, with England down to ten men, Spence entered the pitch and in his 28-minute appearance he made five</span>
+  <span class="age"><a href="https://talksport.com/football/4396893/everton-djed-spence-tottenham-transfer/">talksport</a> 2.6d ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Lionel Messi <span class="role">ARG FWD</span></span>
+  <span class="what">rotation &times;3</span>
+  <span class="ev">he standout Golden Ball candidate for all the reasons outlined above. I'm far less interested in the Golden Boot. Not because Messi isn't capable of challenging, but because someone like Kylian Mbappé is perhaps more lik</span>
+  <span class="age"><a href="https://talksport.com/betting/4319582/lionel-messi-world-cup-2026-top-goalscorer-and-golden-ball-odds/">talksport</a> 2.7d ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Bukayo Saka <span class="role">ENG MID</span></span>
+  <span class="what">fitness doubt &times;2</span>
+  <span class="ev">t says he is now fully fit (Image: 2026 MB Media) Overcoming the odds at the Azteca was undoubtedly a historic moment for this England side. But now there's determination to follow that up in Miami and Saka has moved to</span>
+  <span class="age"><a href="https://www.mirror.co.uk/sport/football/news/bukayo-saka-fitness-england-norway-37412000">mirror_football</a> 5.6h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Djed Spence <span class="role">ENG DEF</span></span>
+  <span class="what">rotation &times;2</span>
+  <span class="ev">ers, Spence, Kroupi, Emersonn Arsenal make Morgan Rogers their main target, Liverpool interested in Mexico teenager and Everton eye England defender Spence. Arsenal have made 23-year-old midfielder Morgan Rogers their to</span>
+  <span class="age"><a href="https://www.bbc.co.uk/sport/football/articles/c8e2n47j0j5o?at_medium=RSS&at_campaign=rss">bbc</a> 2.2d ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Unai Simón <span class="role">ESP GK</span></span>
+  <span class="what">injury</span>
+  <span class="ev">wondered whether it was all worth it. Playing in goal, he says, can be a bit “thankless”. The front pages are for others. The good ones are, anyway: the “noise” was his. All year, he has been at the centre of the debate</span>
+  <span class="age"><a href="https://www.theguardian.com/football/2026/jul/09/there-is-a-magnificent-balance-how-spain-built-a-record-breaking-defence">guardian</a> 4.4h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Aymeric Laporte <span class="role">ESP DEF</span></span>
+  <span class="what">injury</span>
+  <span class="ev">slow start to the World Cup as he rediscovered his sharpness after returning from a thigh injury. He's scored just once, although he completed his first 90 minutes against Portugal and there is much more to come from the</span>
+  <span class="age"><a href="https://www.skysports.com/football/news/12040/13561566/world-cup-2026-quarter-finals-france-vs-morocco-spain-vs-belgium-norway-vs-england-argentina-vs-switzerland-team-by-team-preview">skysports</a> 14.9h ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Nicolás Tagliafico <span class="role">ARG DEF</span></span>
+  <span class="what">injury</span>
+  <span class="ev">ape Verde, referee Drew Fischer did not enforce the tournament's new rule requiring an injured player to remain off the pitch after treatment. He waited for Argentina's Nicolás Tagliafico to return before allowing a Cape</span>
+  <span class="age"><a href="https://talksport.com/football/world-cup/4399472/argentina-egypt-fifa-controversial-decisions-rigged-favoritism-referees/">talksport</a> 1.7d ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Emiliano Martínez <span class="role">ARG GK</span></span>
+  <span class="what">injury</span>
+  <span class="ev">oni wants to shore up a midfield that got overrun by Cabo Verde. Facundo Medina is unavailable and Nico González is carrying a knock. Egypt predictions: Hossam Hassan's side will probably sit deep and hit fast through Sa</span>
+  <span class="age"><a href="https://talksport.com/betting/4396744/argentina-vs-egypt-bet-builder-tips/">talksport</a> 2.6d ago</span>
+</div>
+
+<div class="sig-row risk">
+  <span class="who">Harry Kane <span class="role">ENG FWD</span></span>
+  <span class="what">rotation</span>
+  <span class="ev">through the competition is favourable. As for Ronaldo himself, I'd be far more interested in shots on target, first goalscorer and bookmaker specials than either the Golden Boot or Golden Ball. At 41, asking him to outp</span>
+  <span class="age"><a href="https://talksport.com/betting/4319381/cristiano-ronaldo-world-cup-2026-top-goalscorer-golden-ball-odds/">talksport</a> 3.5d ago</span>
+</div>
+
+</div>
+<p class="note">News mentions matched to players in the official squad.
+Risk rows flag injury, fitness, suspension and rotation talk; boost rows flag
+returns and recognitions.
+Showing the first
+20 of 35 in triage order.
+Full corpus and filters on the <a href="intelligence.html">Intelligence</a> page.</p>
+
+
+
+
+<div class="srule"><h2>Run history</h2></div>
+
+<details class="hist">
+  <summary><span>Quarter-final</span><span>13 run(s)</span></summary>
+  
+  <div class="hrow">
+    <span>gbm v3form
+      <span class="hm">XI 74.7 &middot; 104.5M</span></span>
+    <span class="hm">2026-07-10T01:52:20+00:00</span>
+    <span><a href="1237d0b5837d_recommendation_gbm_QF_2026-07-10T01-52-20Z.json">json</a> <a href="1237d0b5837d_recommendation_gbm_QF_2026-07-10T01-52-20Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>poisson
+      <span class="hm">XI 114.2 &middot; 90.5M</span></span>
+    <span class="hm">2026-07-10T01:52:19+00:00</span>
+    <span><a href="1237d0b5837d_recommendation_poisson_QF_2026-07-10T01-52-19Z.json">json</a> <a href="1237d0b5837d_recommendation_poisson_QF_2026-07-10T01-52-19Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 71.4 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-10T01:52:17+00:00</span>
+    <span><a href="1237d0b5837d_recommendation_heuristic_QF_2026-07-10T01-52-17Z.json">json</a> <a href="1237d0b5837d_recommendation_heuristic_QF_2026-07-10T01-52-17Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 73.3 &middot; 105.0M</span></span>
+    <span class="hm">2026-07-10T00:01:45+00:00</span>
+    <span><a href="c72d2416503f_recommendation_ensemble_QF_2026-07-10T00-01-45Z.json">json</a> <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-10T00-01-45Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 74.4 &middot; 105.0M</span></span>
+    <span class="hm">2026-07-09T12:01:24+00:00</span>
+    <span><a href="c72d2416503f_recommendation_ensemble_QF_2026-07-09T12-01-24Z.json">json</a> <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-09T12-01-24Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 74.4 &middot; 105.0M</span></span>
+    <span class="hm">2026-07-09T00:01:02+00:00</span>
+    <span><a href="c72d2416503f_recommendation_ensemble_QF_2026-07-09T00-01-02Z.json">json</a> <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-09T00-01-02Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 73.4 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-08T12:00:46+00:00</span>
+    <span><a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T12-00-46Z.json">json</a> <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T12-00-46Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 73.4 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-08T11:42:38+00:00</span>
+    <span><a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.json">json</a> <a href="c72d2416503f_recommendation_ensemble_QF_2026-07-08T11-42-38Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 75.1 &middot; 105.0M</span></span>
+    <span class="hm">2026-07-08T02:46:47+00:00</span>
+    <span><a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.json">json</a> <a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>ensemble
+      <span class="hm">XI 68.3 &middot; 105.0M</span></span>
+    <span class="hm">2026-07-08T02:11:33+00:00</span>
+    <span><a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.json">json</a> <a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v3form
+      <span class="hm">XI 72.2 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-07T21:39:29+00:00</span>
+    <span><a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.json">json</a> <a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v3form
+      <span class="hm">XI 67.5 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-07T21:19:29+00:00</span>
+    <span><a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.json">json</a> <a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v3form
+      <span class="hm">XI 67.3 &middot; 104.9M</span></span>
+    <span class="hm">2026-07-07T21:08:24+00:00</span>
+    <span><a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.json">json</a> <a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.md">md</a></span>
+  </div>
+  
+</details>
+
+<details class="hist">
+  <summary><span>Round of 16</span><span>1 run(s)</span></summary>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 53.7 &middot; 96.2M</span></span>
+    <span class="hm">2026-07-04T16:22:52+00:00</span>
+    <span><a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.json">json</a> <a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.md">md</a></span>
+  </div>
+  
+</details>
+
+<details class="hist">
+  <summary><span>Round of 32</span><span>20 run(s)</span></summary>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 59.8 &middot; 99.0M</span></span>
+    <span class="hm">2026-07-07T17:25:42+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 59.4 &middot; 99.4M</span></span>
+    <span class="hm">2026-07-07T05:25:39+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 59.4 &middot; 99.4M</span></span>
+    <span class="hm">2026-07-06T17:24:39+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-06T05:23:44+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-05T17:23:09+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-05T05:22:09+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-04T17:21:46+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-04T05:21:43+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-03T17:21:10+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-03T05:20:51+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-02T17:19:53+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-02T05:19:18+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-01T17:19:17+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-07-01T05:18:38+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 98.8M</span></span>
+    <span class="hm">2026-06-30T17:17:59+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+    <span class="hm">2026-06-30T05:17:05+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+    <span class="hm">2026-06-29T17:16:06+00:00</span>
+    <span><a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+    <span class="hm">2026-06-29T17:01:18+00:00</span>
+    <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.2 &middot; 99.1M</span></span>
+    <span class="hm">2026-06-29T05:00:51+00:00</span>
+    <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>poisson
+      <span class="hm">XI 163.2 &middot; 85.3M</span></span>
+    <span class="hm">2026-06-29T04:59:37+00:00</span>
+    <span><a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.json">json</a> <a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.md">md</a></span>
+  </div>
+  
+</details>
+
+<details class="hist">
+  <summary><span>Group Matchday 2</span><span>2 run(s)</span></summary>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 65.5 &middot; 100.0M</span></span>
+    <span class="hm">2026-06-08T05:02:59+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 65.5 &middot; 100.0M</span></span>
+    <span class="hm">2026-06-08T04:28:32+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.md">md</a></span>
+  </div>
+  
+</details>
+
+<details class="hist">
+  <summary><span>Group Matchday 1</span><span>8 run(s)</span></summary>
+  
+  <div class="hrow">
+    <span>gbm v2
+      <span class="hm">XI 61.9 &middot; 98.2M</span></span>
+    <span class="hm">2026-06-08T16:02:53+00:00</span>
+    <span><a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.json">json</a> <a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>poisson
+      <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+    <span class="hm">2026-06-08T16:02:51+00:00</span>
+    <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+    <span class="hm">2026-06-08T16:02:50+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>poisson
+      <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+    <span class="hm">2026-06-08T06:41:05+00:00</span>
+    <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+    <span class="hm">2026-06-08T06:41:03+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>poisson
+      <span class="hm">XI 138.6 &middot; 85.5M</span></span>
+    <span class="hm">2026-06-08T05:02:57+00:00</span>
+    <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+    <span class="hm">2026-06-08T05:02:55+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.md">md</a></span>
+  </div>
+  
+  <div class="hrow">
+    <span>heuristic
+      <span class="hm">XI 64.0 &middot; 99.9M</span></span>
+    <span class="hm">2026-06-08T04:28:29+00:00</span>
+    <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.md">md</a></span>
+  </div>
+  
+</details>
+
+
+
+
+
+
   <div class="srule"><h2>Data freshness</h2></div>
   <div class="fresh-grid">
     
@@ -583,7 +1168,7 @@
       <span class="fdot"></span>
       <div class="ft">
         <div class="fl">Squad + fixtures</div>
-        <div class="fa">26s ago &middot; 2026-07-08 11:42 UTC</div>
+        <div class="fa">21s ago &middot; 2026-07-10 01:52 UTC</div>
       </div>
     </div>
     
@@ -591,7 +1176,15 @@
       <span class="fdot"></span>
       <div class="ft">
         <div class="fl">GBM retrain</div>
-        <div class="fa">5s ago &middot; 2026-07-08 11:42 UTC</div>
+        <div class="fa">10s ago &middot; 2026-07-10 01:52 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">Report + figures</div>
+        <div class="fa">1s ago &middot; 2026-07-10 01:52 UTC</div>
       </div>
     </div>
     
@@ -599,7 +1192,7 @@
       <span class="fdot"></span>
       <div class="ft">
         <div class="fl">Prediction markets</div>
-        <div class="fa">2.9h ago &middot; 2026-07-08 08:47 UTC</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:07 UTC</div>
       </div>
     </div>
     
@@ -607,7 +1200,15 @@
       <span class="fdot"></span>
       <div class="ft">
         <div class="fl">News feed</div>
-        <div class="fa">2.9h ago &middot; 2026-07-08 08:49 UTC</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:04 UTC</div>
+      </div>
+    </div>
+    
+    <div class="fcell fresh">
+      <span class="fdot"></span>
+      <div class="ft">
+        <div class="fl">News signals</div>
+        <div class="fa">1.8h ago &middot; 2026-07-10 00:05 UTC</div>
       </div>
     </div>
     
@@ -615,303 +1216,17 @@
       <span class="fdot"></span>
       <div class="ft">
         <div class="fl">Elo ratings</div>
-        <div class="fa">8.9h ago &middot; 2026-07-08 02:47 UTC</div>
+        <div class="fa">13.9h ago &middot; 2026-07-09 12:00 UTC</div>
       </div>
     </div>
     
   </div>
 
-  
-  
-  <div class="srule"><h2>Archive</h2></div>
-  
-  <details class="hist">
-    <summary><span>Quarter-final</span><span>5 run(s)</span></summary>
-    
-    <div class="hrow">
-      <span>ensemble
-        <span class="hm">XI 75.1 &middot; 105.0M</span></span>
-      <span class="hm">2026-07-08T02:46:47+00:00</span>
-      <span><a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.json">json</a> <a href="7f696f15a551_recommendation_ensemble_QF_2026-07-08T02-46-47Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>ensemble
-        <span class="hm">XI 68.3 &middot; 105.0M</span></span>
-      <span class="hm">2026-07-08T02:11:33+00:00</span>
-      <span><a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.json">json</a> <a href="9487b8570ea1_recommendation_ensemble_QF_2026-07-08T02-11-33Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v3form
-        <span class="hm">XI 72.2 &middot; 104.9M</span></span>
-      <span class="hm">2026-07-07T21:39:29+00:00</span>
-      <span><a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.json">json</a> <a href="732c8870dd5c_recommendation_gbm_QF_2026-07-07T21-39-29Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v3form
-        <span class="hm">XI 67.5 &middot; 104.9M</span></span>
-      <span class="hm">2026-07-07T21:19:29+00:00</span>
-      <span><a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.json">json</a> <a href="1879791151a3_recommendation_gbm_QF_2026-07-07T21-19-29Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v3form
-        <span class="hm">XI 67.3 &middot; 104.9M</span></span>
-      <span class="hm">2026-07-07T21:08:24+00:00</span>
-      <span><a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.json">json</a> <a href="8f4532eac64f_recommendation_gbm_QF_2026-07-07T21-08-24Z.md">md</a></span>
-    </div>
-    
-  </details>
-  
-  <details class="hist">
-    <summary><span>Round of 16</span><span>1 run(s)</span></summary>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 53.7 &middot; 96.2M</span></span>
-      <span class="hm">2026-07-04T16:22:52+00:00</span>
-      <span><a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.json">json</a> <a href="linux-mint_recommendation_gbm_R16_2026-07-04T16-22-52Z.md">md</a></span>
-    </div>
-    
-  </details>
-  
-  <details class="hist">
-    <summary><span>Round of 32</span><span>20 run(s)</span></summary>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 59.8 &middot; 99.0M</span></span>
-      <span class="hm">2026-07-07T17:25:42+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T17-25-42Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 59.4 &middot; 99.4M</span></span>
-      <span class="hm">2026-07-07T05:25:39+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-07T05-25-39Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 59.4 &middot; 99.4M</span></span>
-      <span class="hm">2026-07-06T17:24:39+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T17-24-39Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-06T05:23:44+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-06T05-23-44Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-05T17:23:09+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T17-23-09Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-05T05:22:09+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-05T05-22-09Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-04T17:21:46+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T17-21-46Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-04T05:21:43+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-04T05-21-43Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-03T17:21:10+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T17-21-10Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-03T05:20:51+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-03T05-20-51Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-02T17:19:53+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T17-19-53Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-02T05:19:18+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-02T05-19-18Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-01T17:19:17+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T17-19-17Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-07-01T05:18:38+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-07-01T05-18-38Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 98.8M</span></span>
-      <span class="hm">2026-06-30T17:17:59+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T17-17-59Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
-      <span class="hm">2026-06-30T05:17:05+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-30T05-17-05Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
-      <span class="hm">2026-06-29T17:16:06+00:00</span>
-      <span><a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.json">json</a> <a href="466127540db8_recommendation_gbm_R32_2026-06-29T17-16-06Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
-      <span class="hm">2026-06-29T17:01:18+00:00</span>
-      <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T17-01-18Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.2 &middot; 99.1M</span></span>
-      <span class="hm">2026-06-29T05:00:51+00:00</span>
-      <span><a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.json">json</a> <a href="a763723f48b7_recommendation_gbm_R32_2026-06-29T05-00-51Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>poisson
-        <span class="hm">XI 163.2 &middot; 85.3M</span></span>
-      <span class="hm">2026-06-29T04:59:37+00:00</span>
-      <span><a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.json">json</a> <a href="6055863215ea_recommendation_poisson_R32_2026-06-29T04-59-37Z.md">md</a></span>
-    </div>
-    
-  </details>
-  
-  <details class="hist">
-    <summary><span>Group Matchday 2</span><span>2 run(s)</span></summary>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 65.5 &middot; 100.0M</span></span>
-      <span class="hm">2026-06-08T05:02:59+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T05-02-59Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 65.5 &middot; 100.0M</span></span>
-      <span class="hm">2026-06-08T04:28:32+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD2_2026-06-08T04-28-32Z.md">md</a></span>
-    </div>
-    
-  </details>
-  
-  <details class="hist">
-    <summary><span>Group Matchday 1</span><span>8 run(s)</span></summary>
-    
-    <div class="hrow">
-      <span>gbm v2
-        <span class="hm">XI 61.9 &middot; 98.2M</span></span>
-      <span class="hm">2026-06-08T16:02:53+00:00</span>
-      <span><a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.json">json</a> <a href="linux-mint_recommendation_gbm_GROUP_MD1_2026-06-08T16-02-53Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>poisson
-        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
-      <span class="hm">2026-06-08T16:02:51+00:00</span>
-      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T16-02-51Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
-      <span class="hm">2026-06-08T16:02:50+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T16-02-50Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>poisson
-        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
-      <span class="hm">2026-06-08T06:41:05+00:00</span>
-      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T06-41-05Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
-      <span class="hm">2026-06-08T06:41:03+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T06-41-03Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>poisson
-        <span class="hm">XI 138.6 &middot; 85.5M</span></span>
-      <span class="hm">2026-06-08T05:02:57+00:00</span>
-      <span><a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.json">json</a> <a href="linux-mint_recommendation_poisson_GROUP_MD1_2026-06-08T05-02-57Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
-      <span class="hm">2026-06-08T05:02:55+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T05-02-55Z.md">md</a></span>
-    </div>
-    
-    <div class="hrow">
-      <span>heuristic
-        <span class="hm">XI 64.0 &middot; 99.9M</span></span>
-      <span class="hm">2026-06-08T04:28:29+00:00</span>
-      <span><a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.json">json</a> <a href="linux-mint_recommendation_heuristic_GROUP_MD1_2026-06-08T04-28-29Z.md">md</a></span>
-    </div>
-    
-  </details>
-  
-  
-
-  
-
-  
-
   <footer>
-    <span>Rendered on request from the latest results in results/. Refresh to update.</span>
-    <span>Authors: A. D. Lopez, D. Guajardo</span>
+    <span>Rendered on request from the latest artifacts in results/ and data/.</span>
+    <span>Authors A. D. Lopez, D. Guajardo</span>
   </footer>
 </div>
+
 </body>
 </html>

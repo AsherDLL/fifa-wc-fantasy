@@ -1,44 +1,73 @@
 # FIFA Fantasy World Cup 2026
 
-A prediction, optimization, and live decision-support system for the
-official FIFA World Cup 2026 Fantasy game. Predicts per-player fantasy
-points, selects the optimal 15-player squad under stage-aware
-constraints, and advises on in-round captain switches and substitutions.
+A prediction, optimization, and decision-support system for the official
+FIFA World Cup 2026 Fantasy game. Predicts per-player fantasy points
+with several competing models, selects the optimal 15-player squad under
+stage-aware constraints, advises on in-round captain switches and
+substitutions, and serves an analyst dashboard that keeps the whole
+operation inspectable.
 
 Design background is in [`fifa-fantasy-project-sketch.md`](./fifa-fantasy-project-sketch.md);
 [`docs/`](./docs) holds the rules reference, scoring contract, design
-decisions and operational notes.
+decisions and operational notes; [`docs/whitepaper/`](./docs/whitepaper)
+is the full scholarly write-up.
 
-## Practical recommendation for MD1 lockout (June 11)
+## Quickstart
 
-Keep using the heuristic backend (the default) for the MD1 squad
-submission. The defender-heavy GBM pick is interesting but unproven:
-the model has learned EPL patterns that may or may not transfer to the
-WC. Once MD1 results are in, the right move is to append our own
-labels to the training set and retrain on `EPL + WC_so_far`. That is a
-30-minute exercise on June 19 once the third group game finishes for
-some teams; the live retrain pipeline below automates the append-and-
-refit loop.
+Requires Python 3.12. The repo ships a pre-tournament data snapshot, the
+EPL training parquet and 16 trained LightGBM models, so a fresh clone
+works offline:
 
-## Validation: how the three approaches compare on real labels
+```bash
+git clone <repo> && cd fifa_wc_fantasy
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+
+pytest                                # hermetic test suite, no network
+python -m fifa_fantasy.optimizer      # squad from the bundled predictions
+python -m fifa_fantasy.web            # write the dashboard pages
+xdg-open results/index.html           # macOS: open results/index.html
+```
+
+Continuous integration runs the same install and `pytest -m "not
+network"` on every push (`.github/workflows/ci.yml`).
+
+## The dashboard
+
+Four pages, rendered server-side with inline styles and figures, no
+external assets. They open equally well over HTTP and as plain files.
+
+| Page | What it answers |
+|---|---|
+| `index.html` (Overview) | the official recommended squad for the current stage, decision tiles, news alerts touching the squad, run history |
+| `algorithms.html` | one tab per backend: what it computes, the actual formula, where the ensemble routes it, its current squad and realized record |
+| `intelligence.html` | crawled news signals per player with filters, market odds over time, corpus coverage |
+| `research.html` | the model-evolution story: timeline, validation and walk-forward figures, calibration, negative results, reproduction commands |
+
+The Docker snapshot daemon serves all four on port 8770, rendering fresh
+on each request; `python -m fifa_fantasy.web` writes the same pages into
+`results/` as static files. The figures and the aggregate dataset behind
+them are rebuilt by `python -m fifa_fantasy.report`.
+
+## Validation: how the approaches compare on real labels
 
 The last 9 gameweeks of the 2024-25 Premier League fantasy season were
-held out from training. All three approaches were evaluated on the
-same held-out rows; the GBM never saw them while training. The numbers
-below are root mean squared error (RMSE) per player position; lower
-means more accurate predictions.
+held out from training and every backend was scored on the same rows.
+Root mean squared error per position, lower is better:
 
-| Position | n (rows held out) | heuristic | poisson | gbm-v1 | gbm-v2 |
-|---|---|---|---|---|---|
-| GK | 180 | 2.698 | **2.503** | 2.710 | 2.650 |
-| DEF | 910 | **3.141** | 3.400 | 3.297 | 3.187 |
-| MID | 1228 | 2.874 | 4.371 | 2.898 | **2.767** |
-| FWD | 368 | 3.515 | 4.560 | 3.281 | **3.153** |
+| Position | n (rows held out) | heuristic | poisson | gbm |
+|---|---|---|---|---|
+| GK | 180 | 2.698 | **2.491** | 2.650 |
+| DEF | 910 | **3.141** | 3.400 | 3.187 |
+| MID | 1228 | 2.874 | 4.371 | **2.767** |
+| FWD | 368 | 3.515 | 4.560 | **3.153** |
 
-Each backend wins one or two positions. Poisson is the right choice
-for goalkeepers; the heuristic is the right choice for defenders; the
-GBM (the v2 build, with three seasons of EPL data and tuned
-hyperparameters) is the right choice for midfielders and forwards.
+No backend wins everywhere. Poisson takes goalkeepers, the heuristic
+takes defenders, the GBM takes midfielders and forwards, and the
+production `ensemble` backend is exactly that routing applied per
+position. The leak-free walk-forward validation on realized World Cup
+rounds, the calibration record and the negative-results ledger live on
+the dashboard's Research page and in the whitepaper.
 
 Reproduce locally with:
 
@@ -49,7 +78,9 @@ python -m fifa_fantasy.training.validate_main
 See [`docs/algorithms-explained.md`](./docs/algorithms-explained.md) for
 a beginner-friendly explanation of what every term in that table means
 (EPL, GW, RMSE, held-out), what each predictor actually does, and how
-they differ from each other and from neural networks.
+they differ from each other and from neural networks. The executed
+notebook [`notebooks/model_evolution.ipynb`](./notebooks/model_evolution.ipynb)
+walks the full evolution story with the same code the dashboard uses.
 
 ## Approaches available
 
@@ -121,35 +152,20 @@ xdg-open results/index.html
 
 ## Browsing results
 
-After running the optimizer one or more times, generate a static HTML
-report and open it locally:
+After running the optimizer one or more times, rebuild the report
+dataset and the pages, then open any of them locally:
 
 ```bash
-python -m fifa_fantasy.web      # writes results/index.html
+python -m fifa_fantasy.report   # results/report/report_data.json + results/figures/*.svg
+python -m fifa_fantasy.web      # results/{index,algorithms,intelligence,research}.html
+xdg-open results/index.html     # macOS: open results/index.html
 ```
 
-To open it in a browser (Linux Mint / Ubuntu):
-
-```bash
-xdg-open results/index.html
-```
-
-On macOS:
-
-```bash
-open results/index.html
-```
-
-On any OS you can also paste this into the address bar:
-`file:///opt/fifa_wc_fantasy/results/index.html` (adjust the path to
-match your clone).
-
-The HTML page lists every recommendation under `results/` with stage,
-backend, host, formation, expected points, and a collapsible squad
-table. Direct links to the underlying `.json` and `.md`. The Docker
-snapshot daemon also serves this dashboard on port 8770, rendering it
-fresh on each request; the static `results/index.html` remains as a
-fallback you can open directly as a file.
+The Overview page features the official squad (the latest run of the
+production backend, ensemble by default) and links every archived run's
+`.json` and `.md`. The Docker snapshot daemon serves the same four pages
+on port 8770, rendering fresh on each request; the static files remain a
+fallback you can open directly.
 
 ## Status
 
@@ -166,18 +182,19 @@ fallback you can open directly as a file.
 | 4.5 Polish | `--compare-to`, `--report-alternatives`, `oneToWatch` flag | done |
 | 4.7 Strength | FIFA World Ranking blended into the matchup multiplier | done |
 | 5 Live tools | Captain playbook, captain switcher, sub advisor | done |
+| 6 Ensemble | Per-position routing to the held-out winner per position | done (production default) |
+| 7 Reporting | Model registry, reconciliation dataset, figures, four-page dashboard | done |
 
-## Setup (run the existing bundle)
+## Setup notes beyond the quickstart
 
-The repo ships with a 2026-06-08 pre-tournament data snapshot, the FPL
-training Parquet, and 16 trained LightGBM models. A fresh clone can
-generate a recommendation without scraping or training:
+`pip install -e ".[dev]"` resolves current versions from
+`pyproject.toml`; `requirements.txt` is the generated lockfile the
+Docker image installs, regenerate it with `pip freeze` after dependency
+changes (its header has the exact recipe). Optional extras:
+`.[sources]` adds the soccerdata team-news parser, `.[analysis]` adds
+jupyter for the companion notebook.
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
 python -m fifa_fantasy.optimizer                  # uses the bundled predictions; writes results/
 python -m fifa_fantasy.optimizer --stage GROUP_MD1   # explicit stage
 python -m fifa_fantasy.model --backend gbm        # rerun the GBM if you want
@@ -203,20 +220,14 @@ one round of WC matches has finished):
 python -m fifa_fantasy.model.train --include-wc
 ```
 
-To browse all generated recommendations as a static HTML page (a file
-you can open in any browser; the snapshot daemon additionally serves a
-live-rendered copy on port 8770):
+To rebuild the dashboard (a set of files you can open in any browser;
+the snapshot daemon additionally serves live-rendered copies on port
+8770):
 
 ```bash
+python -m fifa_fantasy.report
 python -m fifa_fantasy.web
 open results/index.html       # or just double-click it
-```
-
-Dev install (tests included) uses the same pyproject extras as before:
-
-```bash
-pip install -e ".[dev]"
-pytest
 ```
 
 ## What each tool does
@@ -230,7 +241,8 @@ pytest
 | `python -m fifa_fantasy.model.train [--include-wc]` | latest EPL training Parquet (plus `data/raw/` for WC labels) | `data/models/gbm_<position>_<head>.txt` |
 | `python -m fifa_fantasy.optimizer` | latest predictions Parquet (and optional previous recommendation JSON via `--from`) | `results/<host>_recommendation_<backend>_<STAGE>_<UTC-timestamp>.{json,md}` |
 | `python -m fifa_fantasy.live` | a recommendation JSON, latest collector and predictions Parquet | `results/<host>_live_<STAGE>_R<n>_<UTC-timestamp>.md` |
-| `python -m fifa_fantasy.web` | every JSON under `results/` | `results/index.html` (static; open in a browser) |
+| `python -m fifa_fantasy.report` | evaluation JSONs, predictions and signal parquet, market jsonl | `results/report/report_data.json` plus `results/figures/*.svg` |
+| `python -m fifa_fantasy.web` | every JSON under `results/`, report dataset, figures, signal parquet | `results/{index,algorithms,intelligence,research}.html` (static; open in a browser) |
 
 Output filenames make every dimension visible: the host that ran the
 pipeline, the model backend that produced the predictions
@@ -411,3 +423,5 @@ the same git repo do not collide.
 - [`docs/api-endpoints.md`](./docs/api-endpoints.md) FIFA Fantasy endpoints
 - [`docs/decisions.md`](./docs/decisions.md) running design-decision log
 - [`docs/pipeline-walkthrough.md`](./docs/pipeline-walkthrough.md) Lautaro Martinez traced through every step
+- [`docs/whitepaper/`](./docs/whitepaper) the full scholarly write-up, one file per section
+- [`notebooks/model_evolution.ipynb`](./notebooks/model_evolution.ipynb) executed companion notebook for the Research page
