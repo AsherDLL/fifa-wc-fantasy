@@ -1,0 +1,124 @@
+{% extends "base.html.jinja" %}
+{% import "_macros.html.jinja" as m %}
+
+{% block title %}Overview - WC 2026 Prediction Desk{% endblock %}
+
+{% block content %}
+
+{% if not official %}
+  <p class="empty">No recommendations yet. Run <span class="num">python -m fifa_fantasy.optimizer</span>.</p>
+{% else %}
+
+<div class="provenance">
+  <span>official backend <b>{{ official_backend }}</b></span>
+  <span>run <b>{{ official.generated_at_utc }}</b></span>
+  {% if official.model_version %}<span>model <b>{{ official.model_version }}</b></span>{% endif %}
+  <span>source <a href="{{ official.__filename__ }}">json</a> <a href="{{ official.__md_filename__ }}">md</a></span>
+</div>
+
+{% if official_is_fallback %}
+<div class="caveat"><b>Caution.</b> No {{ official_backend }} run exists for this stage yet,
+so the newest {{ official.model_backend }} run is shown instead. The next scheduled tick
+will restore the official backend.</div>
+{% endif %}
+
+{# ---------------- Official recommendation ---------------- #}
+<div class="panel official">
+  <div class="head">
+    <h2>Official squad <span class="badge official-badge">{{ stage_label }}</span></h2>
+    <div class="meta">{{ official.model_backend }}{% if official.model_version %} {{ official.model_version }}{% endif %}
+      &middot; generated {{ official.generated_at_utc }}</div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="k">Budget</div>
+      <div class="v">{{ "%.1f"|format(official.budget_used) }}<small> / {{ "%.0f"|format(official.budget_total) }}M</small></div>
+    </div>
+    <div class="tile">
+      <div class="k">Formation</div>
+      <div class="v">{{ official.lineup.formation }}</div>
+    </div>
+    <div class="tile">
+      <div class="k">XI expected</div>
+      <div class="v">{{ "%.1f"|format(official.lineup.expected_points) }}</div>
+    </div>
+    <div class="tile">
+      <div class="k">Horizon expected</div>
+      <div class="v">{{ "%.1f"|format(official.total_horizon_points) }}</div>
+    </div>
+    {% if f.captain %}
+    <div class="tile">
+      <div class="k">Captain ceiling</div>
+      <div class="v">{{ "%.1f"|format(f.captain.predicted_q90 if f.captain.predicted_q90 is not none else f.captain.predicted_points) }}<small> {{ f.captain.last_name }}</small></div>
+    </div>
+    {% endif %}
+    <div class="tile">
+      <div class="k">Backend agreement</div>
+      <div class="v">{{ agreement.agree }}<small> / 15 across {{ agreement.n_backends }} backends</small></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    {{ m.pitch(f) }}
+    <div>{{ m.squad_table(f) }}</div>
+  </div>
+
+  {% if f.captain %}
+  <div class="capnote">
+    Captaining <b>{{ f.captain.display_name }}</b> ({{ f.captain.country_abbr }}).
+    Mean {{ "%.1f"|format(f.captain.predicted_points) }}, ceiling
+    {{ "%.1f"|format(f.captain.predicted_q90 if f.captain.predicted_q90 is not none else f.captain.predicted_points) }}.
+    Chasing rewards the ceiling, so the pick leans on the q90 head rather than the average.
+    {% if f.vice %}Vice <b>{{ f.vice.display_name }}</b>.{% endif %}
+  </div>
+  {% endif %}
+
+  {% if official.transfer %}
+  <div class="capnote">
+    <b>Transfers.</b> {{ official.transfer.n_transfers }} made,
+    {{ official.transfer.n_extra_transfers }} above quota,
+    hit {{ official.transfer.transfer_cost_points }} pts.
+    In {% for d in official.transfer.transfers_in_detail %}{{ d.full_name }}{{ ", " if not loop.last }}{% else %}none{% endfor %};
+    out {% for d in official.transfer.transfers_out_detail %}{{ d.full_name or d.player_id }}{{ ", " if not loop.last }}{% else %}none{% endfor %}.
+  </div>
+  {% endif %}
+</div>
+
+{# ---------------- Squad intelligence ---------------- #}
+<div class="srule"><h2>Squad intelligence, last {{ signal_days }} days</h2></div>
+{% if squad_signals %}
+<div class="sig-strip">
+  {{ m.signal_rows(squad_signals, built_at) }}
+</div>
+<p class="note">News mentions matched to players in the official squad.
+Risk rows flag injury, fitness, suspension and rotation talk; boost rows flag
+returns and recognitions.
+{% if squad_signals_total > squad_signals|length %}Showing the first
+{{ squad_signals|length }} of {{ squad_signals_total }} in triage order.{% endif %}
+Full corpus and filters on the <a href="intelligence.html">Intelligence</a> page.</p>
+{% else %}
+<p class="note">No recent news signals touch the official squad. Full corpus on the
+<a href="intelligence.html">Intelligence</a> page.</p>
+{% endif %}
+
+{# ---------------- Run history ---------------- #}
+{% if history %}
+<div class="srule"><h2>Run history</h2></div>
+{% for group in history %}
+<details class="hist">
+  <summary><span>{{ group.stage_label }}</span><span>{{ group['items']|length }} run(s)</span></summary>
+  {% for r in group['items'] %}
+  <div class="hrow">
+    <span>{{ r.model_backend }}{% if r.model_version %} {{ r.model_version }}{% endif %}
+      <span class="hm">XI {{ "%.1f"|format(r.lineup.expected_points) }} &middot; {{ "%.1f"|format(r.budget_used) }}M</span></span>
+    <span class="hm">{{ r.generated_at_utc }}</span>
+    <span><a href="{{ r.__filename__ }}">json</a> <a href="{{ r.__md_filename__ }}">md</a></span>
+  </div>
+  {% endfor %}
+</details>
+{% endfor %}
+{% endif %}
+
+{% endif %}
+{% endblock %}

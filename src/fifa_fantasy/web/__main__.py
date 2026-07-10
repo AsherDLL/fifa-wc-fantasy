@@ -1,12 +1,11 @@
-"""Write the static dashboard to results/index.html.
+"""Write the dashboard pages as static files into results/.
 
-    python -m fifa_fantasy.web
+    python -m fifa_fantasy.web [--results-dir DIR] [--page NAME]
 
-The snapshot loop serves results/ over HTTP and renders the page fresh on
-each request, so the served portal always reflects the latest results and a
-manual browser refresh is enough. This CLI writes a static fallback copy
-(useful for opening the file directly or committing a snapshot); by default
-it emits no auto-refresh tag. Rendering lives in `render.build_html`.
+The served portal renders on request, so these files are a convenience
+snapshot: they let every page open directly over file:// and keep a
+committable copy current. Called on the FIFA tick after
+`python -m fifa_fantasy.report` has refreshed the dataset and figures.
 """
 
 from __future__ import annotations
@@ -14,25 +13,33 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .render import build_html
-
-DEFAULT_RESULTS = Path("results")
+from .render import PAGES, build_all
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(prog="fifa_fantasy.web")
-    parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS)
-    parser.add_argument("--out", type=Path, default=None,
-                        help="output HTML path (default: <results-dir>/index.html)")
-    parser.add_argument("--refresh-seconds", type=int, default=0,
-                        help="meta-refresh interval; 0 (default) disables it")
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Write the static dashboard pages.")
+    parser.add_argument("--results-dir", type=Path, default=Path("results"),
+                        help="directory holding recommendation files "
+                             "(default: results)")
+    parser.add_argument("--page", choices=sorted(PAGES),
+                        help="write a single page instead of all four")
     args = parser.parse_args()
 
-    html, n_recs, n_live = build_html(args.results_dir, args.refresh_seconds)
-    out = args.out or (args.results_dir / "index.html")
-    out.write_text(html)
-    print(f"wrote {out}  ({n_recs} recommendations, {n_live} live reports)")
+    results_dir = args.results_dir
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.page:
+        pages = {args.page: PAGES[args.page](results_dir)}
+    else:
+        pages = build_all(results_dir)
+
+    for name, html in pages.items():
+        out = results_dir / name
+        out.write_text(html)
+        print(f"written: {out} ({len(html) / 1024:.0f} KB)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

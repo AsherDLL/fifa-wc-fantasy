@@ -1,0 +1,150 @@
+{% extends "base.html.jinja" %}
+{% import "_macros.html.jinja" as m %}
+
+{% block title %}Intelligence - WC 2026 Prediction Desk{% endblock %}
+
+{% block content %}
+
+<h1 class="page">Intelligence</h1>
+<p class="lede">What the crawled press and the prediction markets are saying,
+matched to players and kept apart from the models. Signals here inform the
+analyst; they change a prediction only after they pass validation.</p>
+
+<div class="provenance">
+  <span>articles cached <b>{{ coverage.articles_cached }}</b></span>
+  <span>players indexed <b>{{ players_indexed }}</b></span>
+  <span>signal findings, last {{ signal_days }} days <b>{{ coverage.signal_rows }}</b></span>
+  <span>players flagged <b>{{ coverage.players_flagged }}</b></span>
+</div>
+
+{# ---------------- Squad exposure ---------------- #}
+<div class="srule"><h2>Official squad exposure</h2></div>
+{% if squad_signals %}
+<div class="sig-strip">
+  {{ m.signal_rows(squad_signals, built_at) }}
+</div>
+{% else %}
+<p class="note">No recent signals touch the official squad.</p>
+{% endif %}
+
+{# ---------------- Full signal table ---------------- #}
+<div class="srule"><h2>All player signals</h2></div>
+
+<div class="filters">
+  <input type="search" id="sig-search" placeholder="Filter by player, country, source">
+  <button data-class="all" class="on">All</button>
+  <button data-class="risk">Risk</button>
+  <button data-class="boost">Boost</button>
+  <button data-class="info">Info</button>
+</div>
+
+<div class="tbl-wrap">
+<table id="sig-table">
+  <thead>
+    <tr><th>Player</th><th>Cty</th><th>Pos</th><th>Signal</th><th>Class</th>
+      <th class="n">Mentions</th><th>Evidence</th><th>Source</th><th>Published</th></tr>
+  </thead>
+  <tbody>
+  {% for s in signals %}
+    <tr data-class="{{ s.signal_class }}"
+        data-search="{{ (s.full_name ~ ' ' ~ s.country_abbr ~ ' ' ~ s.signal ~ ' ' ~ s.source_id)|lower }}">
+      <td>{{ s.full_name }}</td>
+      <td class="num">{{ s.country_abbr }}</td>
+      <td class="role">{{ s.position }}</td>
+      <td class="role">{{ s.signal|replace("_", " ") }}</td>
+      <td class="role {{ s.signal_class }}">{{ s.signal_class }}</td>
+      <td class="n">{{ s.mentions }}</td>
+      <td class="wraps">{{ s.evidence }}</td>
+      <td><a href="{{ s.url }}">{{ s.source_id }}</a></td>
+      <td class="num">{{ s.age_str }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="9" class="empty">No signals extracted in the window.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="note">One row per player and signal, deduplicated across articles;
+the evidence column quotes the newest matching passage.
+{% if total_findings > table_cap %}Showing the first {{ table_cap }} of
+{{ total_findings }} findings in triage order; the full set is in
+data/external/player_signals/.{% endif %}
+Extraction is proximity-based, so a mention is a lead to verify, not a
+confirmed report.
+Vocabulary and matching rules are configuration, in
+<a href="../src/fifa_fantasy/external/news/config/">news/config/</a>.</p>
+
+{{ m.figure(figs.get("fig_signal_volume"), "I1",
+   "Player-signal volume by publication day and class over the collection window.
+    Volume spikes track squad announcements and matchday previews.") }}
+
+{# ---------------- Markets ---------------- #}
+<div class="srule"><h2>Prediction markets</h2></div>
+
+{{ m.figure(figs.get("fig_market_odds"), "I2",
+   "Implied tournament-winner probability from Polymarket contracts, snapshots
+    every three hours. The desk records these as context; a documented negative
+    result keeps them out of the models.") }}
+
+{% if market_latest %}
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Country</th><th class="n">Implied win probability</th><th class="n">24h volume</th></tr></thead>
+  <tbody>
+  {% for r in market_latest %}
+    <tr>
+      <td>{{ r.country }}</td>
+      <td class="n">{{ "%.1f"|format(r.implied_prob * 100) }}%</td>
+      <td class="n">{% if r.volume_24h %}${{ "{:,.0f}".format(r.volume_24h) }}{% else %}-{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="note">No market snapshot parsed yet.</p>
+{% endif %}
+
+<p class="note">Method note. Market prices are collected on a three-hour cadence
+and deliberately do not feed the predictions. A Benter-style combiner was built
+and measured; it made every backend worse in every round, so the integration was
+rejected. The evidence is on the <a href="research.html">Research</a> page under
+negative results.</p>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Text search plus class toggle over the signal table. Rows carry their
+// searchable text and class in data attributes; filtering is display-only.
+(function () {
+  var search = document.getElementById("sig-search");
+  var buttons = Array.prototype.slice.call(
+    document.querySelectorAll(".filters button"));
+  var rows = Array.prototype.slice.call(
+    document.querySelectorAll("#sig-table tbody tr[data-class]"));
+  var activeClass = "all";
+
+  function apply() {
+    var q = (search.value || "").toLowerCase();
+    rows.forEach(function (row) {
+      var okClass = activeClass === "all" ||
+        row.getAttribute("data-class") === activeClass;
+      var okText = !q ||
+        row.getAttribute("data-search").indexOf(q) !== -1;
+      row.style.display = okClass && okText ? "" : "none";
+    });
+  }
+
+  search.addEventListener("input", apply);
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      buttons.forEach(function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+      activeClass = btn.getAttribute("data-class");
+      apply();
+    });
+  });
+})();
+</script>
+{% endblock %}

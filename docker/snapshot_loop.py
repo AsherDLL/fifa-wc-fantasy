@@ -5,10 +5,12 @@ the same schedule wastes API quota for slow-moving data and misses
 intraday movement on fast-moving data. This loop runs four independent
 schedules within a single process:
 
-  - FIFA Fantasy API + features + models + optimizer:  every 12 hours
+  - FIFA Fantasy API + features + models + optimizer
+    + report dataset/figures + static pages:            every 12 hours
     (ownership and prices mostly update overnight + post-match; the
     GBM retrains on EPL + completed WC rounds via --include-wc each
-    tick before scoring)
+    tick before scoring; every production backend gets its own
+    optimizer pass so the algorithm tabs show per-backend squads)
   - Polymarket + Kalshi prediction markets:            every 3 hours
     (intraday market reactions to news; training data for the Benter
     combiner accumulates over many snapshots)
@@ -85,7 +87,7 @@ def run(cmd: list[str]) -> int:
 
 
 def fifa_tick() -> None:
-    """Heavy tick: full FIFA-side refresh + retrain + model run + optimizer."""
+    """Heavy tick: full FIFA-side refresh + retrain + model runs + optimizer."""
     log("=== FIFA TICK ===")
     run(["python", "-m", "fifa_fantasy.collector"])
     run(["python", "-m", "fifa_fantasy.features"])
@@ -97,29 +99,41 @@ def fifa_tick() -> None:
     # still score with the previous models rather than crash the tick.
     if os.environ.get("GBM_INCLUDE_WC", "1") == "1":
         run(["python", "-m", "fifa_fantasy.model.train", "--include-wc"])
-    # Run every backend so the record has each for comparison, then run the
-    # ensemble last. The optimizer reads the last-written predictions, so the
-    # final recommendation on the dashboard is the ensemble (poisson GK,
-    # heuristic DEF, gbm MID/FWD). The routing follows the per-position
-    # held-out RMSE winners (docs 11f); the ensemble's squad-level backtest
-    # win is in-sample and labeled as such in 11f.4. Set OPTIMIZER_BACKEND
-    # to pin a different final model.
+    # Run every production backend AND its optimizer pass, so the dashboard's
+    # algorithm tabs can show each backend's current-stage squad. The
+    # optimizer reads the last-written predictions, so each backend's squad is
+    # generated right after its model run. The official backend runs last;
+    # its recommendation is the newest of the stage and its predictions
+    # parquet is the one left on disk, which the overview surfaces as the
+    # official squad. Set OPTIMIZER_BACKEND to pin a different final model.
+    stage = os.environ.get("STAGE", "R32")
     final_backend = os.environ.get("OPTIMIZER_BACKEND", "ensemble")
-    for backend in ("heuristic", "poisson", "gbm", "ensemble"):
+    backends = [b for b in ("heuristic", "poisson", "gbm", "ensemble")
+                if b != final_backend] + [final_backend]
+    for backend in backends:
         run(["python", "-m", "fifa_fantasy.model", "--backend", backend])
-    if final_backend != "ensemble":
-        run(["python", "-m", "fifa_fantasy.model", "--backend", final_backend])
-    run(["python", "-m", "fifa_fantasy.optimizer",
-         "--stage", os.environ.get("STAGE", "R32")])
+        run(["python", "-m", "fifa_fantasy.optimizer", "--stage", stage])
+    report_tick()
     web_tick()
 
 
-def web_tick() -> None:
-    """Write a static results/index.html fallback from the current results.
+def report_tick() -> None:
+    """Rebuild the report dataset and the dashboard figures.
 
-    The served portal renders on request, so this is only a convenience
-    snapshot: it lets the page be opened directly as a file (file://) and
-    keeps a committable copy current. Called on the FIFA tick, not on a
+    Matplotlib is slow and not thread-safe, so figures are never rendered
+    inside the HTTP handler; this step regenerates
+    results/report/report_data.json and results/figures/*.svg once per
+    FIFA tick and the pages inline whatever exists.
+    """
+    run(["python", "-m", "fifa_fantasy.report"])
+
+
+def web_tick() -> None:
+    """Write the static page snapshots into results/.
+
+    The served portal renders on request, so these files are a
+    convenience: every page also opens directly as a file (file://) and a
+    committable copy stays current. Called on the FIFA tick, not on a
     fast loop; there is no auto-refresh.
     """
     run(["python", "-m", "fifa_fantasy.web"])
@@ -128,16 +142,17 @@ def web_tick() -> None:
 def serve_results(port: int) -> None:
     """Serve results/ over HTTP, rendering the dashboard fresh on each request.
 
-    The backend ticks keep producing results; a request for the index
-    re-reads results/ and renders the latest, so a manual browser refresh
-    always shows the newest recommendation with no polling and no
-    auto-refresh. Other paths (json, md) are served as static files.
+    The backend ticks keep producing results; a request for any of the
+    four pages (overview, algorithms, intelligence, research) re-reads the
+    artifacts and renders the latest, so a manual browser refresh always
+    shows the newest state with no polling and no auto-refresh. Unmatched
+    paths (json, md, figures/, report/) are served as static files.
 
     Best-effort: a bind failure or a missing web dependency is logged and
-    the loop continues; the static index.html remains available.
+    the loop continues; the static page snapshots remain available.
     """
     try:
-        from fifa_fantasy.web.render import build_html
+        from fifa_fantasy.web.render import PAGES, resolve_page
     except Exception as e:  # noqa: BLE001
         log(f"web server not started: cannot import renderer ({e})")
         return
@@ -147,9 +162,10 @@ def serve_results(port: int) -> None:
             super().__init__(*args, directory="results", **kwargs)
 
         def do_GET(self):  # noqa: N802
-            if self.path.split("?")[0] in ("/", "/index.html"):
+            page = resolve_page(self.path)
+            if page is not None:
                 try:
-                    html, _, _ = build_html(Path("results"), refresh_seconds=0)
+                    html = PAGES[page](Path("results"))
                     body = html.encode("utf-8")
                 except Exception as exc:  # noqa: BLE001
                     self.send_error(500, f"render failed: {exc}")

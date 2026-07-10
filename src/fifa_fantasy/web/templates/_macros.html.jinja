@@ -1,0 +1,80 @@
+{# Shared building blocks: squad table, pitch, signal rows, figures. #}
+
+{% macro pitch(f) -%}
+<div class="pitch">
+  {% for pos, players in f.pitch_lines %}
+    {% if players %}
+    <div class="line">
+      {% for p in players %}
+        <div class="p {% if p.role == 'Captain' %}captain{% elif p.role == 'Vice' %}vice{% endif %}">
+          <div class="tag">{% if p.role == 'Captain' %}<b>C</b>{% elif p.role == 'Vice' %}<b>V</b>{% endif %}</div>
+          <div class="nm">{{ p.last_name or p.display_name }}</div>
+          <div class="sub">
+            <span>{{ p.country_abbr }}</span>
+            <span class="ceil">{{ "%.1f"|format(p.predicted_q90 if p.predicted_q90 is not none else p.predicted_points) }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro squad_table(f) -%}
+<div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pos</th><th>Player</th><th>Cty</th><th>Fixture</th>
+      <th class="n">Price</th><th class="n">Own</th><th class="n">Form</th>
+      <th class="n">Floor</th><th class="n">Mean</th><th class="n">Ceiling</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in f.starters %}
+    <tr class="{% if p.role == 'Captain' %}cap{% endif %}">
+      <td class="role">{{ p.position }}{% if p.role == 'Captain' %} C{% elif p.role == 'Vice' %} V{% endif %}</td>
+      <td>{{ p.display_name }}{% if p.one_to_watch %}<span class="otw">OTW</span>{% endif %}{% if p.is_eliminated %}<span class="flag-out">ELIMINATED</span>{% endif %}</td>
+      <td class="num">{{ p.country_abbr }}</td>
+      <td class="num">{% if p.opponent_abbr %}{% if p.is_home %}v {{ p.opponent_abbr }}{% else %}@ {{ p.opponent_abbr }}{% endif %}{% else %}-{% endif %}</td>
+      <td class="n">{{ "%.1f"|format(p.price_millions) }}</td>
+      <td class="n">{{ "%.0f"|format(p.ownership_fraction * 100) }}%</td>
+      <td class="n">{{ "%.1f"|format(p.form) if p.form is not none else "-" }}</td>
+      <td class="n">{{ "%.1f"|format(p.predicted_q10) if p.predicted_q10 is not none else "-" }}</td>
+      <td class="n">{{ "%.1f"|format(p.predicted_points) }}</td>
+      <td class="n">{{ "%.1f"|format(p.predicted_q90) if p.predicted_q90 is not none else "-" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div class="bench">
+  <span class="lbl">Bench</span>
+  {% for p in f.bench %}
+    <span class="b">{{ loop.index }}. {{ p.last_name or p.display_name }} <i>{{ p.country_abbr }} {{ p.position }}</i></span>
+  {% else %}
+    <span class="b"><i>none</i></span>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro signal_rows(rows, now_iso) -%}
+{% for s in rows %}
+<div class="sig-row {{ s.signal_class }}">
+  <span class="who">{{ s.full_name }} <span class="role">{{ s.country_abbr }} {{ s.position }}</span></span>
+  <span class="what">{{ s.signal|replace("_", " ") }}{% if s.mentions and s.mentions > 1 %} &times;{{ s.mentions }}{% endif %}</span>
+  <span class="ev">{{ s.evidence }}</span>
+  <span class="age"><a href="{{ s.url }}">{{ s.source_id }}</a> {{ s.age_str }}</span>
+</div>
+{% endfor %}
+{%- endmacro %}
+
+{% macro figure(fig, number, caption) -%}
+{% if fig %}
+<figure class="fig" id="fig-{{ number }}">
+  {{ fig }}
+  <figcaption><b>Figure {{ number }}.</b> {{ caption }}</figcaption>
+</figure>
+{% endif %}
+{%- endmacro %}

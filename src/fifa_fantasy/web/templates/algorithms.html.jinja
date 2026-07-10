@@ -1,0 +1,159 @@
+{% extends "base.html.jinja" %}
+{% import "_macros.html.jinja" as m %}
+
+{% block title %}Algorithms - WC 2026 Prediction Desk{% endblock %}
+
+{% block content %}
+
+<h1 class="page">Algorithms</h1>
+<p class="lede">Five prediction backends coexist in this project. Each tab
+states what the model computes, shows the formula it actually runs, and puts
+its current {{ stage_label }} squad next to its measured record, so the choice
+of the production backend is an argument you can check rather than a habit.</p>
+
+<div class="tabset">
+  {% for t in tabs %}
+  <input type="radio" name="algo" id="tab-{{ t.record.key }}" {% if loop.first %}checked{% endif %}>
+  {% endfor %}
+
+  <div class="tabbar">
+    {% for t in tabs %}
+    <label for="tab-{{ t.record.key }}">{{ t.record.label }}</label>
+    {% endfor %}
+  </div>
+
+  <div class="tabpanels">
+  {% for t in tabs %}
+    <section id="panel-{{ t.record.key }}">
+
+      <div class="provenance">
+        <span class="badge {{ t.record.status }}">{{ t.record.status }}</span>
+        <span>{{ t.record.generation }}</span>
+        <span>introduced <b>{{ t.record.introduced }}</b></span>
+        {% if t.record.routing_role %}<span>{{ t.record.routing_role|lower }}</span>{% endif %}
+      </div>
+
+      <div class="prose">
+        <p>{{ t.record.summary }}</p>
+      </div>
+
+      <div class="srule"><h2>The formula</h2></div>
+      {% if t.formula_svg %}
+      <figure class="formula">{{ t.formula_svg }}</figure>
+      {% endif %}
+      <pre class="formula-text">{{ t.record.formula_text }}</pre>
+      <p class="note">Source
+        {% for ref in t.record.evidence %}<a href="../{{ ref }}">{{ ref }}</a>{{ "; " if not loop.last }}{% endfor %}.
+        Whitepaper
+        {% for ref in t.record.whitepaper_refs %}<a href="../{{ ref }}">{{ ref.split("/")[-1] }}</a>{{ "; " if not loop.last }}{% endfor %}.
+      </p>
+
+      <div class="srule"><h2>Where it is used</h2></div>
+      <p class="note">
+        {% if t.record.key == "ensemble" %}
+        The production tick runs the optimizer on this backend; the Overview squad is its output.
+        {% elif not t.record.in_production_tick %}
+        Not part of the production tick. Its backtest record below is the comparison basis.
+        {% else %}
+        Live routing derived from the held-out validation report puts
+        <b>{{ routing.items()|selectattr(1, "equalto", t.record.key)|map(attribute=0)|join(", ") }}</b>
+        with this backend. The full per-position picture below, winners in bold.
+        {% if t.record.key == "gbm" %}This table is held-out EPL, so the in-sample caveat does not apply here.{% endif %}
+        {% endif %}
+      </p>
+      {% if validation and t.record.key in ("heuristic", "poisson", "gbm", "ensemble") %}
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Position</th><th class="n">n</th>
+          <th class="n">Heuristic RMSE</th><th class="n">Poisson RMSE</th><th class="n">GBM RMSE</th>
+          <th>Routed to</th></tr></thead>
+        <tbody>
+        {% for row in validation %}
+          <tr>
+            <td class="role">{{ row.position }}</td>
+            <td class="n">{{ row.n }}</td>
+            <td class="n {{ 'best' if routing.get(row.position) == 'heuristic' }}">{{ "%.3f"|format(row.heuristic_rmse) }}</td>
+            <td class="n {{ 'best' if routing.get(row.position) == 'poisson' }}">{{ "%.3f"|format(row.poisson_rmse) }}</td>
+            <td class="n {{ 'best' if routing.get(row.position) == 'gbm' }}">{{ "%.3f"|format(row.gbm_rmse) }}</td>
+            <td class="role">{{ routing.get(row.position, "-") }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Held-out EPL 2024-25, gameweeks 30-38. Lower is better.</p>
+      {% endif %}
+
+      <div class="srule"><h2>Current squad, {{ stage_label }}</h2></div>
+      {% if t.rec %}
+      <div class="provenance">
+        <span>generated <b>{{ t.rec.generated_at_utc }}</b></span>
+        <span>XI expected <b>{{ "%.1f"|format(t.rec.lineup.expected_points) }}</b></span>
+        <span>budget <b>{{ "%.1f"|format(t.rec.budget_used) }}M</b></span>
+        <span><a href="{{ t.rec.__filename__ }}">json</a> <a href="{{ t.rec.__md_filename__ }}">md</a></span>
+      </div>
+      {{ m.squad_table(t.f) }}
+      {% elif t.record.key == "monte_carlo" %}
+      <p class="note">The Monte Carlo backend is experimental and is not run by the
+      production tick, so it has no current squad. Its simulated squads were scored
+      in the cross-model backtest below, which is the fair place to judge it.</p>
+      {% else %}
+      <p class="note">No {{ t.record.label }} run exists for {{ stage_label }} yet.
+      The next scheduled tick generates one for every production backend.</p>
+      {% endif %}
+
+      {% if t.backtest_row %}
+      <div class="srule"><h2>Realized record</h2></div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Round</th>{% for r in backtest.rounds %}<th class="n">{{ r.stage }}</th>{% endfor %}<th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="role">{{ t.record.label }} realized pts</td>
+            {% for v in t.backtest_row %}<td class="n">{{ "%.0f"|format(v) }}</td>{% endfor %}
+            <td class="n"><b>{{ "%.0f"|format(t.backtest_total) }}</b></td>
+          </tr>
+          <tr>
+            <td class="role">User actual (net)</td>
+            {% for v in backtest.series.user_actual %}<td class="n">{{ "%.0f"|format(v) }}</td>{% endfor %}
+            <td class="n">{{ "%.0f"|format(backtest.totals.user_actual_net) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      {% if t.record.key in ("gbm", "ensemble") %}
+      <div class="caveat"><b>In-sample caveat.</b> The GBM retrains on completed
+      World Cup rounds, so its backtest rows score rounds the model saw during
+      training. Treat these totals as an upper bound; the leak-free numbers live
+      on the <a href="research.html">Research</a> page under walk-forward validation.</div>
+      {% endif %}
+      {% endif %}
+
+    </section>
+  {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Deep-linkable tabs: #gbm selects the GBM tab, and switching tabs updates
+// the hash so links can be shared. CSS handles the actual visibility.
+(function () {
+  var keys = [{% for t in tabs %}"{{ t.record.key }}"{{ "," if not loop.last }}{% endfor %}];
+  function select(key) {
+    var radio = document.getElementById("tab-" + key);
+    if (radio) radio.checked = true;
+  }
+  var initial = location.hash.replace("#", "");
+  if (keys.indexOf(initial) !== -1) select(initial);
+  keys.forEach(function (key) {
+    var radio = document.getElementById("tab-" + key);
+    if (radio) radio.addEventListener("change", function () {
+      if (radio.checked) history.replaceState(null, "", "#" + key);
+    });
+  });
+})();
+</script>
+{% endblock %}

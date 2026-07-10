@@ -1,0 +1,217 @@
+{% extends "base.html.jinja" %}
+{% import "_macros.html.jinja" as m %}
+
+{% block title %}Research - WC 2026 Prediction Desk{% endblock %}
+
+{% block content %}
+
+<h1 class="page">Research</h1>
+<p class="lede">How the models earned their places. This page reconstructs the
+evolution of the prediction stack from the evidence on disk, generation by
+generation, including the ideas that were measured and rejected. Every number
+can be regenerated with the commands at the end; the
+<a href="../docs/whitepaper/README.md">whitepaper</a> remains the full scholarly
+account and each section is linked where it applies.</p>
+
+<div class="caveat"><b>Reading the evidence.</b> Two kinds of numbers appear
+below and they must not be mixed. Held-out and walk-forward tables never let a
+model see its test labels and are the trustworthy basis for decisions. The
+realized backtest scores squads on rounds the WC-retrained GBM later trained
+on, so gbm and ensemble rows there are upper bounds, useful for narrative and
+unfair for comparison.</div>
+
+{# ---------------- 1. Timeline ---------------- #}
+<div class="srule"><span class="no">1</span><h2>Model generations</h2></div>
+<ol class="timeline">
+  {% for date, title, desc in timeline %}
+  <li>
+    <span class="d">{{ date }}</span>
+    <span class="t"><b>{{ title }}</b><p>{{ desc }}</p></span>
+  </li>
+  {% endfor %}
+</ol>
+
+<div class="srule"><span class="no">1a</span><h2>Superseded generations</h2></div>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Generation</th><th>Status</th><th>Introduced</th><th>Why it was replaced</th></tr></thead>
+  <tbody>
+  {% for g in generations %}
+    <tr>
+      <td>{{ g.label }}</td>
+      <td><span class="badge {{ g.status }}">{{ g.status }}</span></td>
+      <td class="num">{{ g.introduced }}</td>
+      <td class="wraps">{{ g.summary }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{# ---------------- 2. Realized performance ---------------- #}
+<div class="srule"><span class="no">2</span><h2>Realized performance</h2></div>
+<div class="prose"><p>The cross-model backtest rebuilds every backend's squad
+for each completed round and scores it with realized fantasy points, next to
+the squad the user actually fielded and a 500-trial random baseline. The
+spread is the headline. Every backend beats random by a wide margin, and the
+per-position ensemble sits near the top while remaining honest about where its
+components win.</p></div>
+
+{{ m.figure(figs.get("fig_backtest_cumulative"), "1",
+   "Cumulative realized squad points per backend across the completed rounds.
+    The user's actual squad (dashed) and the random baseline (dotted) frame the
+    field. The gbm and ensemble series carry the in-sample caveat stated above.") }}
+
+{{ m.figure(figs.get("fig_backtest_rounds"), "2",
+   "The same data per round. No backend wins every round, which is the
+    empirical case for per-position routing over a single champion.") }}
+
+{% if backtest %}
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Source</th>{% for r in backtest.rounds %}<th class="n">{{ r.stage }}</th>{% endfor %}<th class="n">Total</th></tr></thead>
+  <tbody>
+  {% for key, series in backtest.series.items() %}
+    <tr>
+      <td class="role">{{ backend_labels.get(key, key) }}</td>
+      {% for v in series %}<td class="n">{{ "%.0f"|format(v) }}</td>{% endfor %}
+      <td class="n"><b>{{ "%.0f"|format(backtest.cumulative[key][-1]) }}</b></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{# ---------------- 3. Held-out validation ---------------- #}
+<div class="srule"><span class="no">3</span><h2>Held-out validation and routing</h2></div>
+<div class="prose"><p>The canonical benchmark holds out EPL 2024-25 gameweeks
+30 to 38. No single backend wins every position there. Poisson takes
+goalkeepers, the heuristic takes defenders, the GBM takes midfielders and
+forwards, and the production ensemble is precisely that routing table applied
+per position.</p></div>
+
+{{ m.figure(figs.get("fig_holdout_rmse"), "3",
+   "Held-out RMSE per position and backend on EPL 2024-25 gameweeks 30-38,
+    lower is better. The routed annotation marks the backend the ensemble uses
+    for each position.") }}
+
+{# ---------------- 4. Walk-forward ---------------- #}
+<div class="srule"><span class="no">4</span><h2>Walk-forward validation on World Cup rounds</h2></div>
+<div class="prose"><p>The EPL benchmark cannot answer whether a change survives
+the shift to international football. The walk-forward design can. For each
+completed round, the GBM trains strictly on earlier data and predicts that
+round, so form features and WC retraining are tested leak-free. The shipped
+configuration, WC rows plus the trailing-form feature, wins pooled RMSE, and
+config D shows why the minutes features were rejected.</p></div>
+
+{{ m.figure(figs.get("fig_walkforward"), "4",
+   "Pooled leak-free RMSE per configuration across held-out WC rounds.
+    A is the old form-blind EPL-only model, B adds the form feature, C (shipped)
+    additionally retrains on completed WC rounds, D adds the rejected minutes
+    features.") }}
+
+{% if walkforward %}
+<p class="note">Artifact generated {{ walkforward.generated_at_utc }},
+holdout rounds {{ walkforward.holdout_rounds|join(", ") }}.
+Regenerate with <span class="num">python scripts/wc_forward_validation.py</span>.</p>
+{% else %}
+<p class="note">Walk-forward artifact not yet generated. Run
+<span class="num">python scripts/wc_forward_validation.py</span>.</p>
+{% endif %}
+
+{# ---------------- 5. Calibration ---------------- #}
+<div class="srule"><span class="no">5</span><h2>Calibration of pre-match predictions</h2></div>
+<div class="prose"><p>For every completed round, the last prediction made while
+the fixture was still scheduled is compared with the points the player then
+scored. Labels come only from realized data and predictions only from before
+kickoff, so this is the honest live record of the production pipeline.
+Coverage per backend reflects what actually ran on a given day, mostly the
+GBM before July and the ensemble after; thin cells are labeled with their n
+rather than smoothed over.</p></div>
+
+{{ m.figure(figs.get("fig_calibration"), "5",
+   "Pre-match predicted points against realized points per position, all
+    completed rounds, with the identity line dashed and binned means in
+    vermillion. Under-prediction of high scores is expected; single-match
+    fantasy points are heavy-tailed.") }}
+
+{% if calibration_summary %}
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Backend</th><th>Pos</th><th class="n">n</th>
+    <th class="n">RMSE</th><th class="n">MAE</th><th class="n">Spearman rho</th></tr></thead>
+  <tbody>
+  {% for r in calibration_summary %}
+    <tr>
+      <td class="role">{{ r.model_backend }}</td>
+      <td class="role">{{ r.position }}</td>
+      <td class="n">{{ r.n }}</td>
+      <td class="n">{{ "%.3f"|format(r.rmse) }}</td>
+      <td class="n">{{ "%.3f"|format(r.mae) }}</td>
+      <td class="n">{{ "%.3f"|format(r.spearman_rho) if r.spearman_rho is not none else "-" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{# ---------------- 6. GK formula evolution ---------------- #}
+<div class="srule"><span class="no">6</span><h2>The goalkeeper formula, theory against measurement</h2></div>
+<div class="prose"><p>The save bonus began as a flat constant, was re-derived
+from first principles at 1.13 per unit of opponent xG, and shipped at the
+empirically calibrated 0.50 after the sweep showed the theoretical value
+overestimates. Not all opponent xG becomes shots on target, and the median
+keeper does not save at the elite rate. The episode set the project rule that
+derivations propose and measurements decide.</p></div>
+
+{{ m.figure(figs.get("fig_gk_sweep"), "6",
+   "Goalkeeper RMSE under the v1 flat bonus and the v2 opponent-xG-scaled
+    bonus, on held-out EPL and on realized WC rounds. Deltas annotate the v2
+    bars; negative is improvement.") }}
+
+{# ---------------- 7. Negative results ---------------- #}
+<div class="srule"><span class="no">7</span><h2>Negative results</h2></div>
+<div class="prose"><p>Rejected ideas are results. Each row below was built,
+measured under the same gates as everything that shipped, and turned down on
+the numbers. Recording them keeps the same mistake from being made twice and
+keeps the shipped stack honest about why it looks the way it does.</p></div>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Idea</th><th>Tested</th><th>What the measurement said</th><th>Evidence</th></tr></thead>
+  <tbody>
+  {% for nr in negative_results %}
+    <tr>
+      <td class="wraps"><b>{{ nr.label }}</b><br><span class="note">{{ nr.summary }}</span></td>
+      <td class="num">{{ nr.tested }}</td>
+      <td class="wraps">{{ nr.measured }}</td>
+      <td class="wraps">{% for e in nr.evidence %}<a href="../{{ e }}">{{ e.split("/")[-1] }}</a>{{ " " }}{% endfor %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{{ m.figure(figs.get("fig_market_negative"), "7",
+   "Change in RMSE when a Benter-style combiner blends Polymarket winner
+    prices into each backend, per round. Positive means the market made the
+    prediction worse; it did so for every backend in every round tested.") }}
+
+{# ---------------- 8. Reproducibility ---------------- #}
+<div class="srule"><span class="no">8</span><h2>Reproducibility</h2></div>
+<div class="prose"><p>Every figure and table on this page regenerates from the
+repository. The companion notebook,
+<a href="../notebooks/model_evolution.ipynb">notebooks/model_evolution.ipynb</a>,
+walks the same analyses interactively using the same code paths.</p></div>
+
+<pre class="formula-text">python -m fifa_fantasy.training.validate      # held-out EPL RMSE report
+python scripts/wc_forward_validation.py       # leak-free walk-forward artifact
+python scripts/model_backtest.py              # cross-model realized backtest
+python scripts/gk_formula_ab.py               # GK formula v1 vs v2 A/B
+python scripts/with_vs_without_market.py      # market combiner negative result
+python -m fifa_fantasy.report                 # this page's dataset and figures
+python -m fifa_fantasy.web                    # write the static pages</pre>
+
+{% endblock %}

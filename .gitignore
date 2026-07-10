@@ -51,8 +51,16 @@ data/processed/*.parquet
 data/external/cache/
 data/external/football_data/
 
-# Generated dashboards (per-run output)
+# Generated dashboards (per-run output). The four page snapshots and the
+# figure SVGs are re-included so a fresh clone gets a complete dashboard
+# without running the pipeline; results/report/ is a regenerable aggregate.
 results/*.html
+!results/index.html
+!results/algorithms.html
+!results/intelligence.html
+!results/research.html
+!results/figures/
+results/report/
 
 # Editor
 .vscode/
