@@ -1,5 +1,8 @@
 # FIFA Fantasy World Cup 2026
 
+[![CI](https://github.com/AsherDLL/fifa-wc-fantasy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AsherDLL/fifa-wc-fantasy/actions/workflows/ci.yml?query=branch%3Amain) [![License: GPL-3.0](https://img.shields.io/github/license/AsherDLL/fifa-wc-fantasy)](./LICENSE) [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](./pyproject.toml) [![Cite this repo](https://img.shields.io/badge/cite-CITATION.cff-2ea44f)](./CITATION.cff)
+[![Backends](https://img.shields.io/badge/backends-heuristic%20%7C%20poisson%20%7C%20gbm%20%7C%20ensemble-orange)](./docs/approaches.md) [![Last commit](https://img.shields.io/github/last-commit/AsherDLL/fifa-wc-fantasy)](https://github.com/AsherDLL/fifa-wc-fantasy/commits/main) [![Whitepaper](https://img.shields.io/badge/whitepaper-in%20draft-lightgrey)](./docs/whitepaper/README.md)
+
 A prediction, optimization, and decision-support system for the official
 FIFA World Cup 2026 Fantasy game. Predicts per-player fantasy points
 with several competing models, selects the optimal 15-player squad under
@@ -413,7 +416,8 @@ the same git repo do not collide.
 
 ## Documentation index
 
-- [`docs/Fantasy.md`](./docs/Fantasy.md) the official guidelines, verbatim
+- [`docs/Fantasy.md`](./docs/Fantasy.md) rule excerpts from the official guidelines
+- [`docs/data-provenance.md`](./docs/data-provenance.md) every redistributed dataset, its source and terms
 - [`docs/scoring-rules.md`](./docs/scoring-rules.md) scoring contract
 - [`docs/operations.md`](./docs/operations.md) substitution and booster mechanics
 - [`docs/features.md`](./docs/features.md) feature column dictionary
@@ -426,10 +430,36 @@ the same git repo do not collide.
 - [`docs/whitepaper/`](./docs/whitepaper) the full scholarly write-up, one file per section
 - [`notebooks/model_evolution.ipynb`](./notebooks/model_evolution.ipynb) executed companion notebook for the Research page
 
+## References and acknowledgements
+
+Methods this project stands on, cited in full BibTeX form in
+[`docs/whitepaper/sections/13_references.bib.md`](./docs/whitepaper/sections/13_references.bib.md):
+
+- Maher (1982), Modelling association football scores, and Dixon and
+  Coles (1997), the foundations of the Poisson goals backend
+- Elo (1978) and Hvattum and Arntzen (2010) for the team-strength
+  rating features
+- Ke et al. (2017), LightGBM, the GBM backend; Chen and Guestrin
+  (2016), XGBoost, used in challenger experiments
+- Benter (1994), whose model-plus-market combination framed our
+  prediction-market study; Thaler and Ziemba (1988) and Snowberg and
+  Wolfers (2010) on betting-market efficiency
+- Mitchell, O'Sullivan and Dunning's PuLP with the COIN-OR CBC solver
+  for all squad optimization
+
+Data made available by Vaastav Anand's Fantasy-Premier-League mirror,
+martj42's international results dataset, football-data.co.uk,
+clubelo.com, and the public Polymarket and Kalshi market-data APIs;
+per-dataset terms in [`docs/data-provenance.md`](./docs/data-provenance.md).
+Squad decisions along the tournament were sharpened by arguments with
+Diego Guajardo, co-author of the whitepaper.
+
 ## License and citation
 
 GPL-3.0-only; see [LICENSE](./LICENSE). Bundled data files keep the
-terms of their upstream sources. To cite this project use
-[`CITATION.cff`](./CITATION.cff) (GitHub renders it as a "Cite this
-repository" button). FIFA World Cup and FIFA Fantasy are trademarks of
-FIFA; this is an independent research project with no affiliation.
+terms of their upstream sources, catalogued in
+[`docs/data-provenance.md`](./docs/data-provenance.md). To cite this
+project use [`CITATION.cff`](./CITATION.cff) (GitHub renders it as a
+"Cite this repository" button). FIFA World Cup and FIFA Fantasy are
+trademarks of FIFA; this is an independent research project with no
+affiliation.
