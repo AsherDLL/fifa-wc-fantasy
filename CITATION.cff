@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software or the accompanying study, please cite it as below."
+title: "FIFA Fantasy WC 2026: prediction, optimization, and live decision support"
+type: software
+authors:
+  - family-names: "Davila"
+    given-names: "Asher"
+  - family-names: "Guajardo"
+    given-names: "Diego"
+license: GPL-3.0-only
+repository-code: "https://github.com/AsherDLL/fifa-wc-fantasy"
+date-released: 2026-07-12
+version: 0.0.1
+abstract: >-
+  Prediction models (heuristic, Poisson, gradient-boosted trees, and a
+  per-position ensemble), MILP squad optimization, and a live decision
+  layer for the official FIFA World Cup 2026 fantasy game, developed and
+  validated during the tournament with leak-free walk-forward evaluation,
+  documented negative results, and a reproducible whitepaper.
