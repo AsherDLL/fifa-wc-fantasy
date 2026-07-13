@@ -519,3 +519,40 @@ Including features that are present only at inference would force the
 model to learn signal it cannot validate during training, increasing
 overfit risk. Adding them later once WC data exists is simpler than
 removing them.
+
+## 2026-07-12 - Semifinal decision layer
+
+### Optimize the XI plus captain, not the 15-player sum
+
+Decision. Semifinal transfer, captain, and booster advice comes from
+`scripts/sf_joint_analysis.py`, a single MILP over squad, XI,
+formation, captain, and transfers whose objective is the expected
+round score (XI plus doubled captain, minus 3 per extra transfer,
+plus a 0.1 bench tiebreak), with a seeded Monte Carlo layer pricing
+plans against an ownership-built template XI. The scouting bonus
+enters as 2 times P(points above 4) from the quantile heads instead
+of a flat +2, and eliminated squad members are retainable zero-point
+assets. The production `solve_transfer` objective is unchanged.
+
+Why. A solve constrained to keep two midfielders produced a higher
+XI expectation than the unconstrained solve, which is impossible
+under a correctly specified objective and proved `solve_transfer`
+maximizes bench weight that never scores. Fixing the analysis layer
+recovers the points; swapping production objectives days before a
+semifinal trades a known small bias for unknown regression risk.
+
+Alternative considered. Patching `solvers.solve_transfer` in place.
+Rejected mid-tournament for the same reason heuristic v2 stayed out
+of production; queued for after the final (whitepaper 05d, 11).
+
+### Register the semifinal pick comparison before lockout
+
+Decision. `data/evaluation/sf_pick_comparison.json` stores the
+manager's squad and the model's squad for round 7 with captain,
+bench, booster, scoring rules, and the exact generator command
+(pinned parquet, market snapshot, seed), committed before the round
+locks.
+
+Why. A comparison specified after results are known invites hindsight
+in what gets counted; registering picks, rules, and inputs first
+makes the round 8 report auditable (whitepaper 05d.7, 08).

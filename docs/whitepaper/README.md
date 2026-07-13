@@ -23,6 +23,7 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 05 | [methodology.md](sections/05_methodology.md) | Methodology | DRAFT |
 | 05b | [algorithms_formal.md](sections/05b_algorithms_formal.md) | Algorithms (formal specifications) | DRAFT |
 | 05c | [heuristic_v2_attempt.md](sections/05c_heuristic_v2_attempt.md) | Heuristic v2 attempt and failed validation | DRAFT |
+| 05d | [joint_optimization.md](sections/05d_joint_optimization.md) | Joint XI-aware optimization and the semifinal decision study | DRAFT |
 | 06 | [implementation.md](sections/06_implementation.md) | Implementation & architecture | DRAFT |
 | 07 | [validation.md](sections/07_validation.md) | Held-out validation | DRAFT |
 | 08 | [live_results.md](sections/08_live_results.md) | Live tournament results | DRAFT |

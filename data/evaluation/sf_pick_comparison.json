@@ -1,0 +1,74 @@
+{
+  "purpose": "Head-to-head for SF round 7: the user's locked squad vs the model's recommended squad at the same decision point (after the user's first 3 transfers, 2 free remaining, $1.0M bank). Score after the semifinals.",
+  "created_utc": "2026-07-12",
+  "round_id": 7,
+  "stage": "SF",
+  "generator": "scripts/sf_joint_analysis.py --compare --predictions data/processed/predictions_2026-07-12.parquet --fixtures data/raw/fixtures_2026-07-12.parquet --market-snapshot data/external/prediction_markets/snapshot_2026-07-12T05-00-51Z.jsonl (seed 7, 20000 sims)",
+  "scoring_rules": {
+    "base": "sum of realized round-7 points of the starting XI",
+    "captain": "captain points count twice; if captain plays 0 minutes, vice doubles instead",
+    "autosub": "if a starter plays 0 minutes, first eligible bench player of a valid formation subs in",
+    "booster_both_picks": "clean_sheet_shield: for each XI GK/DEF/MID who played 60+ minutes and whose team conceded exactly 1 goal in the match, add the clean-sheet points they lost (GK/DEF +5, MID +1)",
+    "data": "round_points array index 6 in the first post-SF data/raw/players_*.parquet; conceded counts from fixtures parquet"
+  },
+  "user_pick": {
+    "xi": [
+      {"id": 506, "name": "Mike Maignan", "pos": "GK"},
+      {"id": 1086, "name": "Aymeric Laporte", "pos": "DEF"},
+      {"id": 1088, "name": "Marc Cucurella", "pos": "DEF"},
+      {"id": 494, "name": "Dayot Upamecano", "pos": "DEF"},
+      {"id": 491, "name": "Jude Bellingham", "pos": "MID"},
+      {"id": 56, "name": "Alexis Mac Allister", "pos": "MID"},
+      {"id": 517, "name": "Michael Olise", "pos": "MID"},
+      {"id": 501, "name": "Ousmane Dembele", "pos": "MID"},
+      {"id": 38, "name": "Lionel Messi", "pos": "FWD"},
+      {"id": 500, "name": "Kylian Mbappe", "pos": "FWD"},
+      {"id": 468, "name": "Harry Kane", "pos": "FWD"}
+    ],
+    "captain": 500,
+    "vice": 38,
+    "bench": [
+      {"id": 910, "name": "Orlando Gill", "pos": "GK", "eliminated": true},
+      {"id": 1320, "name": "Facundo Medina", "pos": "DEF"},
+      {"id": 248, "name": "Daniel Munoz", "pos": "DEF", "eliminated": true},
+      {"id": 42, "name": "Nico Gonzalez", "pos": "MID"}
+    ],
+    "sim_ev_no_booster": 59.7,
+    "sim_ev_with_shield": 68.1
+  },
+  "model_pick": {
+    "note": "Hybrid C recommendation issued before the user's final two transfers: Mac Allister to Doue, dead Munoz to Spence",
+    "xi": [
+      {"id": 506, "name": "Mike Maignan", "pos": "GK"},
+      {"id": 1086, "name": "Aymeric Laporte", "pos": "DEF"},
+      {"id": 1088, "name": "Marc Cucurella", "pos": "DEF"},
+      {"id": 494, "name": "Dayot Upamecano", "pos": "DEF"},
+      {"id": 491, "name": "Jude Bellingham", "pos": "MID"},
+      {"id": 505, "name": "Desire Doue", "pos": "MID"},
+      {"id": 517, "name": "Michael Olise", "pos": "MID"},
+      {"id": 501, "name": "Ousmane Dembele", "pos": "MID"},
+      {"id": 38, "name": "Lionel Messi", "pos": "FWD"},
+      {"id": 500, "name": "Kylian Mbappe", "pos": "FWD"},
+      {"id": 468, "name": "Harry Kane", "pos": "FWD"}
+    ],
+    "captain": 500,
+    "vice": 468,
+    "bench": [
+      {"id": 467, "name": "Djed Spence", "pos": "DEF"},
+      {"id": 910, "name": "Orlando Gill", "pos": "GK", "eliminated": true},
+      {"id": 1264, "name": "Alexander Freeman", "pos": "DEF", "eliminated": true},
+      {"id": 1133, "name": "Johan Manzambi", "pos": "MID", "eliminated": true}
+    ],
+    "sim_ev_no_booster": 60.5,
+    "sim_ev_with_shield": 68.8
+  },
+  "shared_context": {
+    "advance_probs_blended": {"FRA": 0.596, "ESP": 0.404, "ENG": 0.498, "ARG": 0.502},
+    "booster_pairing_totals": {
+      "shield_sf_plus_qualification_final": 19.5,
+      "qualification_sf_plus_shield_final": 18.2,
+      "qualification_sf_plus_twelfth_final": 17.7,
+      "twelfth_sf_plus_qualification_final": 17.4
+    }
+  }
+}

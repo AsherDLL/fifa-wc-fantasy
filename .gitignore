@@ -78,6 +78,12 @@ results/report/
 # whitepaper's empirical Benter combiner training data).
 !data/external/prediction_markets/
 
+# Semifinal decision-point snapshot: inputs of the registered pick comparison
+# (data/evaluation/sf_pick_comparison.json), re-runnable via
+# scripts/sf_joint_analysis.py --compare (whitepaper section 05d).
+!data/processed/predictions_2026-07-12.parquet
+!data/raw/fixtures_2026-07-12.parquet
+
 # Team news (recent only, gitignored by default)
 data/external/team_news/
 data/external/cache/scraping/

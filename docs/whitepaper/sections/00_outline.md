@@ -47,6 +47,7 @@ results, lessons.
 - Elo integration: priority hierarchy (country_elo > rank_diff > price-only)
 - MILP optimizer (PuLP/CBC): squad selection, transfer planning with hits, lineup choice
 - Scouting bonus encoding (more than 4 pts AND under 5% ownership equals plus 2)
+- Joint XI-aware optimization, probabilistic scouting expectation, and the semifinal booster study (05d)
 
 ### 6. Implementation and architecture
 - Pipeline: collector then features then model then optimizer (then live tools)

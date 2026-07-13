@@ -1,0 +1,704 @@
+{
+ "generated_at_utc": "2026-07-13T03:11:14Z",
+ "round_id": 7,
+ "inputs": {
+  "predictions": "data/processed/predictions_2026-07-12.parquet",
+  "fixtures": "data/raw/fixtures_2026-07-12.parquet",
+  "market_snapshot": "data/external/prediction_markets/snapshot_2026-07-12T05-00-51Z.jsonl",
+  "sims": 20000,
+  "seed": 7,
+  "free_transfers": 5
+ },
+ "advance_probs": {
+  "FRA": 0.596,
+  "ESP": 0.404,
+  "ENG": 0.498,
+  "ARG": 0.502
+ },
+ "plans": [
+  {
+   "label": "user_pick/none",
+   "booster": "none",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 248,
+     "name": "Daniel Mu\u00f1oz",
+     "pos": "DEF",
+     "team": "COL"
+    },
+    {
+     "id": 42,
+     "name": "Nico Gonz\u00e1lez",
+     "pos": "MID",
+     "team": "ARG"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 59.72,
+    "p90": 81.44,
+    "p_beat_field": 0.674,
+    "p_beat_field_by_15": 0.049
+   }
+  },
+  {
+   "label": "user_pick/shield",
+   "booster": "shield",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 248,
+     "name": "Daniel Mu\u00f1oz",
+     "pos": "DEF",
+     "team": "COL"
+    },
+    {
+     "id": 42,
+     "name": "Nico Gonz\u00e1lez",
+     "pos": "MID",
+     "team": "ARG"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 68.08,
+    "p90": 90.51,
+    "p_beat_field": 0.867,
+    "p_beat_field_by_15": 0.369
+   }
+  },
+  {
+   "label": "user_pick/qualification",
+   "booster": "qualification",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 248,
+     "name": "Daniel Mu\u00f1oz",
+     "pos": "DEF",
+     "team": "COL"
+    },
+    {
+     "id": 42,
+     "name": "Nico Gonz\u00e1lez",
+     "pos": "MID",
+     "team": "ARG"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 70.93,
+    "p90": 94.1,
+    "p_beat_field": 0.952,
+    "p_beat_field_by_15": 0.48
+   }
+  },
+  {
+   "label": "model_pick/none",
+   "booster": "none",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 505,
+     "name": "D\u00e9sir\u00e9 Dou\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 467,
+     "name": "Djed Spence",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1264,
+     "name": "Alexander Freeman",
+     "pos": "DEF",
+     "team": "USA"
+    },
+    {
+     "id": 1133,
+     "name": "Johan Manzambi",
+     "pos": "MID",
+     "team": "SUI"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 60.49,
+    "p90": 83.94,
+    "p_beat_field": 0.669,
+    "p_beat_field_by_15": 0.119
+   }
+  },
+  {
+   "label": "model_pick/shield",
+   "booster": "shield",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 505,
+     "name": "D\u00e9sir\u00e9 Dou\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 467,
+     "name": "Djed Spence",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1264,
+     "name": "Alexander Freeman",
+     "pos": "DEF",
+     "team": "USA"
+    },
+    {
+     "id": 1133,
+     "name": "Johan Manzambi",
+     "pos": "MID",
+     "team": "SUI"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 68.85,
+    "p90": 92.4,
+    "p_beat_field": 0.846,
+    "p_beat_field_by_15": 0.412
+   }
+  },
+  {
+   "label": "model_pick/qualification",
+   "booster": "qualification",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 505,
+     "name": "D\u00e9sir\u00e9 Dou\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    }
+   ],
+   "bench": [
+    {
+     "id": 467,
+     "name": "Djed Spence",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    },
+    {
+     "id": 1264,
+     "name": "Alexander Freeman",
+     "pos": "DEF",
+     "team": "USA"
+    },
+    {
+     "id": 1133,
+     "name": "Johan Manzambi",
+     "pos": "MID",
+     "team": "SUI"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 71.73,
+    "p90": 97.36,
+    "p_beat_field": 0.904,
+    "p_beat_field_by_15": 0.507
+   }
+  }
+ ]
+}
