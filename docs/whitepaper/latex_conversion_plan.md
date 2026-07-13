@@ -75,7 +75,7 @@ Save under `docs/whitepaper/latex_template.tex`:
 % ... more packages
 
 \title{A Multi-Backend Predictive Framework for FIFA World Cup Fantasy Football}
-\author{Asher D L L}
+\author{Asher Davila}
 \date{\today}
 
 \begin{document}
