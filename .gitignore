@@ -66,6 +66,9 @@ results/report/
 .vscode/
 .idea/
 
+# Local assistant/session config
+.claude/
+
 # OS
 .DS_Store
 

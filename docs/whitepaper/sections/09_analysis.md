@@ -112,3 +112,36 @@ model's transfer-with-hit optimisation prefers to take the hit when the
 expected horizon gain exceeds 3 over MD2 plus MD3; in retrospect, this
 was systematically too aggressive because the model under-estimated
 rotation.
+
+## 9.6 Threats to validity
+
+The conclusions in this paper carry four structural limitations, stated
+here once so individual sections do not have to hedge repeatedly.
+
+Single-tournament sample. Every live result comes from one edition of
+one tournament: eight fantasy rounds, a few hundred player-match
+observations for the knockout stages. Per-round model rankings are
+noisy at this sample size (section 08b shows no backend winning every
+round), and any claim of the form "model A beats model B on realized
+WC points" is weaker evidence than the EPL held-out and walk-forward
+results it accompanies.
+
+Distribution shift is measured, not solved. The EPL-to-international
+transfer is validated only through walk-forward RMSE on completed WC
+rounds (section 07). Features whose distributions differ most between
+club and international play (price compression, Elo gaps) are exactly
+the ones the models lean on.
+
+Market-derived and blended probabilities. Team advance probabilities
+used by the decision layer (section 05d) blend a structural Poisson
+model with prediction-market prices. Market prices for
+tournament-winner contracts conflate advance probability with
+subsequent rounds' strength, and the 50/50 blend weight is a judgment,
+not a fitted parameter.
+
+Simulation correlation assumptions. The Monte Carlo layer imposes a
+single team-level Gaussian copula factor (rho 0.3) and independent
+player draws otherwise. Real scoring dependence (goals involve
+multiple squad players; clean sheets are team-wide) is richer, so
+simulated tail probabilities for margin targets are approximations,
+useful for ranking strategies rather than for calibrated tail risk.

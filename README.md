@@ -423,5 +423,16 @@ the same git repo do not collide.
 - [`docs/api-endpoints.md`](./docs/api-endpoints.md) FIFA Fantasy endpoints
 - [`docs/decisions.md`](./docs/decisions.md) running design-decision log
 - [`docs/pipeline-walkthrough.md`](./docs/pipeline-walkthrough.md) Lautaro Martinez traced through every step
+- [`docs/data-provenance.md`](./docs/data-provenance.md) every redistributed dataset, its source and terms
 - [`docs/whitepaper/`](./docs/whitepaper) the full scholarly write-up, one file per section
 - [`notebooks/model_evolution.ipynb`](./notebooks/model_evolution.ipynb) executed companion notebook for the Research page
+
+## License and citation
+
+GPL-3.0-only; see [LICENSE](./LICENSE). Data files keep the terms of
+their upstream sources, catalogued in
+[`docs/data-provenance.md`](./docs/data-provenance.md). To cite this
+project use [`CITATION.cff`](./CITATION.cff) (GitHub renders it as a
+"Cite this repository" button). FIFA World Cup and FIFA Fantasy are
+trademarks of FIFA; this is an independent research project with no
+affiliation.

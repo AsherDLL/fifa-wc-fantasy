@@ -6,8 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "fifa-fantasy"
 version = "0.0.1"
 description = "FIFA Fantasy World Cup 2026 - prediction, optimization, and live decision support."
+readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "GPL-3.0-only" }
 authors = [{ name = "Asher Davila" }, { name = "Diego Guajardo" }]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = [
     "httpx>=0.27",
     "pydantic>=2.7",
@@ -16,6 +23,7 @@ dependencies = [
     "pulp>=2.7",
     "lightgbm>=4.0",
     "scikit-learn>=1.4",
+    "scipy>=1.11",
     "joblib>=1.3",
     "jinja2>=3.1",
     "matplotlib>=3.8",
@@ -30,6 +38,9 @@ dev = ["pytest>=8", "respx>=0.21"]
 sources = ["soccerdata>=1.8"]
 # Companion notebook execution.
 analysis = ["jupyter", "nbconvert", "ipykernel"]
+
+[project.urls]
+Repository = "https://github.com/AsherDLL/fifa-wc-fantasy"
 
 [tool.setuptools.packages.find]
 where = ["src"]
