@@ -413,7 +413,7 @@ the same git repo do not collide.
 
 ## Documentation index
 
-- [`docs/Fantasy.md`](./docs/Fantasy.md) the official guidelines, verbatim
+- [`docs/Fantasy.md`](./docs/Fantasy.md) rule excerpts from the official guidelines
 - [`docs/scoring-rules.md`](./docs/scoring-rules.md) scoring contract
 - [`docs/operations.md`](./docs/operations.md) substitution and booster mechanics
 - [`docs/features.md`](./docs/features.md) feature column dictionary
