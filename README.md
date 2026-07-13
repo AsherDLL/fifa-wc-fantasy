@@ -425,3 +425,11 @@ the same git repo do not collide.
 - [`docs/pipeline-walkthrough.md`](./docs/pipeline-walkthrough.md) Lautaro Martinez traced through every step
 - [`docs/whitepaper/`](./docs/whitepaper) the full scholarly write-up, one file per section
 - [`notebooks/model_evolution.ipynb`](./notebooks/model_evolution.ipynb) executed companion notebook for the Research page
+
+## License and citation
+
+GPL-3.0-only; see [LICENSE](./LICENSE). Bundled data files keep the
+terms of their upstream sources. To cite this project use
+[`CITATION.cff`](./CITATION.cff) (GitHub renders it as a "Cite this
+repository" button). FIFA World Cup and FIFA Fantasy are trademarks of
+FIFA; this is an independent research project with no affiliation.
