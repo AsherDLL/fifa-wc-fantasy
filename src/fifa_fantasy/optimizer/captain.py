@@ -28,7 +28,6 @@ Usage:
     decision = select_captain_vice(
         xi_predictions=md_round_predictions,
         standings_position=user_standings_pos,
-        league_size=20,
     )
     print(decision.captain_id, decision.vice_id, decision.rationale)
 """
@@ -109,8 +108,7 @@ def _row_to_dict(row) -> dict:
 
 
 def captain_composite_score(player: dict,
-                            standings_pos_pct: float = 0.5,
-                            league_size: int = 20) -> tuple[float, dict]:
+                            standings_pos_pct: float = 0.5) -> tuple[float, dict]:
     """Composite score for a player's captain suitability.
 
     Combines:
@@ -160,8 +158,7 @@ def captain_composite_score(player: dict,
 
 
 def select_captain_vice(xi_predictions: pd.DataFrame,
-                       standings_pos_pct: float = 0.5,
-                       league_size: int = 20) -> CaptainDecision:
+                       standings_pos_pct: float = 0.5) -> CaptainDecision:
     """Pick the best captain and vice from the XI.
 
     Args:
@@ -172,7 +169,6 @@ def select_captain_vice(xi_predictions: pd.DataFrame,
             predicted_p90, country_elo_diff, fixture_id.
         standings_pos_pct: user's position percentile in league;
             0.0 = leader, 1.0 = last. Default 0.5 (median, neutral).
-        league_size: number of teams in the personal league.
 
     Returns:
         CaptainDecision with captain_id, vice_id, scores, rationale.
@@ -181,7 +177,7 @@ def select_captain_vice(xi_predictions: pd.DataFrame,
     for r in xi_predictions.itertuples():
         p = _row_to_dict(r)
         score, breakdown = captain_composite_score(
-            p, standings_pos_pct=standings_pos_pct, league_size=league_size
+            p, standings_pos_pct=standings_pos_pct
         )
         p["composite_score"] = float(score)
         p["score_breakdown"] = breakdown
@@ -208,7 +204,6 @@ def select_captain_vice(xi_predictions: pd.DataFrame,
         vice_score=vice["composite_score"] if vice else 0.0,
         rationale={
             "standings_pos_pct": standings_pos_pct,
-            "league_size": league_size,
             "differential_lambda": captain["score_breakdown"]["differential_lambda"],
             "captain_breakdown": captain["score_breakdown"],
             "vice_breakdown": vice["score_breakdown"] if vice else {},

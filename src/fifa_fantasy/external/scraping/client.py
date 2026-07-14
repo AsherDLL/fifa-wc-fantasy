@@ -47,7 +47,6 @@ from .identity import DEFAULT_POOL, Identity, pick_for_host
 from .proxies import ProxyRotator
 from .rate_limit import PerHostRateLimiter
 from .retry import RETRY_STATUSES, detect_block, retry_with_backoff
-from .session import homepage_url
 
 log = logging.getLogger(__name__)
 
@@ -61,10 +60,6 @@ class CachedResponse:
     headers: dict
     url: str
     from_cache: bool
-
-    def json(self):
-        import json
-        return json.loads(self.text)
 
 
 class StealthClient:
@@ -82,9 +77,7 @@ class StealthClient:
         max_retries: int = 3,
         proxy_rotator: ProxyRotator | None = None,
         default_timeout_s: float = 30.0,
-        warm_session: bool = False,
         identity_pool: tuple[Identity, ...] = DEFAULT_POOL,
-        impersonate: str | None = None,  # legacy override; pins ALL hosts to one identity
     ):
         self.rate_limiter = PerHostRateLimiter(rate_limit_per_second)
         self.cache: DiskCache | None = (
@@ -93,25 +86,7 @@ class StealthClient:
         self.max_retries = max_retries
         self.proxy_rotator = proxy_rotator or ProxyRotator.from_env()
         self.timeout_s = default_timeout_s
-        self.warm_session = warm_session
-        self._warmed_hosts: set[str] = set()
         self.identity_pool = identity_pool
-        # Backwards-compatible legacy `impersonate=`: if set, build a single-
-        # identity pool so every host gets that target. Existing callers
-        # that pass `impersonate="chrome124"` keep working.
-        if impersonate is not None:
-            self.identity_pool = (
-                Identity(
-                    name=f"legacy-{impersonate}",
-                    impersonate=impersonate,
-                    user_agent="",
-                    accept_language="en-US,en;q=0.9",
-                    sec_ch_ua="",
-                    sec_ch_ua_full_version_list="",
-                    sec_ch_ua_platform="",
-                    sends_client_hints=False,
-                ),
-            )
         # Per-host: identity index in the pool (so blocks can rotate by ++).
         self._host_identity_idx: dict[str, int] = {}
         # Per-host curl_cffi session, keyed by (host, identity index).
@@ -174,21 +149,6 @@ class StealthClient:
             from_cache=False,
         )
 
-    def _warm(self, url: str, headers: Mapping[str, str] | None) -> None:
-        if not self.warm_session:
-            return
-        host = urlparse(url).netloc
-        if not host or host in self._warmed_hosts:
-            return
-        home = homepage_url(url)
-        try:
-            self.rate_limiter.acquire(home)
-            self._do_get(home, headers)
-            self._warmed_hosts.add(host)
-            log.debug("warmed session for %s", host)
-        except Exception as e:  # noqa: BLE001
-            log.debug("warmup failed for %s: %s", host, e)
-
     def get(self, url: str,
             headers: Mapping[str, str] | None = None,
             bypass_cache: bool = False) -> CachedResponse:
@@ -206,7 +166,6 @@ class StealthClient:
                     from_cache=True,
                 )
 
-        self._warm(url, headers)
         host = urlparse(url).netloc or url
 
         def _attempt() -> CachedResponse:

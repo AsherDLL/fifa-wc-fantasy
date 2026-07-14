@@ -59,7 +59,6 @@ APPEARANCE_POINTS = 2
 ASSIST_POINTS = 3
 CLEAN_SHEET_POINTS = {"GK": 5, "DEF": 5, "MID": 1, "FWD": 0}
 DEF_GC_PENALTY_FACTOR = 0.5
-GK_SHOT_RATIO = 4.0          # shots on target per unit opp_xg (calibrated below)
 DEFAULT_SAVE_PCT = 0.70      # median GK save percentage
 
 SHOT_PER_XG_CALIBRATED = 2.0  # empirical; see scripts/gk_formula_ab.py findings

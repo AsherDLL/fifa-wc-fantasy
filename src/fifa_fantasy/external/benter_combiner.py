@@ -129,33 +129,3 @@ def combine(
         + config.beta_1 * model_pred * (1.0 + config.beta_2 * (adj - 1.0))
     ).clip(min=0)
     return out
-
-
-def with_vs_without_summary(
-    predictions: pd.DataFrame,
-    realised: pd.DataFrame | None = None,
-    config: BenterConfig = BenterConfig(),
-) -> pd.DataFrame:
-    """Side-by-side comparison rows.
-
-    Returns the input predictions with two new columns:
-      - `combined_predicted_points` (model + market via combiner)
-      - `delta` (combined minus model)
-    Plus, when `realised` is given (with realised_points column),
-      - `model_error` and `combined_error` for both.
-    """
-    combined = combine(predictions, config=config)
-    combined["delta"] = (combined["combined_predicted_points"]
-                        - combined["predicted_points"])
-    if realised is not None and "realised_points" in realised.columns:
-        combined = combined.merge(
-            realised[["player_id", "realised_points"]],
-            on="player_id", how="left",
-        )
-        combined["model_error"] = (
-            combined["predicted_points"] - combined["realised_points"]
-        )
-        combined["combined_error"] = (
-            combined["combined_predicted_points"] - combined["realised_points"]
-        )
-    return combined

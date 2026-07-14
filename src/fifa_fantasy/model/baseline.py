@@ -60,8 +60,6 @@ ELO_DIFF_SCALE = 400.0
 # international form, where the price proxy tracks club-league quality.
 PRICE_SIGNAL_WEIGHT = 0.35
 STRENGTH_SIGNAL_WEIGHT = 0.65
-# Backwards-compat alias used by older callers; same value.
-RANK_SIGNAL_WEIGHT = STRENGTH_SIGNAL_WEIGHT
 
 # Matchup saturation. Bumped to +/-40% so a top-vs-bottom matchup carries real
 # weight; the previous 25% was too conservative.

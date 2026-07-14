@@ -93,11 +93,3 @@ def load_latest(dir_: Path = DEFAULT_DIR) -> pd.DataFrame:
     if not files:
         return pd.DataFrame()
     return pd.read_parquet(files[-1])
-
-
-def load_all(dir_: Path = DEFAULT_DIR) -> pd.DataFrame:
-    """Concatenate every persisted parquet for full history."""
-    if not dir_.exists():
-        return pd.DataFrame()
-    frames = [pd.read_parquet(p) for p in sorted(dir_.glob("team_news_*.parquet"))]
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()

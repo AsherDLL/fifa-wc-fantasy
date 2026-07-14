@@ -28,7 +28,6 @@ from .international_elo import BASE_ELO, HOME_ADVANTAGE
 
 DEFAULT_CACHE_DIR = Path("data/external/football_data")
 DEFAULT_PARQUET = Path("data/external/fd_matches.parquet")
-DEFAULT_CLUB_ELO = Path("data/external/club_elo.csv")
 
 # Standard league codes used by the site. Trim/expand to taste.
 LEAGUES = ("E0", "SP1", "D1", "I1", "F1")  # Premier, La Liga, Bundes, Serie A, Ligue 1
@@ -95,8 +94,6 @@ def refresh_all(seasons: tuple[str, ...] = ("2223", "2324", "2425"),
     all_matches = pd.concat(frames, ignore_index=True).sort_values("date").reset_index(drop=True)
     DEFAULT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
     all_matches.to_parquet(DEFAULT_PARQUET, index=False)
-    club_snap = compute_club_elo(all_matches)
-    club_snap.to_csv(DEFAULT_CLUB_ELO, index=False)
     return all_matches
 
 
@@ -131,45 +128,7 @@ def compute_club_elo_history(matches: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values(["club", "date"]).reset_index(drop=True)
 
 
-def compute_club_elo(matches: pd.DataFrame) -> pd.DataFrame:
-    """Per-club Elo rolled through all matches in the input table.
-
-    Shares the Elo math with the international module but uses a single
-    K-factor (club football is more frequent and lower-stakes than
-    international tournaments).
-    """
-    elos: dict[str, float] = {}
-    K = 20
-    for r in matches.itertuples(index=False):
-        h, a = str(r.home), str(r.away)
-        e_h = elos.get(h, BASE_ELO); e_a = elos.get(a, BASE_ELO)
-        exp_h = 1.0 / (1.0 + 10 ** (((e_a) - (e_h + HOME_ADVANTAGE)) / 400))
-        if pd.isna(r.fthg) or pd.isna(r.ftag):
-            continue
-        if r.fthg > r.ftag:
-            s_h, s_a = 1.0, 0.0
-        elif r.fthg < r.ftag:
-            s_h, s_a = 0.0, 1.0
-        else:
-            s_h, s_a = 0.5, 0.5
-        margin = max(1, abs(int(r.fthg) - int(r.ftag)))
-        gd_mult = (margin + 1) ** 0.5 / (2 ** 0.5)
-        elos[h] = e_h + K * gd_mult * (s_h - exp_h)
-        elos[a] = e_a + K * gd_mult * (s_a - (1.0 - exp_h))
-    df = pd.DataFrame(
-        [(club, elo) for club, elo in elos.items()],
-        columns=["club", "elo"],
-    ).sort_values("elo", ascending=False).reset_index(drop=True)
-    return df
-
-
 def load_matches(path: Path = DEFAULT_PARQUET) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     return pd.read_parquet(path)
-
-
-def load_club_elo(path: Path = DEFAULT_CLUB_ELO) -> pd.DataFrame:
-    if not path.exists():
-        return pd.DataFrame(columns=["club", "elo"])
-    return pd.read_csv(path)

@@ -141,12 +141,3 @@ def _sleep_with_jitter(attempt: int, base: float, ceiling: float,
     delay = min(ceiling, base * (2 ** (attempt - 1)))
     perturbed = delay * (1.0 + random.uniform(-jitter, jitter))
     time.sleep(max(0.0, perturbed))
-
-
-def default_retryable(value_or_exc) -> bool:
-    """Default predicate: retry on common HTTP errors + network exceptions."""
-    if isinstance(value_or_exc, Exception):
-        name = type(value_or_exc).__name__.lower()
-        return any(s in name for s in ("connectionerror", "timeout", "transport"))
-    status = getattr(value_or_exc, "status_code", None)
-    return status in RETRY_STATUSES

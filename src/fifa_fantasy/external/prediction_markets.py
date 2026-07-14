@@ -304,39 +304,3 @@ def load_history(in_dir: Path = DEFAULT_DIR) -> pd.DataFrame:
     if not frames:
         return pd.DataFrame()
     return pd.concat(frames, ignore_index=True)
-
-
-def implied_match_outcome(snapshots: pd.DataFrame,
-                          country_a: str,
-                          country_b: str
-                          ) -> dict[str, float] | None:
-    """Find the latest implied (P(A wins), P(B wins), P(draw)) for a fixture.
-
-    Scans the contract titles for country names; returns None when no
-    matching markets are found. This is a best-effort name match; in
-    production it should be backed by a curated contract_id-to-fixture
-    table.
-    """
-    if snapshots.empty:
-        return None
-    latest = snapshots.sort_values("snapshot_utc").groupby("contract_id").tail(1)
-    a_low = country_a.lower(); b_low = country_b.lower()
-    rows = latest[
-        latest["title"].str.lower().str.contains(a_low, na=False)
-        & latest["title"].str.lower().str.contains(b_low, na=False)
-    ]
-    if rows.empty:
-        return None
-    out: dict[str, float] = {}
-    for r in rows.itertuples():
-        title_lo = (r.title or "").lower()
-        yes = float(r.yes_price) if r.yes_price is not None else None
-        if yes is None:
-            continue
-        if "draw" in title_lo:
-            out["P_draw"] = yes
-        elif a_low in title_lo and "win" in title_lo:
-            out["P_A_wins"] = yes
-        elif b_low in title_lo and "win" in title_lo:
-            out["P_B_wins"] = yes
-    return out or None

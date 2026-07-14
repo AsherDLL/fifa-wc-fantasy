@@ -20,7 +20,7 @@ import pandas as pd
 from ..scraping import StealthClient
 from .matcher import PlayerNameMatcher
 from .models import PredictedXI
-from .parsers import espn, soccerdata_proxy, sportsgambler
+from .parsers import espn, soccerdata_proxy
 from .store import DEFAULT_DIR, persist
 
 log = logging.getLogger(__name__)

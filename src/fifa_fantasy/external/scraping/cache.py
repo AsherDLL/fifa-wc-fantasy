@@ -91,15 +91,3 @@ class DiskCache:
             "headers": dict(response_headers),
             "stored_at_utc": datetime.now(timezone.utc).isoformat(),
         }, indent=2))
-
-    def clear(self) -> int:
-        """Delete all cached entries; returns count deleted."""
-        n = 0
-        for p in self.cache_dir.glob("*.meta"):
-            try:
-                p.unlink()
-                (self.cache_dir / f"{p.stem}.body").unlink(missing_ok=True)
-                n += 1
-            except OSError:
-                continue
-        return n

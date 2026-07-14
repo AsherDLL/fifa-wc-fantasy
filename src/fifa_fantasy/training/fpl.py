@@ -118,7 +118,7 @@ def build_player_gameweek_table(
                 "starts": h["starts"],
                 # FPL's `value` is price * 10 (e.g. 75 = $7.5M).
                 "price_millions": h["value"] / 10.0,
-                "ownership_fraction": h["selected"] / 100_000_000.0 if False else None,
+                "ownership_fraction": None,
                 "total_points": h["total_points"],
                 "kickoff_time": h["kickoff_time"],
             })

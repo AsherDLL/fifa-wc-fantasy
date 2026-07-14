@@ -87,8 +87,7 @@ def test_retry_exhausts_and_raises():
 def test_stealth_client_cache_hit_short_circuits(tmp_path):
     """Cache hit returns immediately without calling the underlying transport."""
     cache_dir = tmp_path / "cache"
-    client = StealthClient(impersonate="chrome124",
-                           rate_limit_per_second=100.0,
+    client = StealthClient(rate_limit_per_second=100.0,
                            cache_dir=cache_dir, cache_ttl_hours=1.0)
     # Mock the underlying transport.
     with patch.object(client, "_do_get") as mock_get:
@@ -107,8 +106,7 @@ def test_stealth_client_cache_hit_short_circuits(tmp_path):
 
 
 def test_stealth_client_retries_5xx(tmp_path):
-    client = StealthClient(impersonate="chrome124",
-                           rate_limit_per_second=100.0,
+    client = StealthClient(rate_limit_per_second=100.0,
                            cache_dir=None,
                            max_retries=3)
     responses = [

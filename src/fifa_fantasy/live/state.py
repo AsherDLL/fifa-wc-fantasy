@@ -93,12 +93,8 @@ def load_live_state(
 
     # Join per-player fixture context for the current round.
     home_view = round_fixtures[["fixture_id", "home_squad_id", "kickoff",
-                                "status_norm", "opponent_name"
-                                if "opponent_name" in round_fixtures.columns
-                                else "away_squad_name"]] \
-        .rename(columns={"home_squad_id": "squad_id"}) if False else \
-        round_fixtures[["fixture_id", "home_squad_id", "kickoff", "status_norm"]] \
-            .rename(columns={"home_squad_id": "squad_id"})
+                                "status_norm"]] \
+        .rename(columns={"home_squad_id": "squad_id"})
     home_view = home_view.assign(is_home=True)
     away_view = round_fixtures[["fixture_id", "away_squad_id", "kickoff",
                                 "status_norm"]] \

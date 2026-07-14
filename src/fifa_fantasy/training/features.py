@@ -46,35 +46,6 @@ TOP_N = 11
 # sees one feature with one meaning across data sets.
 FORM_WINDOW = 3
 
-FEATURE_COLUMNS = [
-    "position",
-    "price_millions",
-    "is_home",
-    "strength_diff",
-    "squad_top_n_avg_price",
-    "opp_squad_top_n_avg_price",
-    # rank_diff is included at inference but unavailable for EPL training;
-    # we let LightGBM treat it as NaN. Same column name keeps inference
-    # code unchanged.
-    # team_elo_diff: club-Elo gap (training) or country-Elo gap (inference).
-    # Both derived from football-data.co.uk and martj42 respectively; same
-    # scale (Elo ~400 per 10:1 odds) so the GBM treats them uniformly.
-    "team_elo_diff",
-    # form_lag: trailing mean of the player's own realised fantasy points
-    # over the previous FORM_WINDOW matches (strictly past; shifted by one
-    # so the current row's label never leaks). NaN for a player's first
-    # match, which LightGBM handles natively.
-    "form_lag",
-    # start_rate_lag: trailing fraction of prior matches the player started
-    # (EPL) or participated in (WC). The minutes / rotation-risk signal.
-    "start_rate_lag",
-    # team_gc_form: trailing mean goals conceded by the player's team. The
-    # correct defensive recency signal for GK and DEF, where personal
-    # scoring form is noise.
-    "team_gc_form",
-]
-
-
 def add_lagged_start_rate(player_gameweek: pd.DataFrame,
                           window: int = FORM_WINDOW) -> pd.DataFrame:
     """Attach `start_rate_lag`: trailing fraction of prior matches started.

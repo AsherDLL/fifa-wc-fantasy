@@ -14,9 +14,9 @@ from fifa_fantasy.features.squad import squad_strength
 from fifa_fantasy.model.baseline import (
     PRICE_SIGNAL_WEIGHT,
     RANK_DIFF_SCALE,
-    RANK_SIGNAL_WEIGHT,
     STRENGTH_DIFF_ALPHA,
     STRENGTH_DIFF_SCALE,
+    STRENGTH_SIGNAL_WEIGHT,
     heuristic_predict,
 )
 
@@ -130,10 +130,10 @@ def _row(**overrides):
 
 def test_heuristic_uses_blended_signal_when_rank_present():
     # Player with no price gap but a 500-point rank advantage. Expected
-    # matchup multiplier = 1 + alpha * tanh(RANK_SIGNAL_WEIGHT * 500/RANK_DIFF_SCALE).
+    # matchup multiplier = 1 + alpha * tanh(STRENGTH_SIGNAL_WEIGHT * 500/RANK_DIFF_SCALE).
     df = pd.DataFrame([_row(strength_diff=0.0, rank_diff=500.0)])
     actual = heuristic_predict(df)["predicted_points"].iloc[0]
-    z_blended = RANK_SIGNAL_WEIGHT * 500.0 / RANK_DIFF_SCALE
+    z_blended = STRENGTH_SIGNAL_WEIGHT * 500.0 / RANK_DIFF_SCALE
     expected = 0.60 * 6.0 * (1 + STRENGTH_DIFF_ALPHA * np.tanh(z_blended))
     assert actual == pytest.approx(expected, rel=1e-4)
 
@@ -150,7 +150,7 @@ def test_heuristic_blends_two_signals_consistently():
     df = pd.DataFrame([_row(strength_diff=2.0, rank_diff=500.0)])
     actual = heuristic_predict(df)["predicted_points"].iloc[0]
     z_blended = (PRICE_SIGNAL_WEIGHT * 2.0 / STRENGTH_DIFF_SCALE
-                 + RANK_SIGNAL_WEIGHT * 500.0 / RANK_DIFF_SCALE)
+                 + STRENGTH_SIGNAL_WEIGHT * 500.0 / RANK_DIFF_SCALE)
     expected = 0.60 * 6.0 * (1 + STRENGTH_DIFF_ALPHA * np.tanh(z_blended))
     assert actual == pytest.approx(expected, rel=1e-4)
 

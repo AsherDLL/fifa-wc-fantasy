@@ -36,14 +36,6 @@ class RawLineup(BaseModel):
     raw_text: str | None = None
 
 
-class PredictedXIPlayer(BaseModel):
-    """One player after FIFA id resolution."""
-    player_id: int | None    # None if unmatched
-    name_scraped: str
-    status: PlayerStatus
-    match_confidence: float  # 0.0-1.0, how confident in the FIFA id match
-
-
 class PredictedXI(BaseModel):
     """Canonical per-fixture predicted lineup, FIFA-ids resolved."""
     source: str
@@ -55,8 +47,6 @@ class PredictedXI(BaseModel):
     away_starting_player_ids: list[int]
     home_bench_player_ids: list[int]
     away_bench_player_ids: list[int]
-    home_doubtful_player_ids: list[int] = Field(default_factory=list)
-    away_doubtful_player_ids: list[int] = Field(default_factory=list)
     source_confidence: float           # 0.0-1.0 per-source reliability
     unmatched_names: list[str] = Field(default_factory=list)
     raw_text: str | None = None

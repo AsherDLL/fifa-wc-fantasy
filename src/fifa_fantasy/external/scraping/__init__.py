@@ -11,17 +11,13 @@ Public API:
     from fifa_fantasy.external.scraping import StealthClient
 
     client = StealthClient(
-        impersonate="chrome124",
-        rate_limit_per_host=1.0,        # 1 request per second
+        rate_limit_per_second=1.0,      # 1 request per second
         cache_dir="data/cache",
         cache_ttl_hours=6,
     )
     response = client.get("https://example.com")
     print(response.text, response.from_cache)
 """
-from .client import CachedResponse, StealthClient
-from .identity import DEFAULT_POOL, Identity
-from .retry import detect_block
+from .client import StealthClient
 
-__all__ = ["StealthClient", "CachedResponse", "Identity", "DEFAULT_POOL",
-           "detect_block"]
+__all__ = ["StealthClient"]

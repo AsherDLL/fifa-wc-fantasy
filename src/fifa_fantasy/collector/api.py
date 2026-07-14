@@ -13,7 +13,6 @@ DEFAULT_TIMEOUT = 30.0
 PLAYERS_PATH = "/players.json"
 SQUADS_PATH = "/squads.json"
 ROUNDS_PATH = "/rounds.json"
-CHECKSUMS_PATH = "/checksums.json"
 
 
 def make_client(timeout: float = DEFAULT_TIMEOUT) -> httpx.Client:

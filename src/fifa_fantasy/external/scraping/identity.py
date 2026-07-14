@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
-from urllib.parse import urlparse
 
 
 @dataclass(frozen=True)
@@ -168,8 +167,3 @@ def pick_for_host(host: str, pool: tuple[Identity, ...] = DEFAULT_POOL) -> Ident
     digest = hashlib.sha256(host.encode("utf-8")).digest()
     idx = int.from_bytes(digest[:4], "big") % len(pool)
     return pool[idx]
-
-
-def pick_for_url(url: str, pool: tuple[Identity, ...] = DEFAULT_POOL) -> Identity:
-    host = urlparse(url).netloc or url
-    return pick_for_host(host, pool)
