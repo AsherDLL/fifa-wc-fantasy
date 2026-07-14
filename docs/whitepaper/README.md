@@ -19,6 +19,7 @@ Status legend: **TODO** (not yet started), **DRAFT** (first pass), **REVIEW**
 | 03 | [background.md](sections/03_background.md) | Background & related work | DRAFT |
 | 03b | [literature_review.md](sections/03b_literature_review.md) | Literature review: prior art (Benter, OpenFPL, etc.) | DRAFT |
 | 03c | [expert_strategies.md](sections/03c_expert_strategies.md) | Expert practitioner strategies & comparison | DRAFT |
+| 03d | [source_gap_analysis.md](sections/03d_source_gap_analysis.md) | Verified source and method gap analysis (July 2026 audit) | DRAFT |
 | 04 | [data.md](sections/04_data.md) | Data sources & schemas | DRAFT |
 | 05 | [methodology.md](sections/05_methodology.md) | Methodology | DRAFT |
 | 05b | [algorithms_formal.md](sections/05b_algorithms_formal.md) | Algorithms (formal specifications) | DRAFT |

@@ -86,6 +86,44 @@ the contents directly.
   year={1978},
   publisher={Arco Publishing}
 }
+
+@article{karlis2003analysis,
+  title={Analysis of sports data by using bivariate Poisson models},
+  author={Karlis, Dimitris and Ntzoufras, Ioannis},
+  journal={Journal of the Royal Statistical Society: Series D (The Statistician)},
+  volume={52},
+  number={3},
+  pages={381--393},
+  year={2003}
+}
+
+@article{constantinou2013pi,
+  title={Determining the level of ability of football teams by dynamic ratings based on the relative discrepancies in scores between adversaries},
+  author={Constantinou, Anthony C and Fenton, Norman E},
+  journal={Journal of Quantitative Analysis in Sports},
+  volume={9},
+  number={1},
+  pages={37--50},
+  year={2013},
+  doi={10.1515/jqas-2012-0036}
+}
+
+@article{gilch2018elo,
+  title={On Elo based prediction models for the FIFA Worldcup 2018},
+  author={Gilch, Lorenz A and M{\"u}ller, Sebastian},
+  journal={arXiv preprint arXiv:1806.01930},
+  year={2018},
+  url={https://arxiv.org/abs/1806.01930}
+}
+
+@article{petretta2022dependence,
+  title={On the dependence in football match outcomes},
+  author={Petretta, Marco and Schiavon, Lorenzo and Diquigiovanni, Jacopo},
+  journal={Statistical Modelling},
+  year={2025},
+  doi={10.1177/1471082X241238802},
+  note={arXiv:2103.07272}
+}
 ```
 
 ### Fantasy sports
@@ -183,6 +221,32 @@ the contents directly.
   author={{Football-Data.co.uk}},
   year={2024},
   note={\url{https://www.football-data.co.uk/}}
+}
+
+@article{pappalardo2019public,
+  title={A public data set of spatio-temporal match events in soccer competitions},
+  author={Pappalardo, Luca and Cintia, Paolo and Rossi, Alessio and Massucco, Emanuele and Ferragina, Paolo and Pedreschi, Dino and Giannotti, Fosca},
+  journal={Scientific Data},
+  volume={6},
+  number={236},
+  year={2019},
+  doi={10.1038/s41597-019-0247-7}
+}
+
+@book{winston2022mathletics,
+  title={Mathletics: How Gamblers, Managers, and Fans Use Mathematics in Sports},
+  author={Winston, Wayne L and Nestler, Scott and Pelechrinis, Konstantinos},
+  edition={2},
+  year={2022},
+  publisher={Princeton University Press}
+}
+
+@book{eager2023football,
+  title={Football Analytics with Python and R},
+  author={Eager, Eric A and Erickson, Richard A},
+  year={2023},
+  publisher={O'Reilly Media},
+  note={American football; cited for transferable methodology only}
 }
 ```
 
