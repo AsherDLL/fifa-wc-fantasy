@@ -6,3 +6,4 @@ paper.pdf
 *.xdv
 *.fls
 *.fdb_latexmk
+*.out
