@@ -87,6 +87,10 @@ def apply_style() -> None:
 def _save(fig, out_path: Path) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, format="svg", bbox_inches="tight")
+    # PDF sibling for the LaTeX paper (paper/); dpi only affects
+    # rasterized layers such as the calibration scatter.
+    fig.savefig(out_path.with_suffix(".pdf"), format="pdf",
+                bbox_inches="tight", dpi=200)
     plt.close(fig)
     return out_path
 

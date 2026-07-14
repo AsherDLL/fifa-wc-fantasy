@@ -1,0 +1,494 @@
+\section{Methodology}
+\label{sec:methodology}
+
+Our system is a pipeline of five stages. A feature builder joins the
+data sources of Section~\ref{sec:data} into one table with a row per
+(player, upcoming round). Three expected-points backends, a calibrated
+heuristic, a structural independent-Poisson model, and a
+gradient-boosted tree model, score that table independently; an
+experimental Monte Carlo simulator provides a fourth, distributional
+view. A per-position ensemble routes each position to the backend that
+wins it on held-out data. A rule-encoding step converts predictions
+into effective points, and a mixed-integer optimiser selects squads,
+transfers, and lineups. Finally, a live layer supports the in-play
+decisions the game allows after kickoff. This section specifies each
+stage; formal statements of the optimisation programs and auxiliary
+algorithms appear in Appendix~\ref{sec:b}.
+
+Throughout, $i$ indexes a (player, round) row, $\pi(i) \in
+\{\mathrm{GK}, \mathrm{DEF}, \mathrm{MID}, \mathrm{FWD}\}$ is the
+player's position, $p_i$ is the price in millions, and $h_i \in \{0,
+1\}$ indicates a home fixture. All backends share an availability
+contract: a player whose status is not \emph{playing}, whose squad is
+eliminated, or whom confirmed team news places on the bench is
+predicted at zero.
+
+\subsection{Per-player, per-round feature contract}
+\label{sec:methodology-features}
+
+The feature table contains one row per player per upcoming round in
+which their squad plays. Its columns fall into five groups:
+
+\begin{itemize}
+\item \textbf{Player metadata:} identity, position, country, price,
+  ownership fraction, availability status, an elimination flag, and
+  the realised scoring history (cumulative points, last-round points,
+  per-round points, and the game's own form value).
+\item \textbf{Fixture context:} round, stage, kickoff time, home flag,
+  opponent identity, and venue.
+\item \textbf{Own-squad strength:} total and average squad price, and
+  the mean price of the squad's top eleven players by price
+  (\texttt{squad\_top\_n\_avg\_price}), which we use as a proxy for
+  first-team strength.
+\item \textbf{Opponent strength:} the same columns for the opposing
+  squad, prefixed \texttt{opp\_}.
+\item \textbf{Derived:} the top-eleven price gap
+  (\texttt{strength\_diff}), the FIFA ranking gap
+  (\texttt{rank\_diff}), the rolling country Elo of both sides and
+  their difference (Section~\ref{sec:data-elo}), last-ten-match
+  national-team form, and rest-day counts to the previous and next
+  match.
+\end{itemize}
+
+The table is intentionally over-wide: each backend consumes only the
+subset it needs, and adding a candidate feature never requires a
+schema change downstream. Opponent strength is deliberately
+first-class; fixture difficulty enters every backend rather than
+being an afterthought.
+
+\subsection{Backend 1: calibrated heuristic}
+\label{sec:methodology-heuristic}
+
+The first backend is a hand-calibrated formula with no training step.
+Each row receives
+
+\begin{equation}
+\hat{y}_i \;=\; c_{\pi(i)}\, p_i
+  \left(1 + \alpha \tanh z_i\right)
+  \left(1 + \beta\, h_i\right)
+  \;+\; \gamma \max\!\left(0,\; p_i - 9.0\right),
+\label{eq:heuristic}
+\end{equation}
+
+where $c_{\pi}$ is a per-position points-per-price coefficient
+($c_{\mathrm{GK}} = 0.50$, $c_{\mathrm{DEF}} = 0.55$,
+$c_{\mathrm{MID}} = 0.60$, $c_{\mathrm{FWD}} = 0.65$), $\alpha = 0.40$
+saturates the matchup adjustment at $\pm 40$\,\%, $\beta = 0.05$ is a
+home boost, and $\gamma$ is a premium-tier boost above the 9.0M price
+threshold, zero by default. The matchup signal $z_i$ blends a
+price-based strength gap with the best available national-team
+strength signal:
+
+\begin{equation}
+z_i =
+\begin{cases}
+0.35\, z^{\mathrm{price}}_i + 0.65\, z^{\mathrm{elo}}_i
+  & \text{if country Elo is available,}\\[2pt]
+0.35\, z^{\mathrm{price}}_i + 0.65\, z^{\mathrm{rank}}_i
+  & \text{else if a FIFA ranking is available,}\\[2pt]
+z^{\mathrm{price}}_i & \text{otherwise,}
+\end{cases}
+\label{eq:heuristic-z}
+\end{equation}
+
+with $z^{\mathrm{price}}_i = \Delta^{\mathrm{price}}_i / 2$,
+$z^{\mathrm{elo}}_i = \Delta^{\mathrm{elo}}_i / 400$, and
+$z^{\mathrm{rank}}_i = \Delta^{\mathrm{rank}}_i / 250$, where
+$\Delta^{\mathrm{price}}$ is the top-eleven price gap,
+$\Delta^{\mathrm{elo}}$ the country Elo gap, and
+$\Delta^{\mathrm{rank}}$ the FIFA ranking-points gap. The divisors
+normalise each signal to a comparable scale; 400 Elo points is the
+rating system's natural one-tier distance \citep{elo1978rating}. The
+Elo signal takes priority because it is derived live from realised
+international results \citep{hvattum2010using}; the static ranking is
+the fallback, and club-price alone carries the signal when neither is
+present (as in club-league training data).
+
+The heuristic's strengths are transparency and robustness: every
+constant is explainable, no training data is required, and there is
+no distribution-shift risk between club and tournament data. Its
+weakness is that it cannot learn. If a real pattern exists that the
+formula does not encode, the heuristic will never find it, and its
+linear-in-price base term flattens the true, non-linear marginal
+return of premium players. An attempt to graft a fixed-weight
+realised-form blend onto this formula lost to the unmodified version
+in every backtested round (Section~\ref{sec:negative-results}), which
+informed the design of the learned form feature in
+Section~\ref{sec:methodology-gbm}.
+
+\subsection{Backend 2: structural Poisson model}
+\label{sec:methodology-poisson}
+
+The second backend follows the independent-Poisson tradition of
+football score modelling \citep{maher1982modelling,
+dixon1997modelling}: estimate each team's expected goals, distribute
+them across positions, and map the result to fantasy points through
+the official scoring rules. Like the heuristic it requires no
+training data.
+
+\paragraph{Step 1: team expected goals.}
+A matchup score combines the available strength signals,
+
+\begin{equation}
+m_i = s_i + \frac{\Delta^{\mathrm{price}}_i}{6},
+\qquad
+s_i =
+\begin{cases}
+\Delta^{\mathrm{elo}}_i / 400 & \text{if Elo is available,}\\[2pt]
+\Delta^{\mathrm{rank}}_i / 800 & \text{else if a ranking is
+  available,}\\[2pt]
+0 & \text{otherwise,}
+\end{cases}
+\label{eq:poisson-matchup}
+\end{equation}
+
+and maps to expected goals for the player's team and its opponent
+through a clipped exponential around a base rate of 1.30 goals per
+team per match, with a 10\,\% boost for the home side:
+
+\begin{align}
+\lambda^{\mathrm{own}}_i &= 1.30\,
+  e^{\operatorname{clip}(m_i,\, [-1.2,\, 1.2])}
+  \left(1 + 0.10\, h_i\right),
+\label{eq:poisson-own}\\
+\lambda^{\mathrm{opp}}_i &= 1.30\,
+  e^{-\operatorname{clip}(m_i,\, [-1.2,\, 1.2])}
+  \left(1 + 0.10\, (1 - h_i)\right).
+\label{eq:poisson-opp}
+\end{align}
+
+Clipping the exponent keeps predictions sane for extreme mismatches.
+
+\paragraph{Step 2: positional distribution.}
+Team expected goals are distributed across positions with fixed
+shares (Table~\ref{tab:poisson-constants}): a player's expected goals
+are $\lambda^{\mathrm{own}}_i\, s^{G}_{\pi(i)}$ and, taking roughly
+70\,\% of goals to carry an assist, expected assists are $0.7\,
+\lambda^{\mathrm{own}}_i\, s^{A}_{\pi(i)}$.
+
+\begin{table}[t]
+\centering
+\caption{Poisson backend constants per position: goal share $s^{G}$,
+assist share $s^{A}$, points per goal $G$, and clean-sheet points
+$C$. Point values follow the official game rules.}
+\label{tab:poisson-constants}
+\begin{tabular}{lcccc}
+\toprule
+Position & $s^{G}$ & $s^{A}$ & $G$ & $C$ \\
+\midrule
+GK  & 0.00 & 0.01 & 9 & 5 \\
+DEF & 0.10 & 0.18 & 7 & 5 \\
+MID & 0.30 & 0.50 & 6 & 1 \\
+FWD & 0.50 & 0.31 & 5 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Step 3: defensive terms.}
+Under the Poisson assumption the clean-sheet probability is exact,
+$P(\text{clean sheet}) = e^{-\lambda^{\mathrm{opp}}_i}$, and the
+expected goals conceded beyond the first, which the rules penalise,
+has the closed form
+
+\begin{equation}
+\xi_i = \mathbb{E}\bigl[\max(0,\, K - 1)\bigr]
+      = \lambda^{\mathrm{opp}}_i - 1 + e^{-\lambda^{\mathrm{opp}}_i},
+\qquad K \sim \mathrm{Poisson}\bigl(\lambda^{\mathrm{opp}}_i\bigr).
+\label{eq:poisson-xi}
+\end{equation}
+
+\paragraph{Step 4: expected fantasy points.}
+The components sum, with a 2-point appearance baseline, 3 points per
+assist, a goalkeeper save bonus scaling at 0.50 points per unit of
+opponent expected goals (an empirically calibrated constant; the
+value derived from first principles measured worse, see
+Section~\ref{sec:negative-results}), and the conceded-goals penalty
+applied fully to goalkeepers and at rate 0.5 to defenders:
+
+\begin{align}
+\hat{y}_i = \max\Bigl(0,\;
+  & 2
+  + \lambda^{\mathrm{own}}_i\, s^{G}_{\pi(i)}\, G_{\pi(i)}
+  + 3 \cdot 0.7\, \lambda^{\mathrm{own}}_i\, s^{A}_{\pi(i)}
+  + e^{-\lambda^{\mathrm{opp}}_i}\, C_{\pi(i)} \nonumber\\
+  & + \mathbf{1}\bigl[\pi(i) = \mathrm{GK}\bigr]
+      \bigl(0.50\, \lambda^{\mathrm{opp}}_i - \xi_i\bigr)
+    - \mathbf{1}\bigl[\pi(i) = \mathrm{DEF}\bigr]\, 0.5\, \xi_i
+  \Bigr).
+\label{eq:poisson-total}
+\end{align}
+
+Every term traces to a single football statement, and the clean-sheet
+term is exact under the model. The weaknesses are the independence
+assumption itself, which ignores score correlation between the two
+teams \citep{karlis2003analysis}, and the population-average shares:
+the model cannot tell a star striker from his backup if they share a
+price and a matchup.
+
+\subsection{Backend 3: gradient-boosted trees}
+\label{sec:methodology-gbm}
+
+The third backend is a LightGBM model \citep{ke2017lightgbm} per
+position, reflecting the continued strength of tree ensembles on
+tabular data at this scale \citep{shwartz2022tabular,
+borisov2022deeptabular}. Each position trains four heads on the same
+six features:
+
+\begin{equation}
+\hat{y}_i = f^{\mathrm{LGBM}}_{\pi(i)}\!\left(
+  p_i,\; h_i,\; \Delta^{\mathrm{price}}_i,\;
+  \bar{p}^{\,11}_i,\; \bar{p}^{\,11,\mathrm{opp}}_i,\;
+  \phi^{\mathrm{lag}}_i
+\right),
+\label{eq:gbm}
+\end{equation}
+
+where $\bar{p}^{\,11}$ and $\bar{p}^{\,11,\mathrm{opp}}$ are the
+own-squad and opponent top-eleven average prices and
+$\phi^{\mathrm{lag}}_i$ is a lagged form feature defined below. The
+\emph{mean} head is an L2 regression on realised fantasy points; the
+remaining heads are quantile regressions minimising the pinball loss
+
+\begin{equation}
+L_{\tau}(y, q) = \max\bigl(\tau\, (y - q),\; (\tau - 1)(y - q)\bigr),
+\qquad \tau \in \{0.10,\; 0.50,\; 0.90\},
+\label{eq:pinball}
+\end{equation}
+
+so the backend emits a point estimate together with a per-player
+10th--90th percentile band; the upper quantile later feeds the
+ceiling-aware captain choice (Appendix~\ref{sec:b}). Training data
+are three seasons of English Premier League fantasy scoring
+(Section~\ref{sec:data-fpl}); hyperparameters were selected by a
+held-out sweep (15 leaves, learning rate 0.05, 200 boosting rounds,
+minimum 30 samples per leaf, feature and bagging fractions 0.9 with
+bagging every 5 iterations). Fixed seeds and LightGBM's deterministic
+mode make training bit-reproducible; without them, run-to-run bagging
+randomness perturbs held-out error enough to mask small
+feature-engineering comparisons. Negative predictions are clipped to
+zero.
+
+\paragraph{Lagged form.}
+The first two generations of this model were form-blind: all five of
+their features were price or team-strength signals, so a player's
+own recent output never entered the model, and in-form premium
+players from outside the training league were systematically
+under-predicted at the tournament. The current generation adds
+$\phi^{\mathrm{lag}}_i$, the trailing mean of the player's realised
+fantasy points over the previous three matches, shifted by one match
+so the current row's label never enters its own feature. One
+definition is shared by all three places the model reads data: club
+training, tournament label extraction, and tournament inference. A
+player's first match leaves the feature missing, which LightGBM
+handles natively.
+
+\paragraph{In-tournament retraining.}
+The form feature alone is insufficient: a model fitted only on club
+data learns an output scale that does not fit the tournament, and no
+single feature corrects a scale mismatch. The second half of the fix
+is retraining on the union of the club corpus and all completed
+World Cup rounds, which recalibrates the output scale; the production
+scheduler retrains before each scoring run, so realised tournament
+labels can no longer accumulate unused. In the leak-free walk-forward
+protocol of Section~\ref{sec:validation}, where the model for
+held-out round $k$ trains only on club data plus tournament rounds
+strictly before $k$, pooled RMSE improves from
+\WalkforwardPooledA{} (form-blind, club-only) to
+\WalkforwardPooledC{} (form feature plus tournament retraining).
+
+The GBM's residual weakness is extrapolation: inputs unlike anything
+in training leave a tree ensemble with nothing to draw on, which is
+exactly the failure the retraining loop exists to bound.
+
+\subsection{Monte Carlo backend (experimental)}
+\label{sec:methodology-montecarlo}
+
+A fourth backend simulates each match rather than computing a point
+estimate. Three properties motivate it: it produces a full per-player
+points distribution, which matters more in single-match knockout
+rounds than over multi-match group horizons; it anchors on realised
+tournament output through a per-player form multiplier, which the
+heuristic and the pre-retraining GBM lacked; and it recalibrates
+immediately as each round completes, with no retraining step.
+
+For each row the simulator draws $N = 1000$ match realisations from
+the Poisson backend's team-level estimates
+(Equations~\ref{eq:poisson-own}--\ref{eq:poisson-opp}). In
+realisation $s$,
+
+\begin{align}
+\ln \varepsilon^{\mathrm{own}}_s,\ \ln \varepsilon^{\mathrm{opp}}_s
+  &\sim \mathcal{N}\bigl(0,\; 0.15^2\bigr),
+\nonumber\\
+G^{\mathrm{team}}_s \sim \mathrm{Poisson}\bigl(
+  \lambda^{\mathrm{own}} \varepsilon^{\mathrm{own}}_s\bigr),
+  &\qquad
+G^{\mathrm{opp}}_s \sim \mathrm{Poisson}\bigl(
+  \lambda^{\mathrm{opp}} \varepsilon^{\mathrm{opp}}_s\bigr),
+\label{eq:mc-teams}\\
+g_{i,s} \sim \mathrm{Poisson}\bigl(
+  G^{\mathrm{team}}_s\, s^{G}_{\pi(i)}\, \phi_i\bigr),
+  &\qquad
+a_{i,s} \sim \mathrm{Poisson}\bigl(
+  0.7\, G^{\mathrm{team}}_s\, s^{A}_{\pi(i)}\, \phi_i\bigr),
+\label{eq:mc-players}
+\end{align}
+
+where the multiplicative log-normal noise captures form and news
+uncertainty in team strength, and the Poisson means in
+Equation~\ref{eq:mc-players} are clipped to guard the tails. The
+form multiplier
+
+\begin{equation}
+\phi_i = \operatorname{clip}\!\left(
+  \frac{\text{realised points per match of player } i}
+       {\text{positional mean of the same quantity}},\;
+  [0.3,\; 3.0]\right)
+\label{eq:mc-form}
+\end{equation}
+
+is the realised-data anchor: a player producing at twice his
+positional average receives twice the goal and assist share.
+Goalkeeper saves are sampled as $\mathrm{Binomial}(\text{shots},
+0.70)$ with shots drawn from $\mathrm{Poisson}(2.0\,
+\lambda^{\mathrm{opp}} \varepsilon^{\mathrm{opp}}_s)$, worth one
+point per three saves. Each realisation is scored with the official
+rules: 2 appearance points, per-position goal points, 3 per assist,
+clean-sheet points when $G^{\mathrm{opp}}_s = 0$, and a defender
+penalty of $0.5 \max(0,\, G^{\mathrm{opp}}_s - 1)$. The output is
+the mean and the 10th, 50th, and 90th percentiles of the simulated
+points, from a fixed seed for reproducibility.
+
+The simulator deliberately omits minutes modelling (every row assumes
+a 60-minute appearance) and in-match game-state dynamics. Its status
+is experimental: the mean has not passed the held-out validation the
+other backends were subjected to, so it is excluded from the
+production run, but its distributional output informed the captaincy
+work and it is retained as a parallel backend for comparison.
+
+\subsection{Per-position ensemble}
+\label{sec:methodology-ensemble}
+
+Held-out validation (Section~\ref{sec:validation}) shows that no
+single backend wins every position: the Poisson model wins
+goalkeepers, the heuristic wins defenders, and the GBM wins
+midfielders and forwards. The differences are small but stable
+across runs. The production backend acts on this result by routing:
+
+\begin{equation}
+\hat{y}(i) = \hat{y}_{r(\pi(i))}(i),
+\qquad
+r = \bigl\{\mathrm{GK} \mapsto \text{Poisson},\;
+  \mathrm{DEF} \mapsto \text{heuristic},\;
+  \mathrm{MID},\, \mathrm{FWD} \mapsto \text{GBM}\bigr\}.
+\label{eq:ensemble}
+\end{equation}
+
+This is not a new model but a refusal to keep using each model where
+our own numbers say it is worst. The default routing encodes the
+held-out winners and can be re-derived mechanically from any
+validation report by taking the lowest per-position RMSE. The GBM's
+quantile columns are carried through for the positions it serves;
+positions routed to the structural backends are point estimates. Each
+prediction row records which backend produced it, for auditability.
+
+Two further reasons justify maintaining parallel backends rather than
+a single model. First, the optimiser consumes exactly one prediction
+column, and blending predictions shifts its optimum in non-obvious
+ways; per-position routing is honest about which model we trust
+where. Second, the backends cross-check each other: when they agree
+we act with confidence, and when they diverge sharply, as they did
+for premium forwards outside the GBM's training distribution, the
+disagreement itself is diagnostic information. That disagreement is
+what exposed the form-blindness defect fixed in
+Section~\ref{sec:methodology-gbm}.
+
+\subsection{Scouting bonus and effective points}
+\label{sec:methodology-scouting}
+
+The game awards a $+2$ scouting bonus when a player scores more than
+4 points while owned by fewer than 5\,\% of teams. We encode the rule
+as a deterministic post-prediction step applied exactly once,
+downstream of every backend, using the prediction as a proxy for the
+realised outcome:
+
+\begin{equation}
+b_i = 2 \cdot \mathbf{1}\bigl[\hat{y}_i > 4\bigr]
+        \cdot \mathbf{1}\bigl[\omega_i < 0.05\bigr],
+\qquad
+\tilde{y}_i = \hat{y}_i + b_i,
+\label{eq:scouting}
+\end{equation}
+
+where $\omega_i$ is the ownership fraction and $\tilde{y}_i$ the
+effective points the optimiser consumes. The deterministic proxy
+over-credits players predicted just above the threshold (who may
+realise below it) and under-credits players just below it (who may
+still trigger through realised variance), but the induced ordering
+is adequate for squad selection. Applying the bonus once, centrally,
+also prevents double counting: an early version baked it into one
+backend's predictions and the downstream step re-applied it,
+inflating every low-ownership backup goalkeeper. A
+participation-based availability factor then multiplies effective
+points before optimisation, discounting players whose tournament
+history signals rotation risk (Appendix~\ref{sec:b}).
+
+\subsection{Squad optimisation}
+\label{sec:methodology-milp}
+
+Squad decisions are mixed-integer linear programs, formulated in PuLP
+\citep{pulp} and solved with the bundled CBC solver \citep{cbc}.
+Three entry points share one constraint core; the full programs are
+stated in Appendix~\ref{sec:b}.
+
+\begin{itemize}
+\item \textbf{Squad selection} chooses a 15-player squad maximising
+  the sum of effective points over the stage horizon, subject to
+  position counts (2 GK, 5 DEF, 5 MID, 3 FWD), the stage budget, the
+  per-country cap, and exclusion of eliminated squads.
+\item \textbf{Transfer planning} adds the current squad as state and
+  a continuous slack variable counting transfers beyond the free
+  quota, each penalised at the official 3 points, so the solver
+  trades squad improvement against transfer hits in one objective.
+\item \textbf{Lineup selection} picks the starting eleven from the
+  held squad for a single round: exactly one goalkeeper, one of the
+  seven legal formations selected by binary indicator, and outfield
+  counts tied to the chosen formation. The bench is ordered by
+  predicted points within position. The solver's captain is a
+  mean-argmax placeholder; production overrides it with a
+  ceiling-aware selector that interpolates between the mean and the
+  q90 head of Section~\ref{sec:methodology-gbm} according to the
+  manager's standings percentile (Appendix~\ref{sec:b}).
+\end{itemize}
+
+Stage configurations encode the game's evolving rules: the budget
+(\$100M in the group stage, \$105M from the round of 32), the
+per-country cap (3 in the group stage, then 4, 5, 6, and 8 through
+the final), and the free-transfer quota per stage. The two unlimited
+transfer windows (pre-tournament and before the round of 32) are
+modelled by short-circuiting transfer planning to a fresh squad
+solve.
+
+\subsection{Live decision tools}
+\label{sec:methodology-live}
+
+The game permits two in-play interventions, and a live module
+supports both with expected-value calculations over the remaining
+fixtures of a matchday.
+
+\paragraph{Captain switch.}
+Given the running scores of all fixtures in a matchday and the
+deadline of the manual substitution option, the tool computes the
+expected gain of moving the captaincy from the current pick to any
+member of the starting eleven who has not yet played, comparing the
+captain's realised points against the doubled prediction of each
+not-yet-played alternative.
+
+\paragraph{Substitution advisor.}
+When a starter finishes a match with zero minutes, the game's
+automatic substitution will eventually replace him, but a manual swap
+is also available. The advisor weighs the expected gain of manually
+starting an unplayed bench player against the expected loss from
+forfeiting automatic substitutions for any remaining unplayed
+starters in the round, and recommends the action with the higher
+expectation.

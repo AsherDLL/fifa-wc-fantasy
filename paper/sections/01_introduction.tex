@@ -1,0 +1,124 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Fantasy football games translate on-pitch match events into a numeric
+score per player per match. The official FIFA Fantasy game for the
+2026 World Cup follows the template familiar from Fantasy Premier
+League: managers select a 15-player squad under a budget cap, field a
+starting eleven in a valid formation, and nominate a captain whose
+points are doubled; non-starters are replaced through automatic
+substitutions, and per-stage rules govern transfers and the number of
+players allowed from any one country. The nominal objective is to
+maximise total fantasy points over the tournament. In practice most
+entries also compete in a private league, which layers a ranking
+objective on top of raw scoring, and the two objectives diverge in
+non-trivial ways: an entry trailing the field benefits from variance,
+accepting differential picks with lower expected value, while an
+entry near the lead benefits from template picks that lock in the
+field's expected output.
+
+Predicting fantasy points for an international tournament is
+structurally harder than the club-football problem addressed by most
+prior work \citep{groos2025openfpl, mishra2025fpl}. A World Cup
+compresses 104 matches into five weeks, against 380 matches over ten
+months in an English Premier League (EPL) season. National teams
+assemble for roughly ten days a year, so international form is
+observed sparsely. The opponent distribution resembles no club
+league: Argentina plays Cape Verde, not a domestic third-tier
+equivalent. The group-stage cadence also induces rotation behaviour
+that club play does not exhibit: a coach whose team has already
+qualified rests starters on the final group matchday. A model trained
+purely on club football therefore transfers imperfectly. The features
+that drive club fantasy points (opponent strength, home advantage,
+position-specific scoring rates) generalise; the features specific to
+tournament play (manager rotation policy, top-scorer-race incentives,
+knockout-stage attacking emphasis) do not exist in the club training
+set at all.
+
+The transfer problem is compounded by a hard resource constraint:
+before the opening match there exist zero rows of FIFA Fantasy World
+Cup 2026 training data. Our supervised learner is therefore trained
+on three seasons of community-archived EPL fantasy scoring
+\citep{vaastav}, \POSTFINAL{number: EPL training-row count}
+player-gameweek rows in total, and international signal is injected
+at inference time rather than learned. Concretely, we maintain a live
+Elo rating \citep{elo1978rating, hvattum2010using, gilch2018elo}
+computed over a public archive of every international match since
+1872 \citep{martj42}, and the rating difference between a player's
+country and its opponent enters every backend as an
+opponent-strength feature.
+
+This paper presents the system we built and then operated live for
+the full tournament. Expected points are produced by an ensemble of
+three backends of increasing statistical ambition: a hand-tuned
+heuristic over price, position, matchup, and venue; a structural
+Poisson goals model in the tradition of \citet{maher1982modelling}
+and \citet{dixon1997modelling}, with positional goal and assist
+shares; and a LightGBM regressor \citep{ke2017lightgbm} trained on
+the EPL corpus. Squad selection, stage-aware transfer planning under
+the official penalty of $-3$ points per extra transfer, and lineup
+and captain choice are formulated as a mixed-integer linear
+programme, solved with PuLP and the CBC solver \citep{pulp, cbc}.
+The constraint set encodes the official rules stage by stage: a
+\$100M budget in the group stage rising to \$105M from the round of
+32, a per-country cap that relaxes from 3 to 8 as teams are
+eliminated, and a rolling free-transfer allowance.
+
+Evaluation is deliberately two-fold. Before the tournament, each
+backend's per-position RMSE was measured on a held-out EPL 2024--25
+end-of-season split, fixing an honest per-position choice of backend
+before any World Cup data existed. During the tournament, we froze
+predictions ahead of every round and logged every decision (transfer,
+captain, lineup) with its rationale at decision time and its realised
+outcome afterwards, including the cases in which a human domain prior
+overrode the model, and whether the override was vindicated.
+\POSTFINAL{headline result after the final}
+
+This work makes the following contributions:
+
+\begin{enumerate}
+\item \textbf{System.} An end-to-end, reproducible pipeline for
+  World Cup fantasy management: data collectors with schema
+  validation, a per-(player, round) feature table, a three-backend
+  expected-points ensemble with a live international Elo signal, and
+  a MILP optimiser covering squad selection, stage-aware transfer
+  planning with hit penalties, and lineup and captain choice.
+\item \textbf{Cross-domain transfer.} An empirical account of
+  transferring club-trained fantasy models to international
+  tournament play under a zero-shot constraint, including
+  per-position held-out validation used to select backends and the
+  documented failure modes of the transfer, such as blindness to
+  elite players without recent EPL history.
+\item \textbf{In-tournament validation protocol.} A pre-registered
+  style of live evaluation: predictions frozen before each round, a
+  complete decision log with ex-ante rationale and ex-post outcome,
+  and an explicit accounting of model recommendations versus human
+  domain priors.
+\item \textbf{Negative results.} We report what did not work with
+  the same care as what did, including blending prediction-market
+  prices into expected points \citep{benter1994computer,
+  wolfers2004prediction}, a team Elo difference training feature,
+  and goalkeeper defensive-form adjustments, each rejected by
+  measured validation error.
+\item \textbf{Open source and data.} The full codebase, frozen data
+  snapshots, and generated evaluation artefacts are released
+  publicly, so every table and figure in this paper can be
+  regenerated from the repository
+  (\POSTFINAL{repository URL once public}).
+\end{enumerate}
+
+The remainder of the paper is organised as follows.
+Section~\ref{sec:related_work} reviews related work in football
+modelling and fantasy points prediction. Section~\ref{sec:data}
+documents the five data sources and the harmonisation required to
+join them. Section~\ref{sec:methodology} develops the three predictor
+backends, the Elo signal, and the MILP formulation.
+Section~\ref{sec:implementation} describes the implementation and
+reproducibility measures. Section~\ref{sec:validation} reports
+held-out validation on the EPL split. Section~\ref{sec:live-results}
+logs the live tournament round by round. Section~\ref{sec:analysis}
+analyses model versus human decisions, and
+Section~\ref{sec:negative-results} collects negative results.
+Section~\ref{sec:lessons} distils lessons learned,
+Section~\ref{sec:future_work} outlines future work, and
+Section~\ref{sec:conclusion} concludes.

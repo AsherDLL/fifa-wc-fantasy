@@ -1,0 +1,326 @@
+\section{Analysis}
+\label{sec:analysis}
+
+This section examines where the system created value, where it failed,
+and what the failures taught us about the structure of the fantasy
+scoring problem. Throughout, MD$k$ denotes matchday $k$ of the group
+stage and R32 the round of 32.
+
+\subsection{Calibration and sources of value}
+\label{sec:analysis-value}
+
+Figure~\ref{fig:calibration} plots pre-match predicted points against
+realized points for every scored player-round. Two properties of this
+plot frame the rest of the section. First, the predictions carry
+genuine rank information: the per-position backend routing selected on
+held-out EPL data (Table~\ref{tab:holdout-rmse}) generalized to the
+tournament, with the heuristic the safest default for defenders, the
+Poisson model for goalkeepers, and the GBM for attacking positions, and
+no backend materially contradicted its own player ranking from round to
+round. Second, the scale is compressed: realized points span a far
+wider range than predicted points. This compression is not a defect of
+any single backend but a structural property of mean prediction under
+low-count scoring events, and it motivates the variance analysis in
+Section~\ref{sec:analysis-variance}.
+
+Beyond point prediction, two components delivered value that is easy to
+under-credit. The rolling Elo signal (Section~\ref{sec:data-elo})
+corrected real fixture mispricings: when the static FIFA ranking placed
+Norway behind Senegal but the post-MD1 rolling Elo ranked Norway ahead,
+the heuristic and Poisson backends adjusted Norway players upward by
+approximately one expected point. This is the canonical case for
+deriving live signals from realized results rather than hand-maintaining
+static snapshots.
+
+The MILP optimizer contributed in a way that RMSE cannot measure: it
+kept every submitted squad legal. Budget, country-cap, and transfer
+quota constraints are non-trivial to satisfy by hand under pre-deadline
+time pressure. The solver never produced an illegal squad, and it
+surfaced budget infeasibilities immediately (for example, that the
+double swap Lautaro Mart\'inez to Messi plus Dou\'e to Bellingham costs
+\$2.0M more than the available budget) rather than after a manual
+mistake.
+
+\subsection{Failure modes}
+\label{sec:analysis-failures}
+
+Three failure modes recurred. The first is GBM blindness to non-EPL
+stars. The GBM has zero training rows for Messi and scores him from
+price alone, adjusted downward by rotation-conservative status
+defaults: at the R32 deadline the heuristic predicted 8.5 points for
+Messi while the GBM predicted 2.2. A manager following the GBM alone
+would have missed the tournament's top scorer. The heuristic backend,
+whose price and matchup terms do capture such players, compensated
+within the ensemble, but the premium tier remained the GBM's weakest
+segment.
+
+The second is coarse rotation-risk modeling. Our rotation multiplier
+was a hand-set per-country scalar (for example 0.55 for Germany at MD3,
+after Germany had clinched). A single scalar compresses three distinct
+questions: who starts, for how many minutes, and whether the
+replacement matters for fantasy purposes. A per-player signal informed
+by manager press conferences would have been materially better; no such
+feed existed. Section~\ref{sec:analysis-minutes} describes the partial
+remedy we shipped.
+
+The third is cross-domain distribution shift. Any feature whose range
+at training time differs from its range at inference time is a risk,
+and for attacking positions the GBM consistently under-predicted
+premium international players relative to their realized totals.
+Feature candidates rejected on these grounds are reported in
+Section~\ref{sec:negative-results}.
+
+A related operational failure concerns transfer hits. Each transfer
+beyond the free quota costs 3 points, roughly 5\% of a typical
+group-stage round for our squads, and hits compound. A hit is justified
+only when the incoming player is expected to outscore the outgoing one,
+net of captaincy implications, by more than 3 points over the planning
+horizon. The model's transfer-with-hit logic was systematically too
+aggressive because it underestimated rotation: the MD3 hits each cost 3
+points and returned roughly 1 in realized output.
+
+\subsection{The goalkeeper paradox}
+\label{sec:analysis-gk}
+
+The tournament produced one finding we did not anticipate: the best
+real-world goalkeepers were not the best fantasy goalkeepers, and the
+model structurally failed to predict this. Through the group stage,
+Emiliano (Dibu) Mart\'inez of Argentina, widely regarded as the world's
+best goalkeeper, totaled 14 fantasy points over three matches, while
+Ra\'ul Rangel of Mexico, a competent domestic-league starter, totaled
+21, half as much again. Both teams conceded zero goals across the three
+matches.
+
+The gap is entirely a save-bonus effect. The scoring rules award a
+goalkeeper 2 points for a 60-minute appearance, 5 for a clean sheet,
+1 per three saves, 5 per penalty save, and $-1$ per goal conceded after
+the first. The save bonus is therefore increasing in shots faced.
+Argentina's defense suppressed opponent shots so effectively that Dibu
+made roughly one to two saves per match and rarely reached a save-bonus
+threshold; Mexico conceded several attempts on target per match, and
+Rangel converted them into save bonuses while keeping the same clean
+sheets. The best real-world goalkeeper minimizes goals conceded per
+shot faced; the best fantasy goalkeeper faces enough shots to
+accumulate save bonuses while still shutting the opponent out. These
+are different optimization problems.
+
+Our model could not see the difference. The Poisson backend encoded the
+save bonus as a flat constant of 1.0 expected points per start,
+implicitly treating save opportunities as exogenous to the fixture. The
+heuristic backend has the complementary defect: its matchup factor
+inflates predictions with own-team strength for every position, but for
+goalkeepers a strong own team reduces save opportunities while
+clean-sheet probability for an elite defense is already near its
+ceiling. Notably, the optimizer still selected Rangel over Dibu for
+R32, at \$3.9M versus \$5.0M, but for the wrong reason: with equal
+assumed save bonuses the choice was decided by price, and a different
+flat constant could as easily have preferred Dibu. The correct decision
+was reached through a model artifact, which is to say, fragilely.
+
+The paradox implies a concrete goalkeeper profile: a team that keeps
+clean sheets, a moderate level of opponent attacking threat (enough
+shots to earn bonuses, not enough to break the shutout), an established
+first-choice role, and a low price that frees budget for attacking
+premiums. This explicitly contradicts the naive heuristic of buying the
+best real-world goalkeeper. More generally, the scoring rules create
+non-monotonic relationships between real-world quality and fantasy
+value. We observed the same pattern elsewhere: centre-backs in deep
+defensive blocks accumulate defensive counts, wide players in
+possession-dominant teams see their credit diffused across long
+build-up sequences, and substitute forwards on strong teams are worth
+nothing unless they play, although price-based estimates implicitly
+assume minutes.
+
+\subsection{Empirically revising the save-bonus term}
+\label{sec:analysis-gk-formula}
+
+The fix replaces the flat constant with a term linear in opponent
+expected goals: the predicted save bonus is $0.50$ times opponent xG
+for the fixture. The multiplier was chosen empirically. We swept
+candidate multipliers and measured goalkeeper RMSE on the held-out EPL
+set (Figure~\ref{fig:gk-sweep}): the error curve has its minimum at
+0.50, is shallow between 0.30 and 0.70, and deteriorates on both sides.
+Table~\ref{tab:gk-ab} reports the resulting A/B comparison. Goalkeeper
+RMSE improves from \GkRmseVOne{} (v1, flat) to \GkRmseVTwo{} (v2,
+tuned) on the EPL holdout, with a larger improvement on realized World
+Cup goalkeeper rounds; the other positions are unchanged because the
+term applies only to goalkeepers. The revised term also has the correct
+limiting behavior: a goalkeeper whose opponent creates nothing earns no
+expected save bonus, where v1 awarded a full point.
+
+The revision shipped under a two-gate rule: v2 replaced v1 only because
+both the EPL held-out error and the realized World Cup error improved.
+One objection deserves a direct answer: tuning a multiplier on held-out
+data leaks information into the reported error. We tuned a single
+scalar on one data set and validated the choice on an independent one,
+and the selection among a handful of candidate values leaks little
+relative to the size of the evaluation samples in
+Table~\ref{tab:gk-ab}. Methodologically this follows
+\citet{benter1994computer}: coefficients on plausible signals are
+estimated against outcomes, not assumed. Our own first attempt is the
+cautionary counterpart. We initially derived the multiplier
+theoretically from shot and save rates; the derivation was internally
+consistent and empirically wrong, and we report it with the other
+negative results in Section~\ref{sec:negative-results}.
+
+\subsection{Minutes and the availability discount}
+\label{sec:analysis-minutes}
+
+A benched player scores at most the appearance floor regardless of form
+or matchup, so minutes information dominates any refinement of the
+point model. The planned team-news pipeline returned zero predicted
+lineup records for the World Cup, so the signal had to come from data
+we already held. The World Cup player table exposes one realized total
+per completed round; a player who took the pitch banks at least the
+appearance points, so participation is proxied by a positive round
+score. The feature \texttt{start\_rate\_lag} is the trailing fraction
+of a player's last three completed rounds with a positive score; on the
+EPL side the same feature uses the true starts flag. Both variants are
+shifted by one match and are therefore leak-free. The signal is real:
+recently ever-present players scored roughly twice as many points on
+average as players who had rarely featured, and blanked far less often
+(\POSTFINAL{number: participation-bucket means, blank rates, and the
+correlation of start rate with realized points}).
+
+The obvious move, feeding the proxy to the GBM as a feature, made the
+model worse. Configuration D of the walk-forward study
+(Table~\ref{tab:walkforward}), which adds the participation proxy
+together with a team defensive-form feature examined in
+Section~\ref{sec:negative-results}, regressed the pooled leak-free RMSE
+from \WalkforwardPooledC{} to \WalkforwardPooledD{}. Over four rounds
+the proxy is noisy, and it is collinear with lagged form (a benched
+player already shows low form), so it adds variance the trees cannot
+exploit.
+
+The correct layer is the optimizer, not the model. The shipped
+availability discount scales a player's effective predicted points by
+$0.5 + 0.5 \cdot \texttt{start\_rate\_lag}$, a contraction toward a
+floor of one half rather than zero, because the proxy is imperfect and
+a nailed starter can blank twice in a row. Replayed on the heuristic
+backend across MD1 to R32, the discount lifted realized squad points
+(\POSTFINAL{number: realized squad points with and without the
+availability discount, MD1--R32}), and the improvement was stable for
+any floor between 0.3 and 0.7. The discount also surfaces an explicit
+rotation-risk flag in the human-facing report. The lift is modest, but
+for an entry at the bottom of its league every point counts.
+
+\subsection{Ceiling-aware captaincy}
+\label{sec:analysis-captaincy}
+
+Captaincy doubles one player's score and is the single highest-leverage
+decision in the game, and it is where model and manager disagreed most.
+In MD1 both chose Lautaro Mart\'inez, who returned one raw point:
+agreement, wrong outcome. In MD2 the model preferred Mbapp\'e; the user
+overrode to Olise, who returned 9 raw points, the winning call. In MD3
+the model preferred Bellingham; the user captained Messi in a favorable
+fixture for 7 raw points. In R32 the model preferred Messi and the user
+played Demb\'el\'e as a differential. Where they disagreed and the
+outcome is known, the human call won, which we attribute to two inputs
+the model does not have: an ownership-aware differential strategy
+(maximum expected points is not maximum rank improvement for a trailing
+entry) and football-watcher information such as visible form and
+midweek fatigue.
+
+Across the completed rounds, no backend selected the round-optimal
+captain (Section~\ref{sec:live-results}). The root cause is the
+objective: the lineup solver chose the captain as the argmax of mean
+predicted points, and mean-argmax is the wrong rule for a trailing
+team, which needs the highest ceiling rather than the highest
+expectation. The GBM already emits a 90th-percentile (q90) head that
+the captain choice ignored. A leak-free per-round backtest (train on
+rounds before $k$, predict round $k$, form the eleven by mean) compared
+captain rules on raw captain points captured across MD2, MD3, and R32:
+the pure-ceiling q90 rule captured roughly twice the points of the
+shipped mean rule, with an equal-weight blend in between and a
+hindsight oracle far above all three
+(\POSTFINAL{number: raw captain points captured by mean-argmax, blend,
+q90-argmax, and oracle over MD2--R32}). Doubled by captaincy, the gap
+amounts to several realized points per round, in a league being lost by
+less.
+
+The shipped selector scores captain candidates by
+$(1 - c) \cdot \text{mean} + c \cdot \text{q90}$, where the chase
+parameter $c$ is the entry's standings percentile: a leader ($c = 0$)
+captains the safe mean, a last-placed entry ($c = 1$) captains the
+ceiling. The optimizer now overrides the solver's naive pick with this
+selector, defaulting $c = 0.9$ for our position near the bottom. For
+point-estimate backends with no q90 head the rule degrades to the mean
+and nothing breaks.
+
+\subsection{Scoring variance is the strategy}
+\label{sec:analysis-variance}
+
+The user observed an oscillation in round scores: one round in the 40s,
+the next in the 80s. The realized starter totals (captain double
+excluded) were 32, 75, 39, and 73 across MD1 to R32, so the pattern is
+real. It is not, however, a controllable cycle. The decisive evidence
+is that MD1 and MD2 used the identical eleven starters and scored 32
+and then 75: same players, no transfers, output more than doubled.
+Fantasy points are driven by goals and assists, which are low-count
+events, and an eleven-player squad naturally swings by tens of points
+with selection held constant.
+
+A mean point model is structurally unable to reproduce this. Summing
+the heuristic's per-round predictions for the actual starters yields a
+nearly flat series whose round-to-round standard deviation is a
+fraction of the realized one (\POSTFINAL{number: realized versus
+predicted round-total standard deviations}), consistent with the
+amplitude compression visible in Figure~\ref{fig:calibration}. A
+partially predictable component does exist: realized round totals
+correlate positively with the average fixture-strength gap of the
+starters and, more strongly, with the model's own per-round squad
+prediction (\POSTFINAL{number: correlations of realized round totals
+with fixture-strength gap and with the model's per-round prediction}).
+The high-scoring rounds were the easier-fixture rounds, and the model
+ranked rounds usefully even while understating their amplitude, so the
+per-round squad prediction is a usable ex-ante ranker of which upcoming
+round will be the high one.
+
+The same lens resolves the mid-tournament observation that a
+random-pick rival was outscoring the model-driven entry. A single round
+proves little: our 42-point MD3 (net of a transfer hit) sits in the low
+tail of the same process that produced a 102-point MD2. The honest
+comparison is cumulative. Through R32, the ensemble replay accumulated
+\TotalEnsemble{} points and the user's actual entry \TotalUserActualNet{}
+net points, against a random-squad baseline mean of
+\TotalRandomBaselineMean{} (Table~\ref{tab:season-summary}); the
+model-driven process is far ahead of chance while remaining behind a
+strong human who reads team news.
+
+For a trailing entry in the knockout rounds, the consequence is the
+opposite of smoothing the swing: variance is an asset, because a
+low-variance strategy locks in the deficit. Concretely: captain by
+ceiling, which the optimizer now does by default at our standings;
+time aggression toward the rounds the model ranks as fixture-favorable;
+prefer low-ownership differentials in those rounds, since a template
+captain who hauls converts no rank gain; and do not spend transfers to
+reduce round-to-round variance, because for a chaser the variance is
+the only thing that can win it.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_calibration.pdf}
+  \caption{Pre-match predicted points versus realized points.
+    \figsource{fifa\_fantasy.report.data.load\_calibration $\rightarrow$
+    data/processed}}
+  \label{fig:calibration}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_gk_sweep.pdf}
+  \caption{Goalkeeper save-bonus multiplier sweep: empirical RMSE
+    across candidate multipliers.
+    \figsource{scripts/gk\_formula\_ab.py $\rightarrow$
+    data/evaluation/gk\_formula\_ab.json}}
+  \label{fig:gk-sweep}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_gk_ab}
+  \caption{Goalkeeper save-bonus formula A/B: v1 (flat) versus v2
+    (empirically tuned 0.50 multiplier).
+    \figsource{scripts/gk\_formula\_ab.py}}
+  \label{tab:gk-ab}
+\end{table}

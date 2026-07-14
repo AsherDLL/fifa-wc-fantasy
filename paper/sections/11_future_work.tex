@@ -1,0 +1,172 @@
+\section{Future Work}
+\label{sec:future_work}
+
+The system was built and operated under tournament time pressure, and
+several extensions were deliberately deferred. We collect here the ones
+we consider most valuable: richer data sources, upgrades to the score
+model and team ratings, principled Bayesian updating, optimizer
+extensions, and the prediction-market combiner that we regard as the
+main methodological follow-up.
+
+\subsection{Data Sources}
+\label{sec:future-data}
+
+The single largest gap during live operation was confirmed starting
+elevens. A scraper that monitors manager press conferences, predicted
+lineups from major outlets, official team sheets released an hour
+before kickoff, and national-team beat reporters, and that emits a
+per-player starting probability before each deadline, would have
+closed the failure mode that cost us most: rotation by teams that had
+already clinched their group.
+
+A source audit conducted during the tournament identified four
+additions worth integrating. The \texttt{soccerdata} Python library
+wraps eight providers behind one interface and would add shot-level
+expected goals, lineups, and historical bookmaker odds useful for
+backtest calibration, though its shot-level coverage is limited to
+club leagues. The \texttt{worldfootballR} R package is the only
+verified route to FBref international coverage, including shot events
+and advanced per-match statistics for past World Cups; the hard caveat
+is that the package was archived in September 2025 and is unmaintained,
+so it is suitable for historical feature building but not live
+ingestion. StatsBomb Open Data provides free event data with per-shot
+expected goals for the 2018 and 2022 World Cups and recent continental
+tournaments, a natural independent validation set, although its user
+agreement requires attribution and precludes redistributing the raw
+data. Finally, the Wyscout event dataset of
+\citet{pappalardo2019public} covers the 2018 World Cup under a
+genuinely open license; deriving historical fantasy points from its
+events would let us backtest the expected-points pipeline on a real
+World Cup rather than on club proxies.
+
+\subsection{Score-Model and Rating Upgrades}
+\label{sec:future-methods}
+
+Four method upgrades are cheap to implement and directly testable on
+the existing walk-forward backtester.
+
+\paragraph{Nested Poisson regression.} \citet{gilch2018elo} condition
+the weaker team's goal rate on the stronger team's realized goals and
+report that this nested variant backtested best among four Poisson
+formulations on the 2010 and 2014 World Cups. It is a few-line change
+to our Poisson backend and a natural next step beyond the independent
+double-Poisson lineage \citep{maher1982modelling,karlis2003analysis}.
+
+\paragraph{Dynamic Elo inside simulations.} The same study finds that
+tournament simulations which freeze Elo ratings for the whole
+tournament shift stage probabilities by up to five percentage points
+and systematically favor stronger teams. Our Monte Carlo backend is
+per-match with a fixed rating difference, so this applies once we
+chain multi-round simulations; updating ratings \citep{elo1978rating}
+between simulated rounds would recover underdog runs.
+
+\paragraph{Dixon-Coles dependence.} Our simulator draws team and
+opponent goals as independent Poisson variates. This independence
+assumption is empirically misspecified: across 9{,}130 top-league
+matches the home/away goal correlation is $-0.085$
+\citep{petretta2025dependence}. The \citet{dixon1997modelling}
+correction is the standard remedy, with a documented structural limit:
+the adjustment only redistributes probability among the four
+lowest-score cells, so Under/Over 2.5 probabilities are mathematically
+identical to the independence model \citep{petretta2025dependence}.
+Whether the correction moves fantasy expected points, as opposed to
+match-outcome probabilities, is an open question that a walk-forward
+A/B test answers cheaply; either outcome is informative, as a
+justified upgrade or a justified deliberate simplification.
+
+\paragraph{Pi-ratings.} The dynamic ratings of
+\citet{constantinou2013pi}, updated from the discrepancy between
+predicted and observed goal difference, outperformed football Elo
+variants \citep{hvattum2010using} on league data. Their separate
+home/away components matter less at the mostly neutral-venue World
+Cup, so we scope this as a single ablation against our international
+Elo feature.
+
+Beyond these, a tournament-specific gradient-boosted model becomes
+feasible now that the 2026 matches are recorded alongside prior World
+Cups and continental tournaments. Per-tournament samples are small
+(64 matches per World Cup), so heavy regularization is required to
+avoid the overfitting we document earlier; the cross-domain transfer
+problem, training on club data and predicting internationals, is
+precisely what club-trained fantasy models such as OpenFPL
+\citep{groos2025openfpl} do not face, and reducing that gap is the
+point of the retraining.
+
+\subsection{Bayesian Updating}
+\label{sec:future-bayesian}
+
+Our production blend of model prediction, realized points per match,
+and recent form uses hand-tuned convex weights. The principled
+replacement is a Bayesian update in which the model prediction is the
+prior and realized match-by-match points are the likelihood, with the
+data variance shrinking as matches accumulate. The fixed blend is an
+acceptable approximation over a seven-match tournament; a full league
+season would benefit from the proper treatment. The fuller version is
+a hierarchical model with partial pooling: per-player skill, per-team
+attack and defense strength, and per-manager rotation propensity, plus
+an explicit minutes model in place of our fixed appearance assumption.
+Such a model quantifies uncertainty as well as point estimates, which
+the squad optimizer could consume as a chance-constrained variant of
+the current deterministic program.
+
+\subsection{Optimizer and Game-Mechanic Extensions}
+\label{sec:future-optimizer}
+
+The squad problem is at heart a salary-cap knapsack integer program
+\citep{winston2022mathletics}; three refinements to our formulation
+remain. First, captain selection should model the field explicitly:
+the rank value of a captain choice depends on ownership and on the
+distribution of the field's likely captains, and our current Monte
+Carlo treats the field's captain as a single point estimate rather
+than a distribution over candidates. Second, the group stage has a
+multi-round horizon while knockouts are single games; a
+stochastic-programming generalization would weight horizon-future
+points by the probability that the player is still in the squad after
+the round, though the added complexity may not pay for itself. Third,
+bench ordering under the auto-substitution rule could be optimized
+directly, spreading rotation risk across countries instead of ranking
+bench players by predicted points alone.
+
+\subsection{Prediction-Market Combiner}
+\label{sec:future-markets}
+
+Section~\ref{sec:negative-results} showed that blending market-implied
+signals directly into the expected-points models worsened accuracy.
+The follow-up we consider publishable keeps the two inferences
+separate and combines them only at the output level with the logit
+combiner of \citet{benter1994computer}: the combined forecast is a
+logistic regression on the logits of the model forecast and the
+market-implied probability, with coefficients fitted on historical
+out-of-sample data. Prediction markets aggregate informed and
+uninformed money \citep{wolfers2004prediction}; fitting the market
+coefficient empirically measures how much signal the market carries
+rather than assuming it, and if the market is mostly noise the
+coefficient shrinks toward zero.
+
+The implementation plan is concrete. We collected market snapshots
+throughout the tournament \POSTFINAL{confirm snapshot corpus covers
+group stage through final}; after the final we scrape the closed
+contracts for complete price histories, pair them with our archived
+per-snapshot predictions and realized outcomes, and fit the combiner
+by Bayesian logistic regression, reporting credible intervals that are
+necessarily wider than the horse-racing precedent given football's low
+scoring and heavy-tailed outcomes. Validation splits within the
+tournament (group stage as training, knockout rounds as test) provide
+the out-of-sample check. We expect the market to carry most signal on
+match outcomes and premium scorers, and our model to retain its edge
+on fantasy-specific components such as cheap defenders' clean sheets
+and bench mechanics, which no market prices directly. A live variant
+also follows: between early and late kickoffs on a matchday, updated
+market prices can inform a captain switch among players whose matches
+have not yet started.
+
+\subsection{Open Release}
+\label{sec:future-release}
+
+The final planned step is the public release of the code, the data
+pipeline, and the live decision log paired with realized outcomes
+\POSTFINAL{release date and repository link}. Publishing the decision
+log lets others reproduce our matchday calls, identify failure modes
+we missed, and benchmark alternative predictors against a documented
+in-tournament deployment, in line with open-data reproducibility
+practice in sports analytics \citep{eager2023football}.

@@ -1,0 +1,265 @@
+\section{Optimization and Auxiliary Algorithm Specifications}
+\label{sec:b}
+
+This appendix formalises the mixed-integer linear programming (MILP)
+layer that converts per-player point predictions into squads,
+transfers, and starting lineups, together with the auxiliary
+algorithms that feed or adjust those predictions: the international
+and club Elo rating updates, the blended score used for live
+decisions, and the rotation-risk multiplier. The three predictor
+backends themselves are specified in Section~\ref{sec:methodology}
+and are not repeated here. All optimisation models are built with
+PuLP \citep{pulp} and solved with the bundled CBC solver \citep{cbc};
+every instance in this work solves to proven optimality in well under
+one second. The canonical implementation is
+\texttt{optimizer/solvers.py}.
+
+\subsection{Squad selection}
+\label{sec:appendix-b-squad}
+
+Let $\mathcal{P}$ be the candidate pool, obtained from the full
+player list by removing players whose country has been eliminated
+(equivalently, fixing their variables to zero). For each player
+$p \in \mathcal{P}$, let $e_p$ denote the effective predicted points
+summed over the planning horizon (the raw model prediction after the
+scouting bonus and availability discount of
+Section~\ref{sec:methodology} have been applied), $c_p$ the price in
+the game's currency (millions), $\mathrm{pos}(p) \in \{\mathrm{GK},
+\mathrm{DF}, \mathrm{MF}, \mathrm{FW}\}$ the position, and
+$\mathrm{nat}(p)$ the country. With binary decision variables
+$x_p \in \{0,1\}$ indicating squad membership, the fresh-squad
+problem is
+\begin{align}
+\max_{x} \quad & \sum_{p \in \mathcal{P}} e_p \, x_p
+  \label{eq:squad-obj}\\
+\text{subject to} \quad
+& \sum_{p \in \mathcal{P}} x_p = 15
+  && \text{(squad size)} \label{eq:squad-size}\\
+& \sum_{p :\, \mathrm{pos}(p) = r} x_p = n_r,
+  \quad r \in \{\mathrm{GK}, \mathrm{DF}, \mathrm{MF}, \mathrm{FW}\}
+  && \text{(position quotas)} \label{eq:squad-pos}\\
+& \sum_{p \in \mathcal{P}} c_p \, x_p \le B
+  && \text{(budget)} \label{eq:squad-budget}\\
+& \sum_{p :\, \mathrm{nat}(p) = j} x_p \le C
+  \quad \text{for every country } j
+  && \text{(nationality cap)} \label{eq:squad-country}\\
+& x_p \in \{0, 1\}
+  \quad \forall p \in \mathcal{P}, \nonumber
+\end{align}
+where the position quotas are fixed by the game rules at
+$(n_{\mathrm{GK}}, n_{\mathrm{DF}}, n_{\mathrm{MF}},
+n_{\mathrm{FW}}) = (2, 5, 5, 3)$. The budget $B$ and cap $C$ are
+stage parameters: $B = 100.0$ during the group stage and $105.0$ from
+the round of 32 onward, while $C$ starts at 3 and is progressively
+relaxed by the game (4 at the round of 16, 5 at the quarter-finals,
+6 at the semi-finals, 8 at the final) as eliminations shrink the
+pool.
+
+\subsection{Transfers with hit accounting}
+\label{sec:appendix-b-transfer}
+
+Between rounds the game grants a stage-dependent quota of free
+transfers; each transfer beyond the quota costs a fixed 3-point
+deduction. Given the current squad $S_0$ and the effective free
+quota $F$ (the stage allowance plus any transfers rolled over from
+the previous round), the transfer problem augments
+% NOTE md/code mismatch: the draft's quota constraint uses the stage
+% allowance alone; solve_transfer adds rolled_over_transfers to the
+% free quota (free = config.free_transfers + rolled_over_transfers).
+\eqref{eq:squad-obj}--\eqref{eq:squad-country} with a continuous
+overage variable $t \ge 0$:
+\begin{align}
+\max_{x,\, t} \quad & \sum_{p \in \mathcal{P}} e_p \, x_p - 3\, t
+  \label{eq:transfer-obj}\\
+\text{subject to} \quad
+& \eqref{eq:squad-size}\text{--}\eqref{eq:squad-country}, \nonumber\\
+& \sum_{p \notin S_0} x_p \le F + t
+  && \text{(transfer quota)} \label{eq:transfer-quota}\\
+& t \ge 0. \nonumber
+\end{align}
+Although $t$ is declared continuous, the left-hand side of
+\eqref{eq:transfer-quota} and $F$ are integral and the objective is
+strictly decreasing in $t$, so at any optimum
+$t = \max\bigl(0, \sum_{p \notin S_0} x_p - F\bigr)$ and the
+relaxation is exact. Stages with unlimited free transfers (the
+initial pre-tournament selection and the reset entering the round of
+32) bypass the quota machinery entirely: the fresh-squad problem of
+Section~\ref{sec:appendix-b-squad} is solved and the transfer list is
+reported as the set difference against $S_0$.
+
+\subsection{Starting lineup, formation, and captaincy}
+\label{sec:appendix-b-lineup}
+
+Given a chosen 15-player squad $S$ and a target round, the lineup
+solver picks the starting eleven and formation jointly. Let $s_p$ be
+the player's single-round score: the effective (bonus- and
+discount-adjusted) prediction when available, otherwise the raw model
+prediction.
+% NOTE md/code mismatch: the draft states the XI objective uses raw
+% predicted_points; solve_lineup uses the effective_points column
+% whenever it is present, falling back to predicted_points.
+Let $\mathcal{F}$ be the set of legal formations, each fixing the
+outfield counts $d_{F} = (d_F^{\mathrm{DF}}, d_F^{\mathrm{MF}},
+d_F^{\mathrm{FW}})$ with one goalkeeper implied:
+\[
+\mathcal{F} = \{\,\text{4-4-2},\ \text{4-3-3},\ \text{4-5-1},\
+\text{3-4-3},\ \text{3-5-2},\ \text{5-4-1},\ \text{5-3-2}\,\}.
+\]
+With binaries $y_p$ (player $p$ starts) and $f_F$ (formation $F$ is
+used), the model is
+\begin{align}
+\max_{y,\, f} \quad & \sum_{p \in S} s_p \, y_p \\
+\text{subject to} \quad
+& \sum_{F \in \mathcal{F}} f_F = 1
+  && \text{(one formation)} \\
+& \sum_{p \in S} y_p = 11
+  && \text{(eleven starters)} \\
+& \sum_{p :\, \mathrm{pos}(p) = \mathrm{GK}} y_p = 1
+  && \text{(one goalkeeper)} \\
+& \sum_{p :\, \mathrm{pos}(p) = r} y_p
+  = \sum_{F \in \mathcal{F}} d_F^{\,r} f_F,
+  \quad r \in \{\mathrm{DF}, \mathrm{MF}, \mathrm{FW}\}
+  && \text{(formation counts)} \\
+& y_p, f_F \in \{0, 1\}. \nonumber
+\end{align}
+The remaining choices are made outside the MILP:
+\begin{enumerate}
+\item \emph{Bench order.} The four non-starters are ordered for
+  automatic substitution: outfield players by descending $s_p$, with
+  the backup goalkeeper always last (the game substitutes a
+  goalkeeper only for the other goalkeeper).
+\item \emph{Captain and vice-captain.} The solver's default is the
+  starter with the highest raw predicted mean, with the runner-up as
+  vice-captain. In production this placeholder is overridden by a
+  ceiling-aware composite selector that interpolates between the mean
+  and the 90th-percentile (q90) prediction according to the manager's
+  current standings percentile, so that a manager chasing the leader
+  captains for upside rather than for expectation.
+\end{enumerate}
+
+\subsection{International Elo rating update}
+\label{sec:appendix-b-elo}
+
+Country strength ratings are computed by rolling a standard Elo
+recursion \citep{elo1978rating} through the full international match
+history since 1872 (Section~\ref{sec:data-elo}), with
+football-specific adjustments in line with common practice
+\citep{hvattum2010using}. The implementation is
+\url{external/international_elo.py}. Every country starts at
+$R = 1500$. For each match in chronological order, with home and away
+ratings $R_H$ and $R_A$, the expected home score is
+\begin{equation}
+\hat{s}_H = \frac{1}{1 + 10^{\,(R_A - (R_H + h))/400}},
+\qquad \hat{s}_A = 1 - \hat{s}_H,
+\end{equation}
+where the home advantage $h$ is 60 rating points, or 0 for matches on
+neutral ground. The realised score is $s_H \in \{1, \tfrac12, 0\}$
+for a home win, draw, or loss ($s_A = 1 - s_H$); matches with missing
+scores are treated as draws so they barely move the ratings. The
+K-factor weights matches by tournament importance,
+\begin{equation}
+K = \begin{cases}
+60 & \text{World Cup finals matches (not qualifiers)} \\
+25 & \text{qualifiers} \\
+10 & \text{friendlies} \\
+40 & \text{all other tournaments,}
+\end{cases}
+\end{equation}
+and a goal-difference multiplier amplifies decisive results:
+\begin{equation}
+g = \sqrt{\frac{m + 1}{2}}, \qquad
+m = \max\bigl(1, |\text{goals}_H - \text{goals}_A|\bigr),
+\end{equation}
+so $g = 1$ for a one-goal margin, about $1.22$ for two, $1.41$ for
+three. The update is
+\begin{equation}
+R_H \leftarrow R_H + K g\, (s_H - \hat{s}_H),
+\qquad
+R_A \leftarrow R_A + K g\, (s_A - \hat{s}_A).
+\end{equation}
+After the full history is processed, the per-country snapshot is the
+most recent post-match rating, alongside recent-form aggregates (form
+points over the last ten matches, goals for and against over the
+trailing 24 months).
+
+\subsection{Club Elo for training without lookahead}
+\label{sec:appendix-b-club-elo}
+
+Gradient-boosted model training on club data requires a club-strength
+feature that was knowable before each training match. The same Elo
+recursion is run over per-league match files from football-data.co.uk
+with two simplifications: the K-factor is fixed at 20 (club league
+schedules have no tournament-importance tiers and are less volatile
+than international windows), and the home advantage of 60 is always
+applied since league fixtures have a designated home side.
+% NOTE md/code mismatch: the draft says the update is identical to
+% the international one with missing scores scored as draws;
+% compute_club_elo_history instead skips the rating update entirely
+% when a score is missing (the before-match snapshot is still
+% recorded).
+Matches with missing scores are recorded but do not update ratings.
+Crucially, the history stores each club's rating \emph{before} every
+match it played. Training rows are joined to this table with a
+backward as-of merge: a row for a match on date $D$ receives the
+latest rating snapshot strictly before $D$. The model therefore never
+sees rating information that incorporates the outcome of the match it
+is being trained to predict.
+
+\subsection{Blended score for live decisions}
+\label{sec:appendix-b-blend}
+
+Once the tournament produced realised scores, live squad decisions
+were driven not by the raw model output but by a convex blend of
+model prediction, realised scoring rate, and the game's own form
+signal. For player $p$ at a given round,
+\begin{equation}
+\mathrm{final}_p = 0.55\, M_p + 0.30\, A_p
+  + 0.15\, \mathrm{clip}(\phi_p, 0, 15),
+\label{eq:blend}
+\end{equation}
+where $M_p$ is the model ensemble, the mean of the heuristic and
+gradient-boosted predictions (the Poisson backend is excluded here
+because it systematically over-predicted in live runs after
+Matchday~2), $A_p$ is realised total points divided by matches
+played, and $\phi_p$ is the form value reported by the FIFA API (a
+rolling per-match average), clipped to $[0, 15]$. The weights were
+hand-tuned by inspection at Matchday~3 under the principle that
+realised output should dominate model priors once a player has two or
+more matches of evidence; they were not learned. A principled
+replacement (a Bayesian posterior with shrinkage toward the model
+prior) is discussed in Section~\ref{sec:future_work}.
+
+\subsection{Rotation-risk multiplier}
+\label{sec:appendix-b-rotation}
+
+In the final group-stage round, countries that have already clinched
+qualification tend to rest starters. This is handled by a per-country
+scalar $\rho_j \in (0, 1]$ applied multiplicatively to the model
+ensemble before optimisation:
+\begin{equation}
+\tilde{M}_p = M_p \cdot \rho_{\mathrm{nat}(p)}.
+\end{equation}
+The multipliers were set by hand per country and matchday from squad
+news and standings context, within the following bands:
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+Situation & $\rho$ \\
+\midrule
+Clinched top spot, low-stakes fixture & 0.55--0.65 \\
+Clinched, still contesting top spot   & 0.80--0.93 \\
+Needs a result                        & 1.00 \\
+Already eliminated                    & 0.70--0.85 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A protect-list override forces $\rho = 1$ for a fixed set of eight
+players contending for the tournament top-scorer award (Messi,
+Mbappe, Lautaro Martinez, Ronaldo, Kane, Saka, Salah, and Haaland),
+regardless of their country's multiplier, on the grounds that such
+players are started even in dead rubbers. We flag this hand-set table
+as a known weakness in Section~\ref{sec:lessons}; a learned
+rotation-risk model is future work
+(Section~\ref{sec:future_work}).

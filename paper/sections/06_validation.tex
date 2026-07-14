@@ -1,0 +1,203 @@
+\section{Validation}
+\label{sec:validation}
+
+\subsection{Validation strategy}
+\label{sec:validation-strategy}
+
+No World Cup data exists before the tournament starts, so we validate
+on the closest available proxy: the English Premier League fantasy
+game, whose scoring rules are nearly identical to those of the FIFA
+World Cup Fantasy game (the two games share a common heritage). A
+model that ranks players well on EPL data should rank players well on
+tournament data, subject to the distribution-shift caveats analysed
+in Section~\ref{sec:analysis}.
+
+We hold out gameweeks 30--38 of the 2024--25 season (the last nine
+gameweeks) and train on all earlier rows of the three-season corpus
+of Section~\ref{sec:data-fpl} (2022--23, 2023--24, and 2024--25
+through gameweek 29). Held-out error is the per-position root mean
+squared error (RMSE) between the predicted score and the realised
+\texttt{total\_points}. All three backends of
+Section~\ref{sec:methodology} score exactly the same held-out rows,
+so the comparison is paired; the per-position row counts appear in
+Table~\ref{tab:holdout-rmse}.
+
+\subsection{Held-out results and backend routing}
+\label{sec:validation-holdout}
+
+Table~\ref{tab:holdout-rmse} and Figure~\ref{fig:holdout-rmse} report
+the held-out RMSE. No single backend wins everywhere; the winners
+split cleanly by position.
+
+\begin{itemize}
+\item \textbf{Goalkeepers: Poisson} (\RmseGkPoisson{} against
+  \RmseGkGbm{} for the GBM). Goalkeeper scoring is dominated by
+  appearance and clean-sheet points, and the clean-sheet probability
+  is exact under the Poisson goal model, so the structural backend
+  captures most of the available signal directly.
+\item \textbf{Defenders: heuristic} (\RmseDefHeuristic{}). The
+  price-coefficient-times-matchup formula tracks defender outcomes
+  better than the GBM at this data scale.
+\item \textbf{Midfielders and forwards: GBM} (\RmseMidGbm{} and
+  \RmseFwdGbm{}). Individual variance is largest at the attacking
+  positions, and the GBM has room to learn non-linear interactions
+  that a compact hand-written formula cannot capture.
+\end{itemize}
+
+This routing is not merely descriptive: it defines the per-position
+ensemble backend, which runs the component models and keeps, for
+each position, the prediction of the routed winner. A sixth candidate
+GBM feature, the team Elo difference, was evaluated under the same
+protocol and rejected; we report that negative result in
+Section~\ref{sec:negative-results}.
+
+\subsection{Two GBM iterations}
+\label{sec:validation-gbm}
+
+The GBM column of Table~\ref{tab:holdout-rmse} is the second
+iteration of the model. The first (v1) trained on a single EPL season
+with LightGBM defaults, 31 leaves and 400 boosting rounds
+\citep{ke2017lightgbm}; the second (v2) trains on all three seasons
+with a lighter sweep-tuned configuration, 15 leaves and 200 rounds,
+and improves the held-out RMSE at every position. The defect that
+motivated the sweep was visible in squad space before it was visible
+in aggregate error: v1 squads were aggressive and implausible, with
+clusters of cheap defenders from unfancied squads promoted by a
+handful of training rows, a classic signature of too many leaves on
+too little data. The v2 squads are conventional. We treat this as a
+practical reminder that inspecting the downstream decisions catches
+failure modes that aggregate metrics dilute.
+
+\subsection{Determinism and the noise floor}
+\label{sec:validation-determinism}
+
+Feature evaluation at these effect sizes requires reproducible
+training. Before we pinned the random state, identical code on
+identical data produced per-position RMSE values that varied by
+roughly \POSTFINAL{number: pre-determinism per-position RMSE
+run-to-run variation} between runs, driven by LightGBM's bagging
+randomness. That wobble was large enough to mask the Elo-feature
+comparison above: the first attempt produced mixed deltas
+indistinguishable from noise. Setting \texttt{seed},
+\texttt{bagging\_seed}, \texttt{feature\_fraction\_seed}, and the
+deterministic flag collapsed the run-to-run variance to zero and made
+the comparison honest. We now treat the pinned seed as part of the
+training contract: every RMSE reported in this section is exactly
+reproducible.
+
+\subsection{Leak-free walk-forward validation on tournament data}
+\label{sec:validation-walkforward}
+
+The EPL hold-out cannot detect EPL-to-tournament distribution shift,
+and it cannot evaluate features that only exist once tournament
+rounds complete. Mid-tournament we therefore added a second protocol:
+leak-free walk-forward validation on realised World Cup rounds. For
+each completed round $k \ge 2$, the GBM trains on all EPL rows plus
+the WC rounds strictly before $k$, then predicts round $k$; round 1
+is excluded because no prior tournament round exists from which to
+compute form. Squared errors are pooled across held-out rounds 2--6
+to give the per-position and overall RMSE of
+Table~\ref{tab:walkforward}; Figure~\ref{fig:walkforward} shows the
+per-round traces. Four configurations are compared.
+
+\begin{itemize}
+\item \textbf{A: EPL only, no form.} The shipped v2 model: five price
+  and team-strength features, trained on EPL rows only. This
+  configuration is form-blind; no feature tells it how a player has
+  actually performed in the tournament.
+\item \textbf{B: EPL only, plus form.} Adds \texttt{form\_lag}, the
+  trailing mean of the player's realised fantasy points over the
+  previous three matches, shifted by one match so a row's label never
+  enters its own feature. One definition is shared by EPL training,
+  WC label extraction, and WC inference; a player's first match
+  yields a missing value, which LightGBM handles natively.
+\item \textbf{C: EPL plus WC, plus form.} As B, but the training set
+  also includes every realised WC round before the held-out round,
+  recalibrating the output scale to the tournament.
+\item \textbf{D: EPL plus WC, all features.} As C, plus a lagged
+  start-rate feature and a team goals-conceded form feature.
+\end{itemize}
+
+The pooled ordering is unambiguous. RMSE falls from
+\WalkforwardPooledA{} (A) to \WalkforwardPooledB{} (B) to
+\WalkforwardPooledC{} (C), improving at every position at each step,
+with the largest single gain at goalkeeper once tournament labels
+enter the training set. Configuration D edges C at goalkeeper and
+defender but is worse at midfielder and forward and pools slightly
+worse (\WalkforwardPooledD{}). We deployed C: it wins overall and at
+the two attacking positions that dominate squad decisions. On the
+round-of-16 feature set the retrained model ranks the elite in-form
+forwards, including Mbapp\'e, Kane, and Haaland, at the top of its
+predictions, where the form-blind model had buried them below
+midfielders from strong teams.
+
+Because these are genuinely out-of-sample tournament rounds, we take
+Table~\ref{tab:walkforward} as the leak-free evidence for the
+form-retrained model. The squad-level backend comparison of
+Section~\ref{sec:live-results} is partly in-sample for the retrained
+GBM and the ensemble, since the deployed model has seen the labels of
+the rounds scored there; those columns are upper bounds, not
+out-of-sample estimates.
+
+\subsection{What the validation does not measure}
+\label{sec:validation-limits}
+
+Held-out EPL RMSE is a useful proxy for prediction quality, but
+several phenomena specific to international tournament play are
+invisible to it.
+
+\begin{itemize}
+\item \textbf{Star international players are absent from training.}
+  Messi, Mbapp\'e, Modri\'c, Neymar, and others never appear in the
+  EPL feature set, so the EPL-trained GBM scores them on price alone
+  and undervalues them systematically. The walk-forward retrain above
+  mitigates this once realised tournament rounds accumulate.
+\item \textbf{Manager rotation behaviour differs.} EPL coaches rotate
+  on fixture congestion; international coaches rotate on group-stage
+  clinching. The model has no signal for either.
+\item \textbf{Knockout-stage variance is higher.} Single-leg
+  elimination games carry different team incentives than round-robin
+  group games, and every EPL training row comes from a 38-game
+  round-robin schedule.
+\end{itemize}
+
+These effects surface in the live-tournament results
+(Section~\ref{sec:live-results}) and in the analysis
+(Section~\ref{sec:analysis}), not in the held-out RMSE.
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_holdout_rmse}
+  \caption{Held-out EPL RMSE per position and backend. Bold marks the
+    per-position winner; this routing defines the ensemble.
+    \figsource{fifa\_fantasy.training.validate\_main $\rightarrow$
+    data/training/validation\_report.json}}
+  \label{tab:holdout-rmse}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_holdout_rmse.pdf}
+  \caption{Held-out RMSE by position and backend.
+    \figsource{fifa\_fantasy.report.figures $\rightarrow$
+    data/training/validation\_report.json}}
+  \label{fig:holdout-rmse}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_walkforward}
+  \caption{Leak-free walk-forward RMSE on WC rounds 2--6, pooled per
+    feature configuration. Bold marks the per-column best.
+    \figsource{scripts/wc\_forward\_validation.py $\rightarrow$
+    data/evaluation/wc\_forward\_validation.json}}
+  \label{tab:walkforward}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_walkforward.pdf}
+  \caption{Walk-forward RMSE per round and configuration.
+    \figsource{scripts/wc\_forward\_validation.py}}
+  \label{fig:walkforward}
+\end{figure}

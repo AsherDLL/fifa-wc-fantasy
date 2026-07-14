@@ -1,0 +1,228 @@
+\section{Lessons Learned}
+\label{sec:lessons}
+
+This section distils the transferable lessons of building and
+operating the system live during the tournament, from the predictive
+core, through the decision layer that turns predictions into picks, to
+the engineering process around both. Each lesson was learned at the
+cost of real ranking points.
+
+\subsection{Realised form must anchor predictions for elite players}
+\label{sec:lessons-form-anchor}
+
+Every backend that survived validation was form-blind: it predicted a
+player's points from price and relative team strength alone, with no
+term for how the player had actually been scoring. The result was our
+most consistent failure mode: under-prediction of premium
+international stars such as Lionel Messi and Kylian Mbapp\'e, whom the
+gradient-boosted model had never seen in its club training data and
+therefore compressed toward the price-tier mean while their realised
+averages ran far above it. Fed those numbers, the optimiser repeatedly
+wanted to bench in-form, ceiling-priced forwards, and we overrode it
+by hand. When the operators must routinely ignore the model on the
+highest-variance decision in the game, the model is not doing its job.
+
+This was not a data-availability problem: the tournament player table
+carried \texttt{round\_points}, realised points per completed round,
+from Matchday~1. A trailing form average was computable from day one;
+it was simply never computed. The eventual correction needed two parts
+working together: a leak-free lagged form feature, and retraining on
+realised tournament rounds so the output scale fits the tournament.
+The form feature alone, on club-only training, barely moved the
+predictions; neither half is sufficient without the other.
+
+\subsection{A designed but undeployed fix scores zero}
+\label{sec:lessons-deploy}
+
+Worse, we had anticipated the problem and built the fix, then never
+turned it on. The training entry point had an \texttt{--include-wc}
+flag, the code that mines realised tournament rounds into training
+rows existed, and the README stated the retraining plan in plain
+language. That retrain was never run in production: the deployed model
+artefacts were last written on June~21 from club data only, and the
+snapshot daemon re-scored the player pool every twelve hours for the
+entire group stage and round of 32 against that frozen model while
+four rounds of realised labels accumulated unused.
+
+Building the retrain path and building the schedule that runs it are
+two different tasks, and only the second one scores points. Likewise,
+a long-lived process is a deployment target: it must log its code
+version at startup and be restarted on deploy, or it will silently run
+last month's code against this month's tournament. In one line: build
+the loop, validate the loop, and then, separately and deliberately,
+run the loop.
+
+\subsection{Rotation risk is a first-class feature, not a fudge
+factor}
+\label{sec:lessons-rotation}
+
+We modelled rotation risk as hand-set per-country multipliers in a
+script: the right intuition at the wrong abstraction level. Rotation
+is a per-player decision driven by manager preference, recent minutes
+load, and tournament incentives such as an already-clinched group. A
+proper treatment would track per-player minutes, score
+manager-specific rotation propensity, detect the clinched-group signal
+from standings, and output a per-player probability of starting. We
+had none of this and paid for it in Matchday~3, where realised
+rotation absorbed the expected gain of multiple paid transfers whose
+expected-value justification was correct on its inputs. Because a
+benched starter scores near zero regardless of form or matchup,
+rotation is the largest unmodelled term in the system. The rule we
+adopted as a margin of safety: never take an unforced transfer hit
+unless the predicted gain over the next two matchdays exceeds twice
+the per-hit cost.
+
+\subsection{Captaincy is where human judgment beat the model}
+\label{sec:lessons-captaincy}
+
+Across the three group-stage matchdays our manual captain calls beat
+the model's recommendation in two of the three rounds; the one loss
+was a pick on which the model and the operators agreed. Both wins came
+from signals the model did not consume: team news, expected manager
+behaviour, and current form. No backend picked the optimal captain in
+any group round. The optimiser maximises within-squad mean expected
+points, but captaincy doubles a single player and rewards ceiling
+rather than mean, as well as ownership differential and
+fixture-specific motivation. Captain recommendations should be
+advisory rather than prescriptive, and a captain objective should
+score the upper quantiles of the predictive distribution, not its
+mean.
+
+\subsection{Differential strategy is portfolio construction}
+\label{sec:lessons-portfolio}
+
+We initially framed the differential question as a binary choice:
+follow the template or chase differentials. The correct framing is
+portfolio construction: a mix of template anchors (matching the field
+on its likely captain picks, so the rank does not collapse when the
+template scores), mid-ownership workhorses that accumulate the bulk of
+the points, and low-ownership differential bets that create climb
+opportunities when the template blanks, with the mix governed by the
+current league standing. Our optimiser maximised raw expected points;
+we approximated the portfolio by hand each round. A mean-variance
+formulation under the budget and country constraints is the natural
+formal treatment (Section~\ref{sec:future_work}).
+
+The tournament also taught us where differentials live. The best
+differential returns came from defenders and bench midfielders, while
+our one attempt at a premium-forward differential returned nothing
+when the player did not start. At the premium forward tier, ownership
+is highly correlated with realised production; at the defender and
+bench tiers the field under-attends and genuine value persists.
+Template at forward, differentiate at defence and on the bench.
+
+\subsection{Goalkeeper save value scales with opponent quality}
+\label{sec:lessons-gk}
+
+The Poisson backend priced goalkeeper save points as a flat constant,
+assigning the same save expectation to a keeper behind a dominant
+defence and one facing sustained pressure every match. Empirically,
+expected save points scale with opponent expected goals, strongly
+enough to change the goalkeeper ranking. We confirmed this as a model
+bug, replaced the constant with a term scaled by opponent expected
+goals, and validated the change on held-out data before shipping it
+(Section~\ref{sec:negative-results} documents an earlier
+mis-calibrated attempt). The general lesson: any component priced as a
+constant should be audited for the covariate it silently ignores.
+
+\subsection{Auto-substitution makes the bench an ordered queue}
+\label{sec:lessons-bench}
+
+The game's auto-substitution rule replaces a starter who plays zero
+minutes with the highest-priority bench player who fits the formation,
+so the bench is an ordered queue, not a set of interchangeable
+backups. We never modelled the bench-order objective: the optimiser
+produced a starting eleven and a bench but no ordering, which we set
+by hand every round. Bench order should be a first-class solver
+output, ordered by predicted points with the goalkeeper last.
+
+\subsection{Decision-support artefacts should not need a server}
+\label{sec:lessons-artefacts}
+
+We initially planned an API service for decision review and pivoted to
+a static HTML report. The static report became the highest-utility
+artefact of the project: every transfer decision was made by opening
+it, reading the captain board, and cross-checking against our domain
+priors. The lesson generalises: produce decision artefacts viewable
+without infrastructure, with Markdown for permanent records, HTML for
+interactive review, and JSON for downstream consumption.
+
+\subsection{The decision layer, not the model, was the weak layer}
+\label{sec:lessons-decision-layer}
+
+A structured mid-tournament review found no defect in the model
+mathematics that had survived validation, but five distinct bugs in
+the layer that turns predictions into picks: an availability discount
+whose missing-history policy exempted exactly the never-played players
+it existed to catch; the squad and lineup solvers silently optimising
+different objective columns; a scouting bonus counted twice on one
+backend's path; missing values poisoning the captain sort into
+arbitrary order; and a form multiplier whose denominator grew every
+round until it pinned all players to its clip floor. These are
+plumbing errors, not modelling errors, and unit tests missed them
+because every component met its own spec.
+
+What was missing were end-to-end invariants on the artefact users
+consume: a never-played player must not start, a captain score must be
+finite, a bonus must be counted once, the budget must be within the
+cap. Such invariants are cheap and would have caught most of these
+bugs at introduction. Relatedly, the meaning of a missing value is a
+design decision per column, not a default: three of the five bugs
+trace to NaN having no declared meaning.
+
+\subsection{Verify the data contract against a second source}
+\label{sec:lessons-data-contract}
+
+The most consequential single finding was in the data. The fantasy API
+truncates each player's \texttt{round\_points} list at the last round
+in which the player personally recorded anything: interior
+non-appearances are zero-filled, trailing ones simply vanish, and
+nothing documents this. Every consumer assumed the list length equals
+the squad's completed rounds, which was false for
+\POSTFINAL{number: share of players with history affected by
+round-points truncation at the quarter-final snapshot} of players with
+any history. The inflation lands exactly on recently-dropped players,
+the population the availability discount exists to catch, and it
+silently defeated the discount for all of them. The fix reconstructs
+the truth from a source the API cannot truncate, the fixture table,
+padding \texttt{round\_points} with zeros up to the squad's
+completed-fixture count in one function shared by training and
+inference. A single assertion comparing list length to completed
+fixtures would have caught this in the first week; the cross-check
+existed in the data the whole time, and nobody wrote it.
+
+\subsection{Validate one component at a time, and build the harness
+first}
+\label{sec:lessons-validation-gate}
+
+Twice we shipped theoretically motivated model changes as a bundle and
+lost: each addition was individually defensible, and collectively they
+degraded performance on every backtested round
+(Section~\ref{sec:negative-results}). Simpler models outperform richer
+ones on samples this small, because every added component is another
+place to be slightly wrong. The decision rule we adopted as binding:
+one component at a time; held-out error must improve at the position
+of interest before shipping; the live tournament backtest must not
+regress for at least one round; and failed attempts are documented,
+because honest negatives are results too. The corollary is to build
+the walk-forward validation harness first, not in week four: every
+modelling decision made before ours existed was evaluated on intuition
+or in-sample evidence, and most were later reversed. The harness is
+the cheapest component in the repository and the only one that has
+never been wrong.
+
+\subsection{Generate every number that appears in the documentation}
+\label{sec:lessons-generated-numbers}
+
+A pre-publication audit comparing every claim in the project
+documentation against the code found that hand-copied figures had
+drifted in 38 places over five weeks: stale feature counts, backend
+lists two versions out of date, two sections disagreeing about the
+same round's realised score. Every number that was wrong had been
+typed by hand; every number that was right was generated by a script
+and pasted with its source cited. The lesson is mechanical rather than
+moral: documentation numbers must come from script output, with the
+generating script cited next to the number, and a drift audit belongs
+before publication. This paper practises the rule its drafts violated:
+its numeric claims are injected from generated macros rather than
+typed.

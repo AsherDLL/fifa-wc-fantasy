@@ -1,0 +1,217 @@
+\section{Live Tournament Results}
+\label{sec:live-results}
+
+This section reports how the system performed in live deployment
+during the 2026 World Cup. We interleave two records. The first is a
+decision log of our actual fantasy entry: for each round we state the
+recommendation produced by the models, the decision finally made, the
+realised score, and a short post-hoc diagnosis. The second is a
+retrospective cross-model backtest that replays every backend
+end-to-end on frozen pre-round data, separating the question of how
+each backend performs as an autonomous system from how the deployed
+entry, which mixed model recommendations with domain judgement,
+performed. Table~\ref{tab:backtest-rounds} gives per-round realised
+points for both records, Figures~\ref{fig:backtest-cumulative}
+and~\ref{fig:backtest-rounds} plot the cumulative and per-round
+trajectories, and Table~\ref{tab:season-summary} tracks the official
+(ensemble) recommendation against the actual entry and a random-squad
+baseline.
+
+\subsection{Cross-model backtest protocol}
+\label{sec:live-protocol}
+
+For each completed round we load the feature snapshot closest in
+time to, but strictly before, the round's transfer deadline, run
+every backend on that snapshot, and pass each backend's predicted
+points to the MILP optimiser of Section~\ref{sec:methodology}, which
+selects a 15-player squad and an 11-player starting eleven under the
+stage's budget and country-cap constraints. The selected squad is
+then scored with realised round points from the latest collector
+snapshot. As a floor reference we also draw 1{,}000 budget- and
+constraint-valid random squads per round and report the mean of
+their realised scores. The replay script ships with the repository
+and runs with a fixed random seed.
+
+One caveat governs every comparison in this section: the backtest
+grants each backend unlimited free transfers every round, whereas
+the live entry is limited to two free transfers per stage
+transition, with a three-point penalty per extra transfer. Backend
+totals are therefore an upper bound on standalone model performance
+rather than a like-for-like comparison with the actual entry, whose
+figures are net of all transfer penalties incurred. A
+constrained-transfer replay is deferred to
+Section~\ref{sec:future_work}.
+
+\subsection{Group stage decision log}
+\label{sec:live-group}
+
+\paragraph{Matchday 1: initial squad.}
+The pre-tournament squad was assembled from the backends'
+recommendations combined with domain priors, with the heuristic
+backend as the primary live signal and the Poisson and GBM backends
+as cross-checks. The pre-tournament call to include Willian Pacho
+(Ecuador, defender, \$4.4M) came from the second author's match
+observation; Pacho went on to return 11 points across the group
+stage at 5.8\% ownership, one of the squad's best returns per
+million. We captained Lautaro Mart\'{\i}nez (Argentina, forward,
+\$8.8M, 3.2\% ownership) in a 4-4-2. The round realised 33 points,
+last place in our personal league. Three failure modes dominate the
+diagnosis. First, the captain blanked: Mart\'{\i}nez returned 1 point,
+doubled to 2, and the captaincy multiplier is the largest single
+variance source in a round. Second, a France triple-stack (Dou\'e,
+Olise, and Demb\'el\'e at \$7.5M, \$9.5M, and \$10.0M) shared output
+rather than concentrating it, returning 12 points across three
+premium midfield slots. Third, none of the four defenders kept a
+clean sheet, and Argentina's clean sheet went unexploited because no
+Argentine defender was paired with Emiliano Mart\'{\i}nez in goal.
+
+\paragraph{Matchday 2.}
+With two free transfers available, the optimiser's best two-transfer
+move was to sell Olise and Pacho for Saka and Iba\~nez. We rejected
+the Olise sale on domain grounds: Olise had been the squad's top
+Matchday~1 scorer with 6 points and plays for a tournament
+favourite. The deciding input was the second author's read on
+Olise's form, and the captaincy was moved from Mart\'{\i}nez, who was
+transferred out, to Olise. The round realised 84 points net, the
+entry's largest group-stage total. Olise returned 9 raw points,
+doubled to 18 as captain, the squad's largest captain return of the
+group stage; Demb\'el\'e's 12 points justified retaining the
+remaining France pair; Gakpo added 19; and James and Pacho
+contributed 9 each in defence. (An earlier internal draft recorded
+this round as 102 points; the realised total in the scoring artifact
+is 84, and we report realised figures throughout.) The post-hoc
+reading is symmetric: the optimiser was right that Olise carried
+future ceiling, and the domain override was right that selling him
+was wrong. For a premium player in form, anchoring on form beat the
+model's expected value by roughly the margin the captaincy
+multiplier implies.
+
+\paragraph{Matchday 3.}
+Both free transfers were used and two additional paid transfers were
+taken at a cost of six points, bringing in Daniel Mu\~noz, Alexander
+Freeman, Ronald Ara\'ujo, and Deniz Undav while keeping Messi as
+captain in a 5-2-3. The central risk in the final group round is
+rotation, since teams that have already clinched their group rest
+starters. The rotation-risk flags for this round, including which
+clinched teams would rotate, again came from the second author's
+reading of observed squad management; the model carried only a
+country-level multiplier and proved too conservative. Selling Pacho
+ahead of Ecuador's fixture against Mexico was correct in spirit:
+Mexico won and Pacho's defensive return was modest. The round
+realised 46 points gross and 40 net of the transfer penalty (the
+in-app display showed 42; we note the two-point reconciliation for
+completeness and report the artifact figure). Captain Messi returned
+7 raw points, doubled to 14, against Jordan: a defensible pick,
+although in retrospect Demb\'el\'e outscored him within the same
+starting eleven. The paid transfers returned roughly the six points
+they cost, a net-zero outcome consistent with the unforced-hit cost
+discussed in Section~\ref{sec:lessons}.
+
+\subsection{Knockout rounds}
+\label{sec:live-knockout}
+
+\paragraph{Round of 32: wildcard rebuild.}
+We played the wildcard, which permits unlimited transfers without
+penalty, and rebuilt the squad almost from scratch from the
+post-group candidate pool: Rangel and Beach in goal; Laporte,
+Cucurella, Mu\~noz, Nuno Mendes, and Freeman in defence;
+Demb\'el\'e, Vin\'{\i}cius, Bellingham, Olise, and Manzambi in
+midfield; Messi, Haaland, and Undav up front. Total cost was
+\$102.9M against the \$105.0M knockout-stage cap. The optimiser
+marginally preferred Messi as captain; we chose Demb\'el\'e on
+differential grounds, at 19.7\% ownership against Messi's 37.8\%.
+The realised outcome of the round appears in
+Table~\ref{tab:backtest-rounds}.
+
+\paragraph{Round of 16 onwards.}
+The backend replays for the Round of 16 are complete and appear in
+Table~\ref{tab:backtest-rounds}; our actual entry for that round is
+not yet recorded in the scoring artifact, so the actual column and
+the cumulative actual total currently understate the entry
+(\POSTFINAL{user R16 actual once recorded}).
+\POSTFINAL{Round of 16 decision narrative: transfers, captaincy, and
+diagnosis.}
+\POSTFINAL{Quarter-final decision narrative and realised result.}
+\POSTFINAL{Semi-final and Final decision narratives, and the final
+personal-league placement.}
+
+\subsection{Cross-model findings}
+\label{sec:live-findings}
+
+Across the rounds replayed to date (Table~\ref{tab:backtest-rounds}
+and Figure~\ref{fig:backtest-cumulative}), the GBM backend leads the
+cumulative leaderboard with \TotalGbm{} points, followed by the
+per-position ensemble with \TotalEnsemble{}. Heuristic~v2
+(\TotalHeuristicVTwo{}), Monte Carlo (\TotalMonteCarlo{}), and the
+original heuristic (\TotalHeuristic{}) form a middle tier, while the
+Poisson backend trails the field at \TotalPoisson{}. Every backend
+clears the random baseline, whose cumulative mean is
+\TotalRandomBaselineMean{} points. Our actual entry stands at
+\TotalUserActualNet{} points net of penalties, although, as noted
+above, this figure excludes the unrecorded Round of 16 score and is
+not directly comparable to the unlimited-transfer backend totals.
+Three observations follow.
+
+First, the Poisson deficit is a genuine mis-calibration finding
+rather than noise: the backend systematically over-predicts mean
+realised points, and its squads skew toward high-volume,
+low-realisation players. We do not recommend deploying it in its
+current form, despite its held-out goalkeeper RMSE win
+(Section~\ref{sec:validation}), which we now suspect reflects a
+small per-position sample; a recalibration pass is queued in
+Section~\ref{sec:future_work}.
+
+Second, the captaincy is the highest-leverage single decision in a
+round, and it resists prospective optimisation. In each of the three
+group rounds the captain that proved optimal within our own starting
+eleven was identified only in retrospect: Gakpo over Olise in
+Matchday~2 and Demb\'el\'e over Messi in Matchday~3. Per-round
+captain outcomes are visible in the round-level spread of
+Figure~\ref{fig:backtest-rounds}.
+
+Third, the rounds that went well combined the model signal with
+domain judgement (the Olise captaincy, the Pacho pick, the rotation
+flags), while the rounds that went poorly weighted one signal over
+the other. Table~\ref{tab:season-summary} tracks this round by
+round against the official ensemble recommendation.
+\POSTFINAL{final cumulative leaderboard and headline comparison
+after the Final}
+
+\begin{table}[t]
+  \centering
+  \small
+  \input{generated/tab_backtest_rounds}
+  \caption{Realized fantasy points per round for every backend replayed
+    on frozen pre-round data, alongside the user's actual entry and a
+    random-squad baseline.
+    \figsource{scripts/model\_backtest.py $\rightarrow$
+    data/evaluation/backtest\_summary.json}}
+  \label{tab:backtest-rounds}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_backtest_cumulative.pdf}
+  \caption{Cumulative realized points per backend across the
+    tournament.
+    \figsource{scripts/model\_backtest.py}}
+  \label{fig:backtest-cumulative}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_backtest_rounds.pdf}
+  \caption{Per-round realized points per backend.
+    \figsource{scripts/model\_backtest.py}}
+  \label{fig:backtest-rounds}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_season_summary}
+  \caption{Season summary: official (ensemble) recommendation, user
+    actual, and random baseline per round.
+    \figsource{scripts/model\_backtest.py $\rightarrow$
+    data/evaluation/backtest\_summary.json}}
+  \label{tab:season-summary}
+\end{table}

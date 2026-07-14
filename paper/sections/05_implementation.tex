@@ -1,0 +1,211 @@
+\section{Implementation}
+\label{sec:implementation}
+
+Figure~\ref{fig:architecture} shows the system as deployed during the
+tournament: a collector for the official FIFA Fantasy API, external
+fetchers for match history \citep{martj42} and club-level data
+\citep{footballdata}, a feature builder producing one table row per
+player and round, the three prediction backends of
+Section~\ref{sec:methodology} with their per-position ensemble, a
+mixed-integer squad optimizer, and a live decision layer for captain
+and substitution calls. This section describes the pipeline
+architecture, the engineering decisions that mattered in practice,
+our reproducibility and testing discipline, and the team-news
+ingestion subsystem.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=6mm and 9mm,
+      box/.style={draw, rounded corners=1.5pt, align=center,
+                  minimum height=8mm, inner sep=2.5mm, font=\small},
+      ext/.style={box, dashed},
+      arr/.style={-{Stealth[length=2.2mm]}, semithick},
+    ]
+    \node[box] (collector) {FIFA Fantasy API\\collector};
+    \node[box, right=of collector] (features) {Feature\\builder};
+    \node[box, right=of features] (models) {Backends: heuristic,\\Poisson, GBM};
+    \node[box, below=of models] (ensemble) {Per-position\\ensemble};
+    \node[box, left=of ensemble] (optimizer) {MILP squad\\optimizer};
+    \node[box, left=of optimizer] (live) {Live decision\\layer};
+    \node[ext, below=of collector] (elo) {International Elo\\(match history)};
+    \node[ext, below=of features] (news) {Team news and\\news signals};
+    \draw[arr] (collector) -- (features);
+    \draw[arr] (features) -- (models);
+    \draw[arr] (models) -- (ensemble);
+    \draw[arr] (ensemble) -- (optimizer);
+    \draw[arr] (optimizer) -- (live);
+    \draw[arr] (elo) -- (features);
+    \draw[arr] (news) -- (features);
+  \end{tikzpicture}
+  \caption{System architecture: data collection, feature construction,
+    the three prediction backends and their ensemble, squad
+    optimization, and the live decision layer. Dashed boxes are
+    external signal sources.}
+  \label{fig:architecture}
+\end{figure}
+
+\subsection{Pipeline architecture}
+\label{sec:implementation-pipeline}
+
+The pipeline is a linear chain of stages mediated entirely by files
+on disk. The collector snapshots the three FIFA Fantasy endpoints
+into raw Parquet tables; the external module fetches international
+match history and club-level CSVs and derives the country and club
+Elo tables; the feature builder joins these into a per-player,
+per-round feature table; each model backend reads that table and
+writes a predictions table; the optimizer reads predictions and
+writes a recommendation as JSON and Markdown; and a report generator
+renders static HTML from the accumulated JSON. Because every stage
+reads from and writes to disk, the pipeline is idempotent: any stage
+can be re-run with different parameters without re-running its
+upstream stages, and only the collector and external fetchers touch
+the network at refresh time.
+
+The repository mirrors this dataflow. The Python package under
+\texttt{src/fifa\_fantasy/} holds one subpackage per stage
+(\texttt{collector}, \texttt{external}, \texttt{features},
+\texttt{model}, \texttt{optimizer}, \texttt{live}, \texttt{web}),
+plus a single canonical scoring module shared by training,
+validation, and reporting. Data directories separate raw collector
+snapshots, derived external tables, processed feature and prediction
+tables, training dumps, and per-run recommendation outputs; the test
+suite and ad-hoc analysis scripts live alongside. Model artefacts
+are stored in LightGBM's text format so they diff cleanly under
+version control.
+
+\subsection{Engineering decisions}
+\label{sec:implementation-engineering}
+
+Four decisions deserve explicit mention.
+
+\paragraph{Parquet as the interchange format.}
+Every intermediate table is Parquet rather than CSV: typed columns,
+smaller files, and faster reads across the many re-runs a live
+tournament demands. The only hand-maintained CSV is the static FIFA
+ranking snapshot of Section~\ref{sec:data-rankings}.
+
+\paragraph{Self-documenting result files.}
+Every recommendation file is named with the originating hostname,
+backend, stage, and a UTC timestamp. This prevents two collaborators
+from clobbering each other's runs and makes the results directory an
+audit trail: the JSON carries the full squad with per-player
+metadata, lineup and captain decisions, transfer blocks, and
+quantile bands where the GBM backend supplies them.
+
+\paragraph{Deterministic training.}
+All LightGBM \citep{ke2017lightgbm} training runs pin the seed, the
+bagging and feature-fraction seeds, and the library's deterministic
+flag. Without this, held-out RMSE wobbles from run to run by enough
+to mask small feature-ablation effects; determinism was a
+precondition for the A/B comparisons of
+Section~\ref{sec:negative-results}.
+
+\paragraph{Exact optimization over greedy selection.}
+Squad selection under a budget cap, per-country limits, position
+quotas, and a transfer quota has too many interacting constraints
+for a greedy heuristic to be trustworthy. We formulate it as a
+binary integer program in PuLP \citep{pulp} and solve with CBC
+\citep{cbc}; the instance solves in under a second on commodity
+hardware, so exactness costs nothing operationally.
+
+\subsection{Reproducibility}
+\label{sec:implementation-reproducibility}
+
+Every direct dependency is pinned to a known-good version, model
+training is deterministic given the seed, and Monte Carlo
+simulations use a fixed NumPy generator seed. The static inputs (the
+ranking snapshot, the cached match-history CSV, the club-level CSVs)
+are committed to the repository or cached under a versioned
+directory, and the pre-tournament FIFA Fantasy snapshot is committed
+as well, so a fresh clone reproduces the full pipeline end-to-end
+without any network access.
+
+\subsection{Testing}
+\label{sec:implementation-testing}
+
+The pytest suite comprises \POSTFINAL{number: total pytest test count
+at release} tests. The largest share pins the scoring functions:
+parametrised cases cover every per-position scoring component
+(appearance, goals, assists, clean sheets, conceded-goal penalties,
+save bonuses, and the ownership-threshold conditions of the scouting
+bonus), together with realistic end-to-end scenarios pinned to known
+point totals. The collector, feature builder, and optimizer each
+have dedicated test modules backed by end-to-end pipeline runs.
+Model correctness is guarded by the held-out validation on the
+English Premier League data of Section~\ref{sec:data-fpl}
+\citep{vaastav}: any backend change that drifts held-out RMSE by
+more than 0.05 in either direction is caught when the validation is
+re-run.
+
+\subsection{Team-news ingestion}
+\label{sec:implementation-team-news}
+
+Expert fantasy practitioners read manager press conferences roughly
+24 hours before kickoff to anticipate rotation, suspensions, and
+lineup changes. Our pipeline initially had no such input, so we
+built a team-news subsystem that converts published pre-match
+previews into a per-fixture predicted-XI signal.
+
+\paragraph{The predicted-XI signal.}
+Per-source parsers extract raw lineups (player names as printed,
+with a starting or bench status) from public previews and persist
+them as one row per fixture, player, and status. The feature builder
+joins the most recent lineup per fixture into the feature table as
+two columns: a three-valued starting indicator (confirmed start,
+confirmed bench, or missing when no news exists) and a confidence
+score in $[0,1]$ inherited from the source. The join is NaN-safe by
+construction: with no news, both columns are missing and every
+backend behaves exactly as before, which we verified by re-running
+the backtest with the wiring in place and no data (all backend
+totals were unchanged).
+
+\paragraph{Name matching.}
+Scraped names must be resolved to FIFA player identifiers. The
+matcher normalises case and strips accents, then applies tiered
+rules with descending confidence: an exact full-name match (1.00), a
+match on the display name such as a mononym (0.95), a last-name
+match within the player's country and position (0.85), within the
+country alone (0.70), and a last-name match with no country context
+(0.50). Ambiguous candidates at any tier abort the match rather than
+guess, and unmatched names are logged for manual review; multi-part
+Latin American and African naming conventions are the main source of
+false negatives.
+
+\paragraph{Availability discount.}
+The lineup signal feeds availability handling in two ways. First, a
+hard gate: the deterministic backends zero the prediction of any
+player with a confirmed bench status, exactly as they do for
+transferred or eliminated players, while the Monte Carlo backend
+scales simulated points by the confidence score instead of zeroing,
+damping low-confidence reports. Second, a soft participation
+discount applied to effective points just before optimization: each
+player's recent participation rate (the share of their team's
+completed matches in which they took the pitch) maps linearly to a
+multiplier between a floor of 0.5 and 1. The floor is deliberately
+non-zero because participation is measured by a scored-points proxy,
+so a nailed starter who blanked twice would otherwise be
+misclassified as a rotation risk. Missing participation history
+means factor 1 before the tournament (no claim either way), but once
+any player has history, a missing value means the player has never
+taken the pitch and is treated as the floor; without this rule the
+optimizer favoured cheap third-choice goalkeepers whose team-level
+clean-sheet points equalled the starter's.
+
+\paragraph{What actually produced data.}
+We implemented three source paths: an integration with a
+community-maintained scraping library (scaffolded pending confirmed
+World Cup coverage), a parser for ESPN pre-match preview articles
+that requires the operator to supply article URLs, and a third-party
+predicted-lineup site whose parser was never tuned. In practice only
+the manual ESPN path produced predicted-XI rows: the scheduled
+unattended runs wrote empty snapshots throughout the tournament, so
+the signal reached the models only when we hand-fed article URLs
+ahead of selected fixtures, with coverage skewed toward high-profile
+matches. A companion collector for coarser news signals (headline
+and summary feeds filtered by tournament keywords) supplies the
+second dashed input of Figure~\ref{fig:architecture}. The scraping
+engineering underneath both (client fingerprinting, caching, rate
+limiting, retries) is deliberately generic and separated from the
+fantasy-specific parsers; we document it in the repository rather
+than here.

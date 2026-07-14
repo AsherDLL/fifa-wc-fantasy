@@ -1,0 +1,52 @@
+\section*{Author Contributions}
+
+This work combines computational and football-domain expertise. The
+contributions are stated explicitly to distinguish decisions derived
+from data and code from those derived from match-watching judgment.
+
+\textbf{Asher Davila} (computational lead): conceptualization, system
+architecture, and software, including the three predictor backends,
+the MILP optimizer, the live decision tools, and the data ingestion
+pipeline; all held-out validation and hyperparameter sweeps; writing
+of the code and of this manuscript; and project administration. He
+operated the fantasy entry through every matchday and made the final
+call on every transfer, captain choice, and formation.
+
+\textbf{Diego Guajardo} (domain expert): football domain knowledge
+from direct observation of the qualifying rounds, the pre-tournament
+friendlies, and the tournament matches. He supplied per-player
+judgments that the predictive models could not derive from features
+alone: minutes risk inferred from observed manager behavior, in-form
+versus out-of-form distinctions between players with similar predicted
+scores, and tournament-narrative signals such as top-scorer race
+incentives and must-win match dynamics. He reviewed the squad through
+every transfer round, applying match-observation context to the model
+outputs before each final pick.
+
+Specific calls credited to D.~Guajardo include the pre-tournament
+inclusion of Willian Pacho in the matchday-one squad, a low-ownership
+defender who returned strongly relative to price; the rotation-risk
+flags identifying which clinched-group teams would rest starters late
+in the group stage; and the form read that decided the matchday-two
+captain switch from Lautaro to Olise, which produced the squad's
+largest captain return.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Activity & A.~Davila & D.~Guajardo \\
+\midrule
+System architecture and software & lead & reviewing \\
+Model development and validation & lead & reviewing \\
+Football domain knowledge & supporting & lead \\
+Transfer and captain decisions & shared & shared \\
+Pre-tournament squad construction & shared & shared \\
+Writing & lead & reviewing \\
+Project administration & lead & none \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two skill sets are complementary: the decisions that performed
+well combined both signals, while the decisions that performed poorly
+weighted one signal over the other unnecessarily.

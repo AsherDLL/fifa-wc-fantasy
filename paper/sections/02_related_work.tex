@@ -1,0 +1,322 @@
+\section{Related Work}
+\label{sec:related_work}
+
+Our system sits at the intersection of five literatures: structural
+models of goal scoring, team-strength rating systems, machine
+learning for match and player outcomes, fantasy-football prediction
+and squad optimisation, and the economics of betting and prediction
+markets. We searched arXiv, IEEE Xplore, and ResearchGate in June
+2026 for work published between 2023 and 2025 on fantasy-football
+prediction, World Cup outcome modelling, and market-derived features;
+coverage of the most recent quarter is limited by publication lag.
+This section reviews each strand in turn, summarises the practitioner
+community of practice, and closes by positioning our contributions
+against the closest prior art.
+
+\subsection{Structural models of goal scoring}
+\label{sec:related-structural}
+
+The structural approach to football match prediction models goals as
+Poisson arrivals at team-level rates. \citet{maher1982modelling}
+introduced the independent double-Poisson model, with each side's
+scoring rate derived from latent attacking and defensive strength
+parameters. \citet{dixon1997modelling} refined it with a dependence
+adjustment for low-scoring matches and time-decay weighting of
+historical results; notably, their work was explicitly motivated by
+exploiting inefficiencies in the fixed-odds betting market, which
+makes it the standard football precedent for the market-versus-model
+framing we adopt in Section~\ref{sec:related-markets}.
+\citet{karlis2003analysis} generalised the framework to a bivariate
+Poisson model with correlated goal counts and popularised the Skellam
+distribution for goal differences. The independence assumption is
+empirically misspecified but only mildly so:
+\citet{petretta2025dependence} report a home--away goal correlation
+of $-0.085$ ($p < 0.001$) across 9{,}130 matches from the five major
+European leagues, and the Dixon--Coles correction redistributes
+probability mass only among the four lowest scorelines, leaving
+total-goals probabilities unchanged. Our structural backend
+(Section~\ref{sec:methodology}) borrows the double-Poisson shape but
+replaces estimated latent strengths with observable proxies (squad
+price and country Elo gap), trading a small amount of fidelity for a
+model that requires no training and remains interpretable end to end.
+
+The closest structural precedent for our tournament setting is
+\citet{gilch2018elo}, who combine eloratings.net Elo covariates,
+Poisson regression, and Monte Carlo simulation (100{,}000 tournament
+runs) to forecast the 2018 FIFA World Cup. They backtest four Poisson
+variants on the 2010 and 2014 tournaments using Brier and ranked
+probability scores, find a nested Poisson specification best, and
+show that freezing Elo across a simulated tournament shifts stage
+probabilities by up to five percentage points in favour of stronger
+teams. Their architecture anticipates ours at the team level; the
+per-player fantasy-points layer, which is where the difficulty of our
+problem concentrates, is absent.
+
+Textbook treatments deserve a note on lineage.
+\citet{winston2022mathletics} covers least-squares team ratings,
+Poisson goal models with Skellam-based outcome probabilities (citing
+\citealp{karlis2003analysis}), Elo ratings, Monte Carlo tournament
+simulation, and, most relevantly, formulates daily-fantasy lineup
+construction as a knapsack integer program, the direct textbook
+precedent for our squad optimiser. It does not, however, engage the
+Maher, Dixon--Coles, or Benter lineage at all, so we cite the primary
+sources directly. \citet{eager2023football} is exclusively about
+American football; we cite it only for transferable methodology:
+Poisson regression for count outcomes, the stability and
+regression-to-the-mean behaviour of player statistics,
+simulation-based projections, and open-data reproducibility practice.
+
+\subsection{Team-strength ratings}
+\label{sec:related-ratings}
+
+Team-strength ratings supply the fixture-difficulty signal that both
+our structural and learned backends consume. The Elo system
+\citep{elo1978rating} originated in chess; football adaptations add
+goal-margin and match-importance multipliers and retain the
+calibrated scale on which a 400-point gap corresponds to ten-to-one
+odds. \citet{hvattum2010using} provide the standard evaluation of
+Elo-based football forecasts against bookmaker odds: Elo carries
+genuine predictive information but is less sharp than the market.
+The pi-rating system of \citet{constantinou2013pi} maintains separate
+home and away components updated from the predicted-versus-observed
+goal-difference error, diminished through
+$\psi(e) = 3\log_{10}(1+e)$; it outperformed the
+\citet{hvattum2010using} Elo variants and was profitable against best
+bookmaker odds over five Premier League seasons, and
+\citet{bunker2024soccer} confirm that pi-ratings beat Elo on
+goal-difference-aware tasks. The same authors later extended this
+rating-driven line to long-term team performance modelling
+\citep{constantinou2017towards}. We nonetheless use Elo: it is
+simpler to roll forward from open match histories, easier to falsify,
+and the home--away asymmetry at the heart of pi-ratings matters less
+at a World Cup played almost entirely on neutral ground. The FIFA
+Men's World Ranking, the governing body's monthly official ranking,
+is less responsive to recent form than Elo and serves only as a
+fallback in our system (Section~\ref{sec:data}).
+
+\subsection{Machine learning for match and player outcomes}
+\label{sec:related-ml}
+
+\citet{bunker2024soccer} demonstrate that gradient-boosted tree
+models trained on engineered rating features (pi-ratings, Elo,
+momentum) currently set the state of the art for club-football match
+outcome prediction across multiple European leagues. For the
+international tournament setting, recent work integrates team-level
+and player-specific metrics with dimensionality reduction and
+validates on the 2022 World Cup, finding that player attributes
+combined with team composition improve outcome accuracy
+\citep{worldcup2025players}; it does not address fantasy-points
+prediction or the club-to-country transfer problem we tackle. A related recent line forecasts full
+goal-difference distributions rather than point estimates,
+% TODO cite: distributional Skellam forecasting preprint (2025)
+which our player-level quantile heads capture in part. A systematic
+review of machine learning in sports betting
+\citep{sportsbetting2024review} identifies distribution shift between
+training and live data as a recurring failure mode across the field;
+the model variant we rejected for exactly this reason
+(Section~\ref{sec:negative-results}) is an instance of the pattern.
+
+At the player-regression level our problem is small-scale tabular
+learning. Gradient-boosted decision trees, LightGBM
+\citep{ke2017lightgbm} and XGBoost \citep{chen2016xgboost} in
+particular, dominate small-to-mid tabular benchmarks, and systematic
+comparisons find that they consistently beat neural networks on
+tabular data at moderate scale \citep{borisov2022deeptabular,
+shwartz2022tabular}. We use LightGBM for three practical reasons:
+native handling of missing values in features that exist at inference
+time but not in training, deterministic training under fixed seeds
+(which makes feature A/B tests meaningful), and fast CPU-only
+training and scoring with no model-serving runtime. We deliberately
+do not use neural networks: our labelled table
+(Section~\ref{sec:data}) is orders of magnitude below the data scale
+at which deep models earn their keep, each row carries only five
+features with no hierarchical structure for representation learning
+to exploit, and a tree ensemble stored as plain text can be inspected
+feature by feature.
+
+\subsection{Fantasy-football prediction and squad optimisation}
+\label{sec:related-fantasy}
+
+Fantasy Premier League (FPL) supports a large public modelling
+community, and its accumulated conventions inform our design:
+position-specific models outperform pooled models, recent form is the
+strongest single feature, fixture difficulty is the second, and
+quantile predictions are useful for differential strategies. We adopt
+all four: one model per position, form features in two of our
+backends, an Elo fixture-difficulty term, and quantile heads at the
+10th, 50th, and 90th percentiles.
+
+The closest published comparable to our system is OpenFPL
+\citep{groos2025openfpl}: position-specific ensembles trained on FPL
+and Understat data from 2020--21 through 2023--24 and validated
+prospectively on 2024--25, achieving accuracy comparable to a leading
+commercial service and outperforming it on high-return players (above
+two points), with models and inference code released openly. The
+architectural overlap with our work is substantial: position-specific
+models, multi-gameweek horizons, and open-source publication. We
+differ in five respects: (i) we target an international tournament
+rather than a club season; (ii) we run three explicit backends
+(heuristic, structural Poisson, gradient-boosted trees) and select
+the best per position on held-out validation, where their ensemble is
+opaque about which member dominates where; (iii) we integrate a live
+international Elo rolled from an independent match-history archive
+\citep{martj42}; (iv) we couple prediction to a stage-aware
+mixed-integer optimiser with transfer-hit accounting, where OpenFPL
+addresses prediction accuracy only; and (v) we publish a
+user-in-the-loop decision log.
+
+On the optimisation side, \citet{mishra2025fpl} formulate starting
+eleven, bench, and captain selection as mixed-integer linear programs
+under FPL's budget, formation, and per-club constraints, and report
+that ARIMA performs best among their point predictors. Their
+optimisation formulation is close to ours; their prediction component
+is simpler (a single model, no quantiles, no structural backend).
+Beyond these, transformer-based sentiment analysis of player news has
+been combined with statistical features to improve FPL point
+prediction,
+% TODO cite: sentiment-enriched FPL prediction (ResearchGate, 2025)
+an idea our team-news roadmap (Section~\ref{sec:future_work}) adapts
+to the international setting, and earlier baseline studies applied
+linear models, decision trees, and random forests to FPL scoring.
+% TODO cite: Bangaru et al. (2022), IEEE
+
+\subsection{Prediction markets and the favourite-longshot bias}
+\label{sec:related-markets}
+
+The seminal work on combining a fundamental model with public market
+signals is \citet{benter1994computer}. Benter trained a logit-based
+handicapping model on horse-race data and showed that its residual,
+after conditioning on the parimutuel market's implied probabilities,
+still carried predictive signal: a model that beats the public must
+combine its own features with the public's information rather than
+replace it. Prediction markets more broadly aggregate dispersed
+information into prices with well-documented forecasting accuracy
+\citep{wolfers2004prediction}.
+
+Treating market prices as direct probability estimates is
+nevertheless naive. \citet{thaler1988favorite} document the
+favourite-longshot bias in horse racing: casual bettors
+systematically underbet favourites and overbet longshots, producing
+predictable inefficiencies that sharp money arbitrages but does not
+eliminate. \citet{snowberg2010explaining} test competing explanations
+and attribute the bias to misperception of small probabilities rather
+than risk-loving preferences. \citet{levitt2004sportsbook} shows that
+sportsbooks price to exploit bettor biases rather than to balance
+their books: in his sample, favourites covered the point spread in
+only 49.1\% of games even though bettors overwhelmingly backed them.
+\citet{croxson2014information} show that market efficiency varies
+with liquidity, with in-play football prices incorporating goal news
+swiftly in liquid markets while thin markets carry larger biases.
+The implication for our methodology is that market prices are noisy
+probability estimators whose noise mixes information aggregation
+(signal) with behavioural bias (anti-signal); the appropriate
+response is neither to treat them as ground truth nor to discard
+them, but to combine them with a fundamental model using empirically
+estimated weights, exactly as \citet{benter1994computer} did for
+parimutuel racing.
+
+We could find no published academic work that uses contemporary
+prediction-market venues such as Polymarket or Kalshi as a feature
+source for fantasy-football prediction, despite both venues listing
+contracts directly relevant to fantasy decisions: match outcomes,
+first and anytime goalscorers, and tournament top scorer. Updating
+the Benter combining approach for these markets and applying it to
+FIFA fantasy is, to our knowledge, new; we develop the proposal in
+Section~\ref{sec:future_work}.
+
+\subsection{Practitioner practice}
+\label{sec:related-practice}
+
+Alongside the academic literature sits a large community of practice:
+editorial and analytics sites such as Fantasy Football Scout, Fantasy
+Football Hub, and AllAboutFPL, tooling platforms such as Premier
+Fantasy Tools and FPL Copilot, and data-science write-ups from
+consultancies such as Frontier Economics.
+% TODO cite: Frontier Economics FPL strategy analysis (web)
+The practitioner consensus on captaincy, the highest-leverage
+decision per round, is to rank by expected points, anchor on recent
+form, weight fixture difficulty heavily, monitor rotation and injury
+risk through pre-match press conferences, and condition differential
+strategy on league position: managers who lead should match the
+consensus pick, while chasing managers should take one or two
+low-ownership picks, with returns diminishing beyond two. Published
+booster-timing guides for the World Cup 2026 format make analogous
+recommendations at the chip level.
+
+Our system encodes much of this consensus directly (expected-points
+ranking, form anchoring, an Elo fixture-difficulty term, vice-captain
+as the second-highest projection), so the difference is
+methodological rather than tactical: we impose held-out validation
+gates before shipping a backend, compare backends systematically,
+optimise under formal constraints rather than editorial tiers,
+propose market integration, and keep a decision log that records
+model recommendation, human override, and realised outcome. The
+practitioner sites deliver excellent weekly advice for their
+audience; what they do not do is measure their own cumulative
+accuracy in a way that later work can build on.
+
+\subsection{Positioning against prior art}
+\label{sec:related-positioning}
+
+Table~\ref{tab:contributions-prior-art} draws the line between prior
+art and this paper's contributions.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.28\linewidth}p{0.40\linewidth}@{}}
+\toprule
+Contribution & Closest prior art & Our delta \\
+\midrule
+MILP squad and captain selection &
+\citet{mishra2025fpl}; knapsack formulation in
+\citet{winston2022mathletics} &
+Stage-aware constraints (group versus knockout), transfer-hit
+accounting, three-backend prediction input \\
+\addlinespace
+Position-specific predictors &
+\citet{groos2025openfpl}; \citet{bunker2024soccer} &
+Three explicit backends with per-position selection on held-out
+validation, rather than an opaque ensemble \\
+\addlinespace
+Club-to-country transfer &
+None published &
+Train on club fantasy data, infer on the World Cup; document the
+distribution-shift failure modes \\
+\addlinespace
+Live international Elo in fantasy &
+\citet{hvattum2010using} &
+Elo rolled from an open match archive \citep{martj42} and
+prioritised over the static FIFA ranking \\
+\addlinespace
+Prediction-market features &
+\citet{benter1994computer} &
+Polymarket and Kalshi prices proposed as a feature source for FIFA
+fantasy \\
+\addlinespace
+Ownership-aware captaincy &
+None &
+Monte Carlo captain selection that models the field's likely
+captain distribution \\
+\addlinespace
+User-in-the-loop decision log &
+None &
+Per-round record of model recommendation, human override, and
+realised outcome \\
+\bottomrule
+\end{tabular}
+\caption{Our contributions against the closest prior art.}
+\label{tab:contributions-prior-art}
+\end{table}
+
+In short, each component of our system has a clear ancestor: the
+Poisson lineage of \citet{maher1982modelling} and
+\citet{dixon1997modelling}, the Elo evaluation of
+\citet{hvattum2010using}, the tournament simulation of
+\citet{gilch2018elo}, the fantasy prediction of
+\citet{groos2025openfpl}, the fantasy optimisation of
+\citet{mishra2025fpl}, and the market combining of
+\citet{benter1994computer}. What has not appeared before is their
+combination in a single validated pipeline for an international
+tournament, run live under real transfer deadlines, with its
+decisions and failures documented.

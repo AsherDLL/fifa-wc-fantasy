@@ -1,0 +1,74 @@
+% A Multi-Backend Predictive Framework for FIFA World Cup Fantasy Football
+% Build: make all   (tectonic; see Makefile)
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[round]{natbib}
+\usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{../results/figures/}}
+
+% Post-final placeholder: visible in the PDF, greppable, release-gated
+% by `make final-check`.
+\newcommand{\POSTFINAL}[1]{\textcolor{red}{\textbf{[POST-FINAL: #1]}}}
+% Provenance line at the end of every data-driven caption.
+\newcommand{\figsource}[1]{\\{\footnotesize Source: \texttt{#1}}}
+
+% Generated inline-number macros (scripts/paper_tables.py).
+\input{generated/numbers.tex}
+
+\title{A Multi-Backend Predictive Framework for\\
+       FIFA World Cup 2026 Fantasy Football}
+\author{Asher Davila\\
+        \small Independent Researcher\\
+        \small \texttt{davilasher@gmail.com}
+        \and
+        Diego Guajardo\\
+        \small Actuarial Scientist}
+\date{July 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present an open-source decision-support system for the official FIFA
+World Cup 2026 fantasy game, combining three expected-points backends
+(a calibrated heuristic, an independent-Poisson structural model, and a
+gradient-boosted tree model trained on club data), a per-position
+ensemble, a mixed-integer squad optimizer, and a live decision layer,
+all developed and validated during the tournament itself.
+\POSTFINAL{results sentence: cumulative points vs baselines, final
+league outcome, headline negative results}
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_data}
+\input{sections/04_methodology}
+\input{sections/05_implementation}
+\input{sections/06_validation}
+\input{sections/07_live_results}
+\input{sections/08_analysis}
+\input{sections/09_negative_results}
+\input{sections/10_lessons}
+\input{sections/11_future_work}
+\input{sections/12_conclusion}
+\input{sections/contributions}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix_a}
+\input{sections/appendix_b}
+
+\end{document}

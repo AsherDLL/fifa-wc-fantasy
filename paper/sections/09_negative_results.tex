@@ -1,0 +1,301 @@
+\section{Negative Results}
+\label{sec:negative-results}
+
+Not every idea we tested survived contact with held-out data. This
+section documents six approaches that were implemented, evaluated
+under the same gates as every shipped change
+(Section~\ref{sec:validation}), and rejected. We report them in full
+for two reasons. First, each rejection shaped the production system:
+the discipline of adding one component at a time behind a held-out
+gate is itself a consequence of the failures below. Second, several
+of the hypotheses are natural enough that other practitioners will
+try them; the measurements here may save that effort or sharpen it.
+Table~\ref{tab:negative-summary} summarizes the six approaches; the
+following subsections give one account each. Two failure modes recur:
+constants derived from plausible first principles that measurement
+contradicts, and signals that are genuinely informative but harmful
+when injected at the wrong layer of the system.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{@{}p{0.26\linewidth}p{0.33\linewidth}p{0.33\linewidth}@{}}
+    \toprule
+    Approach & Hypothesis & Outcome \\
+    \midrule
+    Heuristic v2 component stack &
+    Six domain-motivated bonuses improve the price-anchored heuristic &
+    Trailed unmodified v1 in every backtested group round; reverted \\
+    \addlinespace
+    \texttt{team\_elo\_diff} as a GBM feature &
+    The Elo gap adds fixture signal to the learned model &
+    Held-out wash plus distribution-shift risk; signal routed to the
+    structural backends instead \\
+    \addlinespace
+    Theoretical GK save-bonus multiplier (1.13) &
+    A first-principles constant prices expected saves correctly &
+    Overestimated by roughly a factor of two; empirical sweep
+    shipped 0.50 \\
+    \addlinespace
+    \texttt{start\_rate\_lag} and \texttt{team\_gc\_form} as GBM
+    features &
+    Participation and team defensive form add predictive signal &
+    Regressed leak-free walk-forward RMSE at every position; signals
+    rehomed at the optimizer layer \\
+    \addlinespace
+    Benter combiner with market prices &
+    Tournament-winner market probabilities complement model
+    predictions &
+    Any positive market weight raised RMSE for every backend in every
+    round; shipped weight zero \\
+    \addlinespace
+    GK defensive-form adjustment &
+    Recent goals conceded sharpens goalkeeper predictions &
+    Worse as a feature and as a Poisson blend; structure beats
+    realized form at this sample size \\
+    \bottomrule
+  \end{tabular}
+  \caption{Summary of documented negative results. Each approach was
+    implemented and evaluated against held-out or walk-forward data
+    before rejection; details and evidence appear in the subsections
+    below.}
+  \label{tab:negative-summary}
+\end{table}
+
+\subsection{Heuristic v2: a six-component stack}
+\label{sec:negative-heuristic-v2}
+
+The heuristic backend of Section~\ref{sec:methodology} predicts
+points as a position coefficient times price, scaled by matchup and
+home factors: three moving parts. A v2 candidate layered six
+domain-motivated changes onto it at once: a goalkeeper save bonus
+scaled by opponent expected goals; a defender clean-sheet bonus
+proportional to $\exp(-\mathrm{xG}_{\mathrm{opp}})$; ball-progression
+and goal-conversion bonuses for midfielders and forwards who
+outperform their position median; a premium-tier bump for players
+priced above \$9.5 million; and a realized-form anchor that blends
+the structural prediction toward the player's tournament scoring
+average, with a weight growing from zero to 0.40 by four matches
+played. Every component was individually defensible, and several
+encode genuine features of the scoring rules.
+
+Replayed under the frozen-data backtest protocol of
+Section~\ref{sec:live-results}, v2 scored below unmodified v1 in
+every completed group round (Table~\ref{tab:backtest-rounds}). Our
+diagnosis has four parts. First, the realized-form anchor pulls
+toward one to three matches of data, where the per-player average is
+dominated by variance; the structural prediction is more reliable
+than the realized average at that sample size. Second, the stacked
+bonuses shifted squad composition, promoting players (for example,
+defenders facing low-xG opponents) who did not in fact outscore the
+v1 picks. Third, the premium-tier bump was too small to change the
+optimizer's selections and should have been either amplified or
+omitted. Fourth, and most generally, six additions give the model six
+places to be slightly wrong where v1 has three; on small samples the
+misalignments compound rather than cancel.
+
+We reverted to v1 and kept v2 in the repository as a runnable
+research backend. We note for completeness that the replay ordering
+reversed in later knockout rounds (Table~\ref{tab:backtest-rounds}),
+with cumulative totals of \TotalHeuristicVTwo{} for v2 against
+\TotalHeuristic{} for v1, which underlines how noisy a three-round
+gate is. \POSTFINAL{state whether the v2 knockout-round recovery
+persisted over the full tournament and reconcile with the reversion
+decision} The procedural lesson stood regardless and became policy:
+one component at a time, each behind a held-out gate, with failures
+documented rather than discarded.
+
+\subsection{\texttt{team\_elo\_diff} as a GBM feature}
+\label{sec:negative-elo-feature}
+
+The gradient-boosted model \citep{ke2017lightgbm} shipped with five
+features. A v3 candidate added the Elo gap between a player's team
+and the opponent \citep{elo1978rating, hvattum2010using} as a sixth:
+club Elo computed from historical match data on the training side,
+country Elo aliased to the same column at inference. Under a
+deterministic seed, the held-out comparison against v2 was a wash:
+small improvements for goalkeepers and midfielders, offset by small
+regressions for defenders and forwards, with all four movements
+within about one percent.
+
+A wash on its own might still justify shipping, but the feature
+carried a structural risk that the aggregate number understates:
+distribution shift. Elo gaps between national teams at a World Cup
+are several times wider than the club-Elo gaps in the training
+league, so the tree ensemble would evaluate many tournament fixtures
+in a region of feature space with no training support, where trees
+extrapolate by clamping to the nearest leaf. We did not ship v3. The
+Elo signal is instead consumed directly by the heuristic and Poisson
+backends, where its effect on predictions is monotone by construction
+and no extrapolation is involved. A procedural footnote: this A/B was
+only legible after we fixed all training seeds, since run-to-run
+noise from the boosting procedure's subsampling initially exceeded
+the effect being measured.
+
+\subsection{The theoretical goalkeeper save-bonus multiplier}
+\label{sec:negative-gk-multiplier}
+
+The Poisson backend's original goalkeeper formula assigned a flat
+expected save bonus per start, independent of the fixture. Replacing
+the constant with a term scaled by opponent expected goals is clearly
+right in direction: the save-bonus rule pays one point per three
+saves, and save opportunities are a function of how much attack the
+opposing team generates. The question is the multiplier. We first
+derived it from football fundamentals: roughly 4.0 shots on target
+per unit of opponent xG, a median save percentage of 0.85, and the
+one-per-three-saves rule give $4.0 \times 0.85 / 3 \approx 1.13$
+expected bonus points per unit of opponent xG.
+
+The derivation was internally consistent and built from three
+independently measurable quantities. It was also wrong. On held-out
+data the 1.13 multiplier regressed goalkeeper RMSE relative to the
+flat baseline it was meant to replace
+(Figure~\ref{fig:gk-sweep}). Both inputs were overestimates: much of
+opponent xG never becomes an on-target shot, and the median
+goalkeeper in the evaluation distribution saves at a substantially
+lower rate than the elite keepers who anchor intuition. The two
+errors compound multiplicatively. An empirical sweep over candidate
+multipliers found its minimum at 0.50, less than half the derived
+value, improving goalkeeper RMSE from \GkRmseVOne{} to \GkRmseVTwo{}
+(Table~\ref{tab:gk-ab}); the empirical calibration and its A/B
+validation are discussed in Section~\ref{sec:analysis}. The lesson we
+draw is not that structural derivation is useless (the functional
+form survived; only the constant fell) but that a derivation is a
+hypothesis, and the sweep, not the algebra, sets the constant.
+
+\subsection{Participation and defensive form as GBM features}
+\label{sec:negative-minutes}
+
+A benched player scores at most the appearance floor regardless of
+form or matchup, so participation is an obvious candidate signal.
+With no reliable predicted-lineup source for the tournament, we
+proxied it: \texttt{start\_rate\_lag} is the trailing fraction of a
+player's recent completed rounds with a positive score (the true
+starts flag is used on the league training side), computed leak-free
+with a one-round shift. The signal is real: players with full recent
+participation outscore rotation risks by a wide margin and blank far
+less often. \texttt{team\_gc\_form}, the trailing mean of goals
+conceded by the player's team, was constructed analogously as a
+defensive-form signal.
+
+Feeding both to the GBM failed. Configuration D of the walk-forward
+validation added the pair to the shipped feature set and regressed
+the leak-free pooled RMSE from \WalkforwardPooledC{} to
+\WalkforwardPooledD{}, worse at every position
+(Table~\ref{tab:walkforward}). Over a handful of tournament rounds
+the participation proxy is too noisy, and it is collinear with the
+trailing form feature (a benched player already shows low form), so
+it adds variance the trees cannot convert into signal; defensive form
+is likewise collinear with the strength features the model already
+holds. The correct layer turned out to be the optimizer, not the
+model: an availability discount scales a player's effective points by
+$0.5 + 0.5 \cdot \mathtt{start\_rate\_lag}$ before squad selection,
+so the solver stops spending budget on rotation risks. That
+adjustment improved realized squad points over the backtested rounds
+(\POSTFINAL{number: realized squad points with versus without the
+availability discount on the heuristic backend}) and was stable
+across a wide band of floor values; it also surfaces a rotation-risk
+flag in the operator report. The same walk-forward harness rejected
+three further feature-layer candidates in the same review: a
+form-times-opponent-strength interaction (within noise), recency
+weighting of tournament training rows (monotonically worse for
+goalkeepers), and dropping did-not-play rows to match the league
+pipeline's minutes filter, which was decisively worse because the
+zero-target rows are precisely how the model learns that
+low-participation profiles score zero.
+
+\subsection{A Benter-style combiner over prediction-market prices}
+\label{sec:negative-market}
+
+\citet{benter1994computer} showed that combining a fundamental model
+with market odds can beat either alone, and prediction markets are
+efficient aggregators of public information
+\citep{wolfers2004prediction}. We therefore tested a combiner that
+multiplies each player's model prediction by a country-level
+adjustment derived from tournament-winner contract prices on a
+prediction market: the most recent pre-deadline implied win
+probability per country, normalized by the field mean, entering
+through a single free weight $\beta_2$ (intercept and slope fixed at
+zero and one). We swept ten values of $\beta_2$ from 0 to 0.30 for
+every backend over the completed rounds.
+
+The result was unambiguous. The empirical optimum for every backend
+is $\beta_2 = 0$, and RMSE rises monotonically in the market weight.
+At the ablation operating point $\beta_2 = \MarketBetaTwo$, enabling
+the adjustment worsens RMSE for every backend in every round
+(Table~\ref{tab:market-negative}), by \MarketMeanDeltaRmse{} on
+average across backends and rounds; Figure~\ref{fig:market-negative}
+shows the with-versus-without comparison.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_market_negative.pdf}
+  \caption{Effect of blending prediction-market signals into the
+    expected-points models: RMSE with versus without the market term.
+    \figsource{scripts/with\_vs\_without\_market.py $\rightarrow$
+    data/evaluation/with\_vs\_without\_market.json}}
+  \label{fig:market-negative}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_market_negative}
+  \caption{Per-round change in RMSE ($\Delta$RMSE, positive is worse)
+    when the Benter-style market adjustment is enabled
+    ($\beta_2 = \MarketBetaTwo$).
+    \figsource{scripts/with\_vs\_without\_market.py}}
+  \label{tab:market-negative}
+\end{table}
+
+We attribute the failure primarily to a granularity mismatch.
+Tournament-winner contracts price a season-scale outcome driven by
+squad depth, bracket, and long-horizon strength; our target is
+per-match, per-player fantasy points, driven by fixture-scale
+factors the contract cannot see. What country-level strength the
+market does encode is redundant with signals the models already
+carry: the implied win probabilities correlate at
+\POSTFINAL{number: correlation between market implied win
+probabilities and derived country Elo} with our derived country Elo,
+making the market term a noisy near-substitute rather than a
+complement. Two further effects plausibly contribute: the prices
+exhibit the canonical favorite-longshot bias
+\citep{thaler1988favorite, snowberg2010explaining}, which our
+multiplicative combiner does not correct, and liquidity is
+concentrated on a few favorites, so the thin long-shot contracts we
+weight symmetrically are dominated by noise. The negative result is
+specific to this configuration: tournament-winner contracts at
+country granularity, a per-player per-match target, and a
+multiplicative combiner. Per-fixture markets at granularities matched
+to the prediction target remain untested and are discussed in
+Section~\ref{sec:future_work}. We kept the combiner architecture and
+the market scraper, shipped a weight of zero (the combiner is a
+no-op in production), and demoted market data to descriptive context
+on the intelligence page.
+
+\subsection{Goalkeeper defensive-form adjustment}
+\label{sec:negative-gk-form}
+
+The last negative result closed the loop on goalkeeper form. Our
+working hypothesis was that personal scoring form is noise for
+goalkeepers (their points come from clean sheets and saves, not from
+repeatable individual scoring) and that the right form signal for the
+position is the team's recent defensive record. The first half held
+up; the second did not. We tested \texttt{team\_gc\_form} in two
+ways: as a GBM feature, where it participated in the configuration D
+regression of Section~\ref{sec:negative-minutes}, and blended
+directly into the Poisson clean-sheet term, where goalkeeper points
+actually originate. Sweeping the blend weight on held-out goalkeeper
+rows, RMSE rose monotonically with the weight: the more realized
+defensive form we injected, the worse the prediction.
+
+The mechanism is the same one that sinks personal form for the
+position. Three or four matches of goals conceded is a tiny,
+high-variance sample, and its dominant component is opponent
+strength, which the structural model already encodes through the
+fixture terms \citep{maher1982modelling, dixon1997modelling}. The
+structural Poisson backend remains our best goalkeeper predictor
+(Section~\ref{sec:validation}), the ensemble routes goalkeepers to
+it, and no defensive-form signal ships. The honest finding is that at
+tournament sample sizes no realized-form signal we tested beats
+structure for this position, and pretending otherwise would have cost
+accuracy. Section~\ref{sec:lessons} generalizes the pattern.
