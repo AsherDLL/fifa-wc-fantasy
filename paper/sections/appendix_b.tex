@@ -55,6 +55,25 @@ relaxed by the game (4 at the round of 16, 5 at the quarter-finals,
 6 at the semi-finals, 8 at the final) as eliminations shrink the
 pool.
 
+One term of the objective deserves its own correction. Both
+goalkeeper slots are forced by the position quota, but the starting
+eleven fields exactly one goalkeeper, and the backup can score only
+through the automatic-substitution rule, when the starter plays zero
+minutes. A plain squad-sum objective therefore overvalues the second
+goalkeeper by nearly his full prediction, and left unchecked it
+happily spends budget on two strong keepers of whom one cannot score.
+We correct this with a designated-scorer variable: for goalkeepers
+only, binary $z_p \le x_p$ with $\sum_p z_p = 1$, and the objective
+contribution of goalkeeper $p$ becomes $\varepsilon\, e_p x_p +
+(1-\varepsilon)\, e_p z_p$ with $\varepsilon = 0.05$, the
+approximate probability that the automatic substitution fires. The
+optimum then takes one strong starter plus the cheapest legal
+backup and reinvests the difference in outfielders, which is also
+the folk wisdom of experienced fantasy managers. The same term is
+used in the transfer variant below. (This correction was adopted
+before the final round; earlier rounds ran the uncorrected
+objective.)
+
 \subsection{Transfers with hit accounting}
 \label{sec:appendix-b-transfer}
 

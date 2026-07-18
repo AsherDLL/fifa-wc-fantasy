@@ -113,11 +113,31 @@ Captain: **Dembélé** (user's choice; the model marginally preferred
 Messi but the differential argument for Dembélé at 19.7% ownership vs
 Messi at 37.8% was strong).
 
-Realised result: [PENDING - update after R32 matches conclude].
+Realised result: 83 points net, the entry's best knockout round.
 
 ## 8.5 R16, QF, SF, Final
 
-[To be added as each stage completes.]
+**R16 (66 net) and QF (73 net).** In-app records taken as primary; the
+squad sheets for these two rounds were not archived (operational lapse,
+noted in the paper). The QF was the entry's second-best round of the
+tournament and beat every backend replay except the GBM's 76.
+
+**SF (37 net).** The best-documented round: registered pre-deadline as a
+head-to-head against the model (`data/evaluation/sf_pick_comparison.json`).
+With 2 free transfers and $1.0M banked, the model wanted Mac Allister ->
+Doue and dead Munoz -> Spence; the operator declined both. Captain Mbappe,
+vice Messi, Clean Sheet Shield active. France lost 0-2 to Spain and the
+France triple stack returned 4 raw points combined; Laporte (7),
+Cucurella (6) and Messi (8) kept the round out of single digits, and the
+Shield converted Argentina's single concession into +1 on Mac Allister
+(reconciling the recorded 37 with a 36 id-based rescore). Ensemble replay
+also 37; GBM 59. After the SF the entry stood at global rank 1,153,720
+with 418 net points over seven rounds.
+
+**Final.** Locked plan (data/evaluation/final_pick_decision.json): six
+transfers to a Spain block, captain Mbappe with the in-round switch
+protocol to Messi, Qualification Booster. Realised result: [PENDING -
+after the 2026-07-19 final].
 
 ## 8.6 Season summary table (to compile at the end)
 

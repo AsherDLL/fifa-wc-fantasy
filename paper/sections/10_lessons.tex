@@ -179,9 +179,8 @@ in which the player personally recorded anything: interior
 non-appearances are zero-filled, trailing ones simply vanish, and
 nothing documents this. Every consumer assumed the list length equals
 the squad's completed rounds, which was false for
-\POSTFINAL{number: share of players with history affected by
-round-points truncation at the quarter-final snapshot} of players with
-any history. The inflation lands exactly on recently-dropped players,
+\TruncationShareQf{} of the player pool at the quarter-final
+snapshot. The inflation lands exactly on recently-dropped players,
 the population the availability discount exists to catch, and it
 silently defeated the discount for all of them. The fix reconstructs
 the truth from a source the API cannot truncate, the fixture table,

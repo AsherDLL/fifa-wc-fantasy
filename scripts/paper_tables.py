@@ -49,8 +49,34 @@ CONFIG_LABEL = {
     "A_epl_noform": "A: EPL, no form",
     "B_epl_form": "B: EPL + form",
     "C_eplwc_form": "C: EPL+WC + form",
-    "D_eplwc_all": "D: EPL+WC, all features",
+    "D_eplwc_all": "D: EPL+WC, proxy minutes",
+    "E_eplwc_xg": "E: EPL+WC, real xG form",
+    "F_eplwc_minutes": "F: EPL+WC, real minutes",
 }
+
+# Primary-record numbers computed once during the tournament and documented
+# with their own provenance; they are not regenerable from the shipped
+# artifacts (the archived pre-R16 feature snapshots predate the columns
+# involved). Sources: docs/whitepaper/sections/11g (participation buckets,
+# availability A/B, captain-rule backtest, variance stds and correlations),
+# pytest --collect-only on 2026-07-18 (test count), players_2026-07-11
+# truncation audit, and the 2026-06-29 market snapshot vs country Elo
+# (log-price correlation, n=27 priced countries).
+HISTORICAL_MACROS: list[tuple[str, str]] = [
+    ("TestCount", "352"),
+    ("TruncationShareQf", "49\\%"),
+    ("MarketEloCorr", "0.89"),
+    ("GlobalRankSF", "1{,}153{,}720"),
+    ("PartLowMean", "1.67"), ("PartLowBlank", "36\\%"), ("PartLowN", "613"),
+    ("PartMidMean", "2.50"), ("PartMidBlank", "19\\%"),
+    ("PartHighMean", "3.07"), ("PartHighBlank", "13\\%"),
+    ("PartHighN", "1{,}526"), ("PartStartCorr", "0.171"),
+    ("AvailabilityWithout", "275"), ("AvailabilityWith", "283"),
+    ("CaptainMeanPts", "11"), ("CaptainBlendPts", "15"),
+    ("CaptainCeilingPts", "21"), ("CaptainOraclePts", "42"),
+    ("RoundStdPredicted", "5.8"), ("RoundStdRealized", "19.4"),
+    ("CorrFixtureGap", "0.48"), ("CorrModelPrediction", "0.67"),
+]
 ALL_STAGES = ["GROUP_MD1", "GROUP_MD2", "GROUP_MD3",
               "R32", "R16", "QF", "SF", "FINAL"]
 
@@ -197,6 +223,73 @@ def tab_season_summary(out_dir: Path) -> list[tuple[str, str]]:
     return []
 
 
+def holdout_v4_macros() -> list[tuple[str, str]]:
+    """Per-position holdout RMSE of the deployed v4xg GBM (separate file;
+    data/training/validation_report.json stays the v2-era routing basis)."""
+    import json
+    path = ROOT / "data/training/validation_report_v4xg.json"
+    if not path.exists():
+        return []
+    rows = json.loads(path.read_text())["position_rmse"]
+    return [(f"Rmse{r['position'].title()}GbmVFour", _f(r["gbm_rmse"]))
+            for r in rows]
+
+
+def tab_forecaster_skill(out_dir: Path) -> list[tuple[str, str]]:
+    """Component skill table for the match-forecast subsection."""
+    import json
+    path = ROOT / "data/evaluation/match_prediction_skill.json"
+    if not path.exists():
+        return []
+    d = json.loads(path.read_text())
+    s1, sa = d["skill_1x2"], d["skill_advance"]
+    label = {"elo": "Elo", "dixon_coles": "Dixon--Coles",
+             "xg_poisson": "xG-Poisson", "market": "Market (trophy ratio)"}
+    lines = [r"\begin{tabular}{lrrrr}", r"\toprule",
+             r"Component & 1X2 RPS & $n$ & Advance log-loss & $n$ \\",
+             r"\midrule"]
+    for key in ("elo", "dixon_coles", "xg_poisson", "market"):
+        c1 = s1.get(key)
+        ca = sa.get(key)
+        r1 = _f(c1["rps"]) if c1 else "--"
+        n1 = str(c1["n"]) if c1 else "--"
+        ra = _f(ca["log_loss"]) if ca else "--"
+        na = str(ca["n"]) if ca else "--"
+        lines.append(f"{label[key]} & {r1} & {n1} & {ra} & {na} " + r"\\")
+    uni = d["baselines"]["uniform_rps"]
+    lines.append(r"\midrule")
+    lines.append(f"Uniform baseline & {_f(uni)} & {s1['elo']['n']} & -- & -- "
+                 + r"\\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    _write(out_dir, "tab_forecaster_skill.tex", "\n".join(lines) + "\n")
+    w = d["weights"]["pool_advance"]
+    return [
+        ("ForecastEloRps", _f(s1["elo"]["rps"])),
+        ("ForecastDcRps", _f(s1["dixon_coles"]["rps"])),
+        ("ForecastXgRps", _f(s1["xg_poisson"]["rps"])),
+        ("ForecastUniformRps", _f(uni)),
+        ("ForecastEloAdvLoss", _f(sa["elo"]["log_loss"])),
+        ("ForecastMarketAdvLoss", _f(sa["market"]["log_loss"])),
+        ("ForecastMarketWeight", _f(float(w["applied"]["market"]), 2)),
+        ("ForecastMarketCap", _f(float(w["cap"]), 2)),
+    ]
+
+
+def computed_macros() -> list[tuple[str, str]]:
+    """Runtime-computed corpus numbers (no-drift rule)."""
+    import glob
+
+    import pandas as pd
+    total = 0
+    for fp in sorted(glob.glob(str(ROOT / "data/training/fpl_player_gameweek_*.parquet"))):
+        d = pd.read_parquet(fp, columns=["minutes"])
+        total += int((d["minutes"] > 0).sum())
+    feats = sorted(glob.glob(str(ROOT / "data/processed/features_*.parquet")))
+    ncols = len(pd.read_parquet(feats[-1]).columns) if feats else 0
+    return [("EplTrainingRows", f"{total:,}".replace(",", "{,}")),
+            ("FeatureColumnCount", str(ncols))]
+
+
 def numbers(out_dir: Path, macros: list[tuple[str, str]]) -> None:
     seen = set()
     lines = []
@@ -220,6 +313,10 @@ def main() -> int:
     macros += tab_gk_ab(args.out)
     macros += tab_market_negative(args.out)
     macros += tab_season_summary(args.out)
+    macros += tab_forecaster_skill(args.out)
+    macros += holdout_v4_macros()
+    macros += computed_macros()
+    macros += HISTORICAL_MACROS
     numbers(args.out, macros)
     return 0
 

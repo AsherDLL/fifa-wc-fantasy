@@ -178,9 +178,14 @@ of a player's last three completed rounds with a positive score; on the
 EPL side the same feature uses the true starts flag. Both variants are
 shifted by one match and are therefore leak-free. The signal is real:
 recently ever-present players scored roughly twice as many points on
-average as players who had rarely featured, and blanked far less often
-(\POSTFINAL{number: participation-bucket means, blank rates, and the
-correlation of start rate with realized points}).
+average as players who had rarely featured, and blanked far less
+often: bucketing player-rounds by trailing start rate, the
+ever-present bucket ($n = \PartHighN$) averaged \PartHighMean{}
+points with a \PartHighBlank{} blank rate, against \PartLowMean{}
+and \PartLowBlank{} for the rarely-featured bucket
+($n = \PartLowN$), with the middle bucket in between
+(\PartMidMean{}, \PartMidBlank{}); the correlation of the start-rate
+proxy with realized points is \PartStartCorr{}.
 
 The obvious move, feeding the proxy to the GBM as a feature, made the
 model worse. Configuration D of the walk-forward study
@@ -197,10 +202,13 @@ availability discount scales a player's effective predicted points by
 $0.5 + 0.5 \cdot \texttt{start\_rate\_lag}$, a contraction toward a
 floor of one half rather than zero, because the proxy is imperfect and
 a nailed starter can blank twice in a row. Replayed on the heuristic
-backend across MD1 to R32, the discount lifted realized squad points
-(\POSTFINAL{number: realized squad points with and without the
-availability discount, MD1--R32}), and the improvement was stable for
-any floor between 0.3 and 0.7. The discount also surfaces an explicit
+backend across MD1 to R32 at deployment time, the discount lifted
+realized squad points from \AvailabilityWithout{} to
+\AvailabilityWith{}, and the improvement was stable for any floor
+between 0.3 and 0.7. (The archived pre-knockout feature snapshots
+predate the participation column, so this replay is not reproducible
+from the frozen artifacts alone; we report the deployment-time
+measurement and flag the caveat.) The discount also surfaces an explicit
 rotation-risk flag in the human-facing report. The lift is modest, but
 for an entry at the bottom of its league every point counts.
 
@@ -232,9 +240,10 @@ rounds before $k$, predict round $k$, form the eleven by mean) compared
 captain rules on raw captain points captured across MD2, MD3, and R32:
 the pure-ceiling q90 rule captured roughly twice the points of the
 shipped mean rule, with an equal-weight blend in between and a
-hindsight oracle far above all three
-(\POSTFINAL{number: raw captain points captured by mean-argmax, blend,
-q90-argmax, and oracle over MD2--R32}). Doubled by captaincy, the gap
+hindsight oracle far above all three: \CaptainMeanPts{} raw captain
+points for mean-argmax, \CaptainBlendPts{} for the blend,
+\CaptainCeilingPts{} for q90-argmax, and \CaptainOraclePts{} for the
+oracle. Doubled by captaincy, the gap
 amounts to several realized points per round, in a league being lost by
 less.
 
@@ -263,14 +272,13 @@ with selection held constant.
 A mean point model is structurally unable to reproduce this. Summing
 the heuristic's per-round predictions for the actual starters yields a
 nearly flat series whose round-to-round standard deviation is a
-fraction of the realized one (\POSTFINAL{number: realized versus
-predicted round-total standard deviations}), consistent with the
+fraction of the realized one (\RoundStdPredicted{} against
+\RoundStdRealized{} over MD1 to R32), consistent with the
 amplitude compression visible in Figure~\ref{fig:calibration}. A
 partially predictable component does exist: realized round totals
 correlate positively with the average fixture-strength gap of the
-starters and, more strongly, with the model's own per-round squad
-prediction (\POSTFINAL{number: correlations of realized round totals
-with fixture-strength gap and with the model's per-round prediction}).
+starters (at \CorrFixtureGap{}) and, more strongly, with the model's
+own per-round squad prediction (at \CorrModelPrediction{}).
 The high-scoring rounds were the easier-fixture rounds, and the model
 ranked rounds usefully even while understating their amplitude, so the
 per-round squad prediction is a usable ex-ante ranker of which upcoming
@@ -278,14 +286,16 @@ round will be the high one.
 
 The same lens resolves the mid-tournament observation that a
 random-pick rival was outscoring the model-driven entry. A single round
-proves little: our 42-point MD3 (net of a transfer hit) sits in the low
-tail of the same process that produced a 102-point MD2. The honest
-comparison is cumulative. Through R32, the ensemble replay accumulated
-\TotalEnsemble{} points and the user's actual entry \TotalUserActualNet{}
-net points, against a random-squad baseline mean of
-\TotalRandomBaselineMean{} (Table~\ref{tab:season-summary}); the
-model-driven process is far ahead of chance while remaining behind a
-strong human who reads team news.
+proves little: our 40-point MD3 (net of a transfer hit) sits in the low
+tail of the same process that produced an 84-point MD2. The honest
+comparison is cumulative. Across the seven completed rounds, the
+ensemble replay accumulated \TotalEnsemble{} points and the actual
+entry \TotalUserActualNet{} net points, against a random-squad
+baseline mean of \TotalRandomBaselineMean{}
+(Table~\ref{tab:season-summary}); both the model-driven process and
+the hybrid live entry are far ahead of chance, with the replay's
+edge over the entry largely attributable to its unlimited free
+transfers.
 
 For a trailing entry in the knockout rounds, the consequence is the
 opposite of smoothing the swing: variance is an asset, because a
@@ -296,6 +306,88 @@ prefer low-ownership differentials in those rounds, since a template
 captain who hauls converts no rank gain; and do not spend transfers to
 reduce round-to-round variance, because for a chaser the variance is
 the only thing that can win it.
+
+\subsection{Match forecasting and the market-skill audit}
+\label{sec:analysis-forecast}
+
+Planning the closing rounds raises a question one level above player
+scoring: who actually wins the matches? Early versions of our
+knockout planning anchored team advance probabilities on prediction
+market prices, blended half-and-half with a structural model. That
+anchoring deserved the same scrutiny as every other signal in this
+paper, so before the final we built a dedicated match forecaster in
+which the market is demoted to one component among four, with its
+influence earned from measured skill rather than assumed.
+
+The four components each produce a match forecast from a different
+information set: a penalized maximum-likelihood Dixon--Coles model
+\citep{dixon1997modelling} with per-team attack and defence on the
+log scale, low-score dependence, exponential round decay, and an L2
+ridge tuned by nested walk-forward (the ridge also resolves the
+identifiability of 98 parameters fit on 102 matches); an iterative
+scoring-rates model on a 50/50 blend of goals and real match
+expected goals from the community dataset
+\citep{mominul2026dataset}; rates implied by leak-free as-of-kickoff
+country Elo recomputed per match from the full international history
+\citep{martj42}; and the prediction market's tournament-winner
+ratio, $p(A) = \pi_A / (\pi_A + \pi_B)$ from the last pre-kickoff
+Polymarket snapshot. Every component is evaluated under the same
+leave-nothing-in-sample protocol as the fantasy models: train
+strictly before each held-out round, score with proper scoring rules
+(the ranked probability score for the 90-minute home--draw--away
+outcome, log-loss for knockout advance), select all hyperparameters
+by nested inner walk-forward, and learn ensemble weights on a
+simplex grid reported leave-one-round-out. The market's weight is
+additionally hard-capped at \ForecastMarketCap{}.
+
+Table~\ref{tab:forecaster-skill} and
+Figure~\ref{fig:forecast-skill} show the result, which is the
+sharpest finding of the audit. On 78 held-out matches the Elo
+component dominates the 90-minute outcome (RPS \ForecastEloRps{}
+against \ForecastDcRps{} for Dixon--Coles, \ForecastXgRps{} for the
+xG model, and \ForecastUniformRps{} for the uniform baseline): a
+century and a half of international history simply carries more
+information than anything fit on one tournament. On knockout
+advance, the market proxy \emph{loses to plain Elo out of sample}
+(log-loss \ForecastMarketAdvLoss{} against \ForecastEloAdvLoss{}),
+and the unconstrained weight fit assigns it only
+\ForecastMarketWeight{}, at which the cap never binds. Randomized
+probability-integral-transform checks on the goal distributions
+reject no component at conventional levels, so the differences are
+skill, not calibration artifacts. The practical conclusion mirrors
+the Benter-combiner negative result of
+Section~\ref{sec:negative-results} from the opposite direction:
+market prices earned a minority voice in our final-round planning,
+not a veto, and the earlier half-and-half anchoring overweighted
+them by roughly a factor of two.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_forecast_skill.pdf}
+  \caption{Out-of-sample skill per forecaster component. Left:
+    90-minute outcome ranked probability score on held-out rounds
+    2--7 (dotted line marks the uniform baseline). Right: knockout
+    advance log-loss on rounds 4--7. Lower is better; Elo wins both,
+    and the market underperforms Elo despite pricing the same
+    matches.
+    \figsource{fifa\_fantasy.report.figures $\rightarrow$
+    data/evaluation/match\_prediction\_skill.json}}
+  \label{fig:forecast-skill}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \input{generated/tab_forecaster_skill}
+  \caption{Out-of-sample skill of the match-forecast components under
+    the walk-forward protocol: ranked probability score on the
+    90-minute outcome (held-out rounds 2--7) and log-loss on knockout
+    advance (rounds 4--7, the rounds with pre-kickoff market prices).
+    Lower is better. The learned market weight in the advance pool is
+    \ForecastMarketWeight{} under a \ForecastMarketCap{} cap.
+    \figsource{scripts/match\_predictions.py $\rightarrow$
+    data/evaluation/match\_prediction\_skill.json}}
+  \label{tab:forecaster-skill}
+\end{table}
 
 \begin{figure}[t]
   \centering

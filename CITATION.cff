@@ -9,8 +9,8 @@ authors:
     given-names: "Diego"
 license: GPL-3.0-only
 repository-code: "https://github.com/AsherDLL/fifa-wc-fantasy"
-date-released: 2026-07-12
-version: 0.0.1
+date-released: 2026-07-18
+version: 0.9.0
 abstract: >-
   Prediction models (heuristic, Poisson, gradient-boosted trees, and a
   per-position ensemble), MILP squad optimization, and a live decision

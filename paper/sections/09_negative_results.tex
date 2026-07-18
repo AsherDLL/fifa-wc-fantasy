@@ -96,12 +96,15 @@ misalignments compound rather than cancel.
 
 We reverted to v1 and kept v2 in the repository as a runnable
 research backend. We note for completeness that the replay ordering
-reversed in later knockout rounds (Table~\ref{tab:backtest-rounds}),
-with cumulative totals of \TotalHeuristicVTwo{} for v2 against
-\TotalHeuristic{} for v1, which underlines how noisy a three-round
-gate is. \POSTFINAL{state whether the v2 knockout-round recovery
-persisted over the full tournament and reconcile with the reversion
-decision} The procedural lesson stood regardless and became policy:
+reversed in the knockout rounds and the reversal persisted through
+the semi-finals (Table~\ref{tab:backtest-rounds}), with cumulative
+totals of \TotalHeuristicVTwo{} for v2 against \TotalHeuristic{} for
+v1: the component stack we rejected on a three-round gate ended the
+replay ahead of the baseline it lost to. We stand by the decision
+procedure while reporting the outcome honestly; a three-round gate
+is noisy in both directions, and the same gate discipline is what
+caught the genuinely harmful candidates below. The procedural
+lesson stood regardless and became policy:
 one component at a time, each behind a held-out gate, with failures
 documented rather than discarded.
 
@@ -192,8 +195,8 @@ model: an availability discount scales a player's effective points by
 $0.5 + 0.5 \cdot \mathtt{start\_rate\_lag}$ before squad selection,
 so the solver stops spending budget on rotation risks. That
 adjustment improved realized squad points over the backtested rounds
-(\POSTFINAL{number: realized squad points with versus without the
-availability discount on the heuristic backend}) and was stable
+(\AvailabilityWithout{} to \AvailabilityWith{} on the heuristic
+backend, MD1 to R32, measured at deployment time) and was stable
 across a wide band of floor values; it also surfaces a rotation-risk
 flag in the operator report. The same walk-forward harness rejected
 three further feature-layer candidates in the same review: a
@@ -203,6 +206,23 @@ goalkeepers), and dropping did-not-play rows to match the league
 pipeline's minutes filter, which was decisively worse because the
 zero-target rows are precisely how the model learns that
 low-participation profiles score zero.
+
+A coda arrived before the final round and sharpens the diagnosis.
+When real lineup sheets became available through the community match
+dataset (Section~\ref{sec:validation-walkforward}, configuration F),
+we replaced the noisy points-based proxy with true lagged start
+rates and minutes shares, testing whether the failure above was the
+proxy or the signal. Real minutes did better than the proxy, beating
+the deployed configuration C at \WalkforwardPooledF{} against
+\WalkforwardPooledC{}, but only marginally: the margin fell under
+our pre-registered deploy threshold's caution band, forwards
+regressed, and the real-xG configuration E evaluated in the same run
+was strictly better at every position. So even the \emph{true}
+minutes signal earns no place in the point model, and the
+conclusion of this subsection survives with a finer grain: minutes
+information is real, it belongs in the selection layer, and in the
+model layer team-level scoring form dominates player-level
+participation.
 
 \subsection{A Benter-style combiner over prediction-market prices}
 \label{sec:negative-market}
@@ -253,9 +273,9 @@ squad depth, bracket, and long-horizon strength; our target is
 per-match, per-player fantasy points, driven by fixture-scale
 factors the contract cannot see. What country-level strength the
 market does encode is redundant with signals the models already
-carry: the implied win probabilities correlate at
-\POSTFINAL{number: correlation between market implied win
-probabilities and derived country Elo} with our derived country Elo,
+carry: the log implied win probabilities correlate at \MarketEloCorr{}
+with our derived country Elo (across the 27 countries priced at the
+first archived snapshot),
 making the market term a noisy near-substitute rather than a
 complement. Two further effects plausibly contribute: the prices
 exhibit the canonical favorite-longshot bias

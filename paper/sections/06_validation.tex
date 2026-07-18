@@ -74,8 +74,7 @@ failure modes that aggregate metrics dilute.
 Feature evaluation at these effect sizes requires reproducible
 training. Before we pinned the random state, identical code on
 identical data produced per-position RMSE values that varied by
-roughly \POSTFINAL{number: pre-determinism per-position RMSE
-run-to-run variation} between runs, driven by LightGBM's bagging
+roughly $\pm 0.05$ between runs, driven by LightGBM's bagging
 randomness. That wobble was large enough to mask the Elo-feature
 comparison above: the first attempt produced mixed deltas
 indistinguishable from noise. Setting \texttt{seed},
@@ -98,7 +97,10 @@ is excluded because no prior tournament round exists from which to
 compute form. Squared errors are pooled across held-out rounds 2--6
 to give the per-position and overall RMSE of
 Table~\ref{tab:walkforward}; Figure~\ref{fig:walkforward} shows the
-per-round traces. Four configurations are compared.
+per-round traces. Six configurations are compared; the last two draw
+on a community-maintained dataset of real match statistics
+\citep{mominul2026dataset} that became part of the pipeline before
+the final round.
 
 \begin{itemize}
 \item \textbf{A: EPL only, no form.} The shipped v2 model: five price
@@ -114,8 +116,18 @@ per-round traces. Four configurations are compared.
 \item \textbf{C: EPL plus WC, plus form.} As B, but the training set
   also includes every realised WC round before the held-out round,
   recalibrating the output scale to the tournament.
-\item \textbf{D: EPL plus WC, all features.} As C, plus a lagged
-  start-rate feature and a team goals-conceded form feature.
+\item \textbf{D: EPL plus WC, proxy minutes.} As C, plus a lagged
+  start-rate feature (participation proxied by positive scores) and a
+  team goals-conceded form feature.
+\item \textbf{E: EPL plus WC, real xG form.} As C, plus the trailing
+  mean of the team's real expected goals for and against over its
+  previous three matches, computed leak-free from the community match
+  dataset. The columns exist only for tournament rows; EPL training
+  rows carry missing values, which LightGBM handles natively.
+\item \textbf{F: EPL plus WC, real minutes.} As C, plus real lagged
+  start rates and minutes shares from the same dataset's lineup
+  sheets, testing whether the failure of configuration D was the
+  proxy or the signal.
 \end{itemize}
 
 The pooled ordering is unambiguous. RMSE falls from
@@ -124,12 +136,29 @@ The pooled ordering is unambiguous. RMSE falls from
 with the largest single gain at goalkeeper once tournament labels
 enter the training set. Configuration D edges C at goalkeeper and
 defender but is worse at midfielder and forward and pools slightly
-worse (\WalkforwardPooledD{}). We deployed C: it wins overall and at
-the two attacking positions that dominate squad decisions. On the
-round-of-16 feature set the retrained model ranks the elite in-form
-forwards, including Mbapp\'e, Kane, and Haaland, at the top of its
+worse (\WalkforwardPooledD{}). Configuration E improves on C at
+\emph{every} position and wins the pool at \WalkforwardPooledE{},
+the only feature candidate of the tournament to do so; it was
+deployed as the fourth-generation model two days before the final
+under a pre-registered rule (deploy only on a pooled improvement of
+at least $0.01$ with no more than one position regressing).
+Configuration F cleared the pooled threshold only marginally
+(\WalkforwardPooledF{}), regressed forwards, and lost to E in the
+same run, so real minutes stayed out of the model; we return to it
+in Section~\ref{sec:negative-results}. On the round-of-16 feature
+set the form-retrained model ranks the elite in-form forwards,
+including Mbapp\'e, Kane, and Haaland, at the top of its
 predictions, where the form-blind model had buried them below
 midfielders from strong teams.
+
+The EPL hold-out of Table~\ref{tab:holdout-rmse} is kept at the
+version that defined the ensemble routing. Re-run under the deployed
+fourth-generation feature set, the GBM improves at every position on
+the same held-out rows (goalkeeper \RmseGkGbmVFour{}, defender
+\RmseDefGbmVFour{}, midfielder \RmseMidGbmVFour{}, forward
+\RmseFwdGbmVFour{}) while leaving the routing unchanged: the Poisson
+backend still wins goalkeepers and the heuristic still edges
+defenders.
 
 Because these are genuinely out-of-sample tournament rounds, we take
 Table~\ref{tab:walkforward} as the leak-free evidence for the

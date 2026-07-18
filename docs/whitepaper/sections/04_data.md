@@ -91,6 +91,21 @@ backends prefer Elo over the static rank when both are present;
 falling back to rank when Elo is missing; falling back to a price-only
 signal when neither is present.
 
+## 4.5b Community WC-2026 statistics dataset (mid-tournament enrichment)
+
+`data/external/wc2026/*.csv`, fetched from
+github.com/mominullptr/FIFA-World-Cup-2026-Dataset (CC0-1.0; sources
+FIFA.com, Sofascore, FBref; updated after each match). Supplies what
+the fantasy API cannot: real per-match expected goals, actual lineups
+with minutes played, per-match team stats (corners, fouls, saves),
+and referee card-per-game histories. Adopted before the final round:
+its real-xG trailing form became the two config-E GBM features
+(`team_xg_form_real`, `team_xga_form_real`; see the walk-forward
+protocol in section 07), and it drives the round-8 match-prediction
+artifact (`scripts/match_predictions.py`). Every completed match
+score is cross-checked against our own fixtures snapshots before use
+(`external/wc2026_dataset.validate`).
+
 ## 4.6 Country-name harmonisation
 
 A persistent annoyance: each source spells country names differently.

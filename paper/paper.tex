@@ -45,9 +45,19 @@ World Cup 2026 fantasy game, combining three expected-points backends
 (a calibrated heuristic, an independent-Poisson structural model, and a
 gradient-boosted tree model trained on club data), a per-position
 ensemble, a mixed-integer squad optimizer, and a live decision layer,
-all developed and validated during the tournament itself.
-\POSTFINAL{results sentence: cumulative points vs baselines, final
-league outcome, headline negative results}
+all developed and validated during the tournament itself. Validation
+is leak-free throughout: every model change faced a walk-forward gate
+on realized tournament rounds before deployment, and we report the
+failures alongside the successes. Across the seven completed rounds
+the backends replayed on frozen pre-round data scored between
+\TotalPoisson{} and \TotalGbm{} points against a random-squad
+baseline mean of \TotalRandomBaselineMean{}, and a skill audit of
+match-level forecasting found prediction-market prices losing to a
+simple Elo rating out of sample, earning the market a capped minority
+weight rather than the anchoring role it is usually given.
+\POSTFINAL{final results sentence: closing cumulative totals, the
+entry's final global rank, and the realized outcome of the locked
+final-round plan}
 \end{abstract}
 
 \input{sections/01_introduction}

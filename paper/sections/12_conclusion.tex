@@ -1,18 +1,44 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Written after the 2026-07-18 final; skeleton mirrors
-% docs/whitepaper/sections/12_conclusion.md.
+% Final numbers land after the 2026-07-19 final; the two remaining
+% placeholders are the only edits this section still needs.
 
-\POSTFINAL{Paragraph 1: what was built and validated, summarized with
-the final cumulative numbers (ensemble and best backend vs the user
-actual and the random baseline).}
+We set out to answer a practical question: how much of a fantasy
+football tournament can be handled by models that are built, validated,
+and revised while the tournament is running? The system that emerged --
+three complementary point-prediction backends routed per position by
+held-out error, a mixed-integer squad and transfer optimizer that now
+prices captaincy ceiling, availability, and the backup-goalkeeper
+asymmetry, and a live decision layer audited round by round against its
+own recommendations -- answered most of it. Across the seven rounds
+completed before the final, every backend beat a constraint-valid
+random baseline by a wide margin (\TotalGbm{} points for the strongest
+backend and \TotalEnsemble{} for the production ensemble against
+\TotalRandomBaselineMean{} for chance), and the human-plus-model entry
+scored \TotalUserActualNet{} net points while paying real transfer
+costs the replays do not. \POSTFINAL{One sentence completing the record
+with the final round: closing cumulative totals and the entry's final
+global rank.}
 
-\POSTFINAL{Paragraph 2: what the negative results establish, and which
-findings we expect to transfer beyond this tournament (form-retrained
-tabular models, per-position routing, empirical over theoretical
-formula tuning).}
+The negative results are, we believe, the most transferable part of
+the record. A six-component upgrade lost to the baseline it meant to
+replace; a theoretically derived goalkeeper multiplier measured worse
+than an empirically calibrated one at less than half its size;
+prediction-market prices failed to improve player-level forecasts as a
+regression feature, earned only a capped minority weight in match-level
+forecasting, and lost to a plain Elo rating out of sample; and minutes
+information, whether proxied or real, helped only in the selection
+layer, never in the point model. The positive findings mirror them:
+leak-free trailing form, tournament retraining, real expected-goals
+form, per-position routing, and ceiling-aware captaincy each cleared a
+pre-registered walk-forward gate before deployment. None of these
+lessons is specific to this World Cup; they are lessons about small
+samples, about anchoring on sentiment, and about the discipline of
+validating every change on data the model has never seen.
 
-\POSTFINAL{Paragraph 3: final league outcome, honest assessment of the
-human-override decisions against the model recommendations, and the
-open-source release.}
+\POSTFINAL{Closing paragraph after the final: the realized outcome of
+the locked final-round plan, an honest assessment of the human
+overrides against the model recommendations across the tournament, and
+the open-source release of the complete system, data, and decision
+record.}

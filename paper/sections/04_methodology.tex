@@ -232,20 +232,25 @@ The third backend is a LightGBM model \citep{ke2017lightgbm} per
 position, reflecting the continued strength of tree ensembles on
 tabular data at this scale \citep{shwartz2022tabular,
 borisov2022deeptabular}. Each position trains four heads on the same
-six features:
+eight features:
 
 \begin{equation}
 \hat{y}_i = f^{\mathrm{LGBM}}_{\pi(i)}\!\left(
   p_i,\; h_i,\; \Delta^{\mathrm{price}}_i,\;
   \bar{p}^{\,11}_i,\; \bar{p}^{\,11,\mathrm{opp}}_i,\;
-  \phi^{\mathrm{lag}}_i
+  \phi^{\mathrm{lag}}_i,\; \xi^{+}_i,\; \xi^{-}_i
 \right),
 \label{eq:gbm}
 \end{equation}
 
 where $\bar{p}^{\,11}$ and $\bar{p}^{\,11,\mathrm{opp}}$ are the
-own-squad and opponent top-eleven average prices and
-$\phi^{\mathrm{lag}}_i$ is a lagged form feature defined below. The
+own-squad and opponent top-eleven average prices,
+$\phi^{\mathrm{lag}}_i$ is a lagged form feature defined below, and
+$\xi^{+}_i, \xi^{-}_i$ are the team's trailing real expected goals
+for and against, added in the fourth model generation after passing
+the walk-forward gate of Section~\ref{sec:validation-walkforward}
+(they exist only for tournament rows; league training rows carry
+missing values, which the trees handle natively). The
 \emph{mean} head is an L2 regression on realised fantasy points; the
 remaining heads are quantile regressions minimising the pinball loss
 
@@ -445,7 +450,11 @@ stated in Appendix~\ref{sec:b}.
 \item \textbf{Squad selection} chooses a 15-player squad maximising
   the sum of effective points over the stage horizon, subject to
   position counts (2 GK, 5 DEF, 5 MID, 3 FWD), the stage budget, the
-  per-country cap, and exclusion of eliminated squads.
+  per-country cap, and exclusion of eliminated squads. The backup
+  goalkeeper is discounted to his automatic-substitution value via a
+  designated-scorer variable (Appendix~\ref{sec:b}): only one of the
+  two mandatory goalkeepers can score in a round, so the optimum is
+  one strong starter plus the cheapest legal backup.
 \item \textbf{Transfer planning} adds the current squad as state and
   a continuous slack variable counting transfers beyond the free
   quota, each penalised at the official 3 points, so the solver

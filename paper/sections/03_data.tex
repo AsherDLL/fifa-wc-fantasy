@@ -1,13 +1,16 @@
 \section{Data}
 \label{sec:data}
 
-Our system draws on five data sources: the official FIFA Fantasy API
+Our system draws on six data sources: the official FIFA Fantasy API
 (the primary inference source), a public archive of international
 match results \citep{martj42}, club-level match and odds data
 \citep{footballdata}, community dumps of English Premier League
-fantasy scoring \citep{vaastav}, and a static copy of the FIFA Men's
-World Ranking as a fallback. This section describes each source, the
-schemas we consume, and the harmonisation work required to join them.
+fantasy scoring \citep{vaastav}, a static copy of the FIFA Men's
+World Ranking as a fallback, and a community-maintained World Cup
+2026 statistics dataset \citep{mominul2026dataset} providing real
+match expected goals, lineups with minutes, and referee card
+histories. This section describes each source, the schemas we
+consume, and the harmonisation work required to join them.
 
 \subsection{FIFA Fantasy API}
 \label{sec:data-fifa-api}
@@ -97,9 +100,7 @@ Labelled training data comes from a public mirror of every English
 Premier League fantasy round \citep{vaastav}. We ingest three full
 seasons (2022--23, 2023--24, 2024--25) into per-player, per-gameweek
 Parquet tables. After dropping non-appearances (zero-minute rows), we
-retain approximately
-\POSTFINAL{number: labelled player-gameweek training rows across the
-three seasons after dropping zero-minute rows} labelled rows across
+retain \EplTrainingRows{} labelled rows across
 the three seasons.
 
 \subsection{Static FIFA World Ranking fallback}

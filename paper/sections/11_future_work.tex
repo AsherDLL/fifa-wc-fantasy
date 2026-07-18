@@ -144,8 +144,8 @@ rather than assuming it, and if the market is mostly noise the
 coefficient shrinks toward zero.
 
 The implementation plan is concrete. We collected market snapshots
-throughout the tournament \POSTFINAL{confirm snapshot corpus covers
-group stage through final}; after the final we scrape the closed
+throughout the tournament (152 three-hourly snapshots from the round
+of 32 onward, trophy prices for all 50 listed countries); after the final we scrape the closed
 contracts for complete price histories, pair them with our archived
 per-snapshot predictions and realized outcomes, and fit the combiner
 by Bayesian logistic regression, reporting credible intervals that are

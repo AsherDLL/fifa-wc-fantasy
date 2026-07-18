@@ -216,3 +216,24 @@ The data to fix this was present at MD1, the code to fix it was written
 by June, and the fix scored nothing until it was actually turned on in
 July. Build the loop, validate the loop, and then, separately and
 deliberately, run the loop.
+
+
+## 11f.9 Addendum (2026-07-17): configs E and F, and the v4xg deployment
+
+The walk-forward harness gained two configurations when the community
+WC-2026 match dataset (real xG, real lineups; CC0) entered the pipeline:
+
+| Config | Features added to C | Pooled RMSE (rounds 2-7) |
+|---|---|---|
+| C (deployed v3form) | - | 2.699 |
+| E | real team xG for/against trailing form | **2.645** |
+| F | real lagged start rates + minutes shares | 2.681 |
+
+E improved every position and was deployed as **GBM v4xg** on 2026-07-17
+under the pre-registered rule (pooled improvement >= 0.01, at most one
+position regressing). F beat C only marginally, regressed FWD, and lost
+to E in the same run - so even REAL minutes stay out of the point model
+(cf. the config-D negative result above); they remain in the optimizer's
+availability discount. The EPL holdout rerun under v4xg improves the GBM
+at every position while leaving the ensemble routing unchanged
+(`data/training/validation_report_v4xg.json`).

@@ -123,22 +123,50 @@ differential grounds, at 19.7\% ownership against Messi's 37.8\%.
 The realised outcome of the round appears in
 Table~\ref{tab:backtest-rounds}.
 
-\paragraph{Round of 16 onwards.}
-The backend replays for the Round of 16 are complete and appear in
-Table~\ref{tab:backtest-rounds}; our actual entry for that round is
-not yet recorded in the scoring artifact, so the actual column and
-the cumulative actual total currently understate the entry
-(\POSTFINAL{user R16 actual once recorded}).
-\POSTFINAL{Round of 16 decision narrative: transfers, captaincy, and
-diagnosis.}
-\POSTFINAL{Quarter-final decision narrative and realised result.}
-\POSTFINAL{Semi-final and Final decision narratives, and the final
-personal-league placement.}
+\paragraph{Round of 16 and quarter-final.}
+The entry scored 66 points net in the Round of 16 and 73 in the
+quarter-final, in-app records taken as primary (the squad sheets for
+these two rounds were not archived in the repository, an operational
+lapse we note for completeness; every other round's squad is
+registered pre-deadline). Both rounds continued the wildcard squad's
+France--Spain--England spine under the four-transfer knockout quotas.
+The quarter-final was the entry's second-best round of the
+tournament and beat every backend replay except the GBM's 76
+(Table~\ref{tab:backtest-rounds}): the ensemble replay managed 64,
+the random baseline 22.5.
+
+\paragraph{Semi-final.}
+The semi-final decision is the best-documented of the tournament
+because it was registered as a pre-round head-to-head against the
+model (the artifact behind Section~\ref{sec:analysis}'s override
+analysis). Entering the round with two free transfers and \$1.0M in
+the bank, the optimiser's remaining recommendation was to sell
+Mac~Allister for Dou\'e and a dead bench slot for Spence; the
+operator declined both and kept the squad. The captaincy went to
+Mbapp\'e (vice Messi) with the Clean Sheet Shield booster active,
+and the pre-round simulation put the operator's pick within one
+expected point of the model's (59.7 versus 60.5). The round realised
+37 points net, the worst of the knockouts: France lost the
+semi-final 0--2 to Spain and the entry's France triple stack
+returned four raw points between Maignan, Upamecano, Demb\'el\'e,
+and the captain, whose doubled score was 2. The two Spain defenders
+(Laporte 7, Cucurella 6) and Messi's 8 kept the round from single
+digits, and the Shield converted Argentina's single goal conceded
+into one extra point for Mac~Allister, reconciling the recorded 37
+with the 36 an id-based rescore produces. The backend replays fared
+little better (ensemble 37, GBM 59), a reminder that a two-match
+round is close to a coin flip. After the semi-finals the entry stood
+at \GlobalRankSF{} in the global game, on 418 points net across the
+seven completed rounds.
+\POSTFINAL{Final-round decision narrative (locked plan: six
+transfers to a Spain block, Mbapp\'e captain with the in-round
+switch protocol, Qualification Booster) and its realised outcome,
+plus the closing global rank.}
 
 \subsection{Cross-model findings}
 \label{sec:live-findings}
 
-Across the rounds replayed to date (Table~\ref{tab:backtest-rounds}
+Across the seven completed rounds (Table~\ref{tab:backtest-rounds}
 and Figure~\ref{fig:backtest-cumulative}), the GBM backend leads the
 cumulative leaderboard with \TotalGbm{} points, followed by the
 per-position ensemble with \TotalEnsemble{}. Heuristic~v2
@@ -147,9 +175,9 @@ original heuristic (\TotalHeuristic{}) form a middle tier, while the
 Poisson backend trails the field at \TotalPoisson{}. Every backend
 clears the random baseline, whose cumulative mean is
 \TotalRandomBaselineMean{} points. Our actual entry stands at
-\TotalUserActualNet{} points net of penalties, although, as noted
-above, this figure excludes the unrecorded Round of 16 score and is
-not directly comparable to the unlimited-transfer backend totals.
+\TotalUserActualNet{} points net of penalties, which is not directly
+comparable to the unlimited-transfer backend totals but sits between
+the middle tier and the leaders despite paying real transfer costs.
 Three observations follow.
 
 First, the Poisson deficit is a genuine mis-calibration finding

@@ -1,8 +1,9 @@
 # 12 - Conclusion
 
-Status: **TODO** (write last, after Section 8 is final and we know how the season ended)
+Status: written in the LaTeX paper (`paper/sections/12_conclusion.tex`), which is the authoritative text; only the final-round numbers remain open there. This md file is retained as the drafting record.
 
-## Draft notes (for after the WC final)
+## Draft notes (superseded by paper/sections/12_conclusion.tex)
+
 
 Three paragraphs:
 

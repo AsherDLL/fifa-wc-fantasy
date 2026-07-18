@@ -200,8 +200,11 @@ TRANSFER_HIT_POINTS = 3
 
 ```
 Variables: x_p ∈ {0, 1} for each candidate player p
+           z_p ∈ {0, 1} for each goalkeeper p   (designated scoring GK)
 
-Maximize:  Σ_p effective_points[p] · x_p
+Maximize:  Σ_{p not GK} effective_points[p] · x_p
+         + Σ_{p GK} (ε · effective_points[p] · x_p
+                     + (1−ε) · effective_points[p] · z_p)
 
 Subject to:
     Σ_p x_p = SQUAD_SIZE
@@ -209,14 +212,24 @@ Subject to:
     Σ_p price[p] · x_p ≤ budget_millions
     For each country c: Σ_{p: country[p]=c} x_p ≤ max_per_country
     x_p = 0 if is_eliminated[p]
+    z_p ≤ x_p; Σ_p z_p = 1                       (GKs only)
 ```
+
+with `ε = GK2_AUTOSUB_EPS = 0.05`. The quota forces two goalkeepers,
+but the XI fields exactly one and the backup scores only via autosub
+(starter plays 0 minutes). A plain squad sum overvalues the second
+goalkeeper by nearly his full prediction; the designated-scorer term
+makes the optimum one strong starter plus the cheapest legal backup,
+with the savings spent on outfielders. Adopted before the FINAL round
+(earlier rounds ran the uncorrected objective); mirrored in the joint
+round solver as `GK_BENCH_WEIGHT = 0.02` (scripts/sf_joint_analysis.py).
 
 **Transfer with hit accounting:**
 
 ```
-Variables: x_p ∈ {0, 1}, extra ∈ R⁺
+Variables: x_p ∈ {0, 1}, z_p as above, extra ∈ R⁺
 
-Maximize:  Σ_p effective_points[p] · x_p − TRANSFER_HIT_POINTS · extra
+Maximize:  (GK-aware objective above) − TRANSFER_HIT_POINTS · extra
 
 Subject to (all squad-selection constraints, plus):
     new_picks = Σ_{p ∉ current_squad} x_p
