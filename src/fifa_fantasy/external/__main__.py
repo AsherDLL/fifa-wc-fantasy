@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 
+from . import wc2026_dataset
 from .football_data import LEAGUES, refresh_all
 from .international_elo import refresh as refresh_elo
 from .prediction_markets import take_snapshot
@@ -21,6 +22,8 @@ def main() -> None:
     p.add_argument("--skip-football-data", action="store_true")
     p.add_argument("--skip-markets", action="store_true",
                    help="skip Polymarket and Kalshi snapshot")
+    p.add_argument("--skip-wc2026", action="store_true",
+                   help="skip the mominullptr WC-2026 stats dataset")
     p.add_argument("--no-refresh-cache", action="store_true",
                    help="reuse any cached CSVs instead of re-downloading")
     p.add_argument("--seasons", nargs="+", default=["2223", "2324", "2425"])
@@ -44,6 +47,17 @@ def main() -> None:
             refresh=do_refresh,
         )
         print(f"football_data: {len(matches):5d} matches -> data/external/fd_matches.parquet")
+
+    if not args.skip_wc2026:
+        wc2026_dataset.refresh(refresh_cache=do_refresh)
+        report = wc2026_dataset.validate()
+        rates = ", ".join(f"{k}={v:.0%}"
+                          for k, v in report["player_match_rates"].items())
+        print(f"wc2026_dataset: {report['scores_checked']} scores checked, "
+              f"{len(report['score_mismatches'])} mismatches, "
+              f"status={report['status']} "
+              f"(lineups through match {report['lineups_through_match']}); "
+              f"player match {rates}")
 
     if not args.skip_markets:
         snaps, path = take_snapshot()

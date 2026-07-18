@@ -16,6 +16,7 @@ claim reproducible from a fresh clone without re-scraping.
 | National-team Elo | `data/external/country_elo.csv` | Derived from the public results dataset github.com/martj42/international_results (CC0) | CC0 | Strength features (whitepaper 04) |
 | FIFA world rankings | `data/static/fifa_rankings.csv` | FIFA.com public ranking table (facts) | Factual ranking snapshot | Fallback strength signal |
 | Prediction-market snapshots | `data/external/prediction_markets/snapshot_*.jsonl` | Polymarket CLOB and Kalshi public market-data APIs | Public market data endpoints, no authentication | Market-integration negative result and Benter combiner study (whitepaper 11b, 11d) |
+| WC 2026 match/lineup/xG dataset | `data/external/wc2026/*.csv` | github.com/mominullptr/FIFA-World-Cup-2026-Dataset (CC0-1.0) | CC0 | GBM walk-forward configs E/F and round-8 match predictions |
 | Trained model files | `data/models/*.txt` | Trained by this project | Project license (GPL-3.0) | Run the shipped ensemble without retraining |
 | Personal squad logs | `data/user_squads/round_*.json` | The authors' own fantasy entries | Authors' own data | Live-results ground truth (whitepaper 08) |
 
