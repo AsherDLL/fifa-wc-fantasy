@@ -1,0 +1,30 @@
+{
+ "generated_at_utc": "2026-07-18T02:39:33Z",
+ "inputs": {
+  "base_url": "https://raw.githubusercontent.com/mominullptr/FIFA-World-Cup-2026-Dataset/main/",
+  "raw_dir": "data/raw",
+  "files": [
+   "matches",
+   "teams",
+   "referees",
+   "match_lineups",
+   "match_team_stats",
+   "squads_and_players",
+   "player_stats"
+  ]
+ },
+ "status": "ok",
+ "scores_checked": 102,
+ "score_mismatches": [],
+ "ext_completed": 102,
+ "ours_completed": 102,
+ "xg_covered": 102,
+ "lineups_through_match": 102,
+ "unmapped_teams": 0,
+ "player_match_rates": {
+  "FRA": 1.0,
+  "ENG": 1.0,
+  "ESP": 1.0,
+  "ARG": 1.0
+ }
+}

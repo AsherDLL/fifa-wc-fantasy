@@ -1,0 +1,496 @@
+{
+ "generated_at_utc": "2026-07-18T02:40:44Z",
+ "seed": 20260716,
+ "inputs": {
+  "n_completed": 102,
+  "hyperparams": {
+   "dc": {
+    "xi": 0.6,
+    "ridge": 0.5
+   },
+   "xg": {
+    "recency": 1.0,
+    "shrink": 0.6
+   }
+  },
+  "weights_applied": {
+   "pool_1x2": {
+    "dixon_coles": 0.0,
+    "xg_poisson": 0.0,
+    "elo": 1.0
+   },
+   "pool_advance": {
+    "dixon_coles": 0.0,
+    "xg_poisson": 0.0,
+    "elo": 0.75,
+    "market": 0.25
+   }
+  },
+  "market_cap": 0.25,
+  "market_snapshot_latest": "snapshot_2026-07-18T02-39-33Z.jsonl"
+ },
+ "matches": [
+  {
+   "match": "France v England",
+   "kind": "third_place",
+   "kickoff_utc": "2026-07-18 21:00:00+00:00",
+   "winner": {
+    "home": "France",
+    "away": "England",
+    "p_home_lifts": 0.59,
+    "p_away_lifts": 0.41,
+    "market_component_present": false
+   },
+   "p_1x2_90min": {
+    "home": 0.458,
+    "draw": 0.244,
+    "away": 0.297
+   },
+   "expected_goals": {
+    "home": 1.46,
+    "away": 1.0,
+    "total": 2.46
+   },
+   "p_over_2_5": 0.446,
+   "p_btts": 0.486,
+   "top_scores": [
+    {
+     "score": "1-1",
+     "p": 0.137
+    },
+    {
+     "score": "1-0",
+     "p": 0.111
+    },
+    {
+     "score": "0-0",
+     "p": 0.099
+    },
+    {
+     "score": "2-0",
+     "p": 0.09
+    },
+    {
+     "score": "2-1",
+     "p": 0.09
+    },
+    {
+     "score": "0-1",
+     "p": 0.073
+    },
+    {
+     "score": "1-2",
+     "p": 0.063
+    },
+    {
+     "score": "2-2",
+     "p": 0.045
+    }
+   ],
+   "components": {
+    "dixon_coles": {
+     "lam": [
+      1.32,
+      1.06
+     ],
+     "p_1x2": [
+      0.401,
+      0.327,
+      0.272
+     ],
+     "p_adv": 0.574
+    },
+    "xg_poisson": {
+     "lam": [
+      1.59,
+      0.95
+     ],
+     "p_1x2": [
+      0.523,
+      0.251,
+      0.226
+     ],
+     "p_adv": 0.666
+    },
+    "elo": {
+     "lam": [
+      1.62,
+      1.26
+     ],
+     "p_1x2": [
+      0.458,
+      0.244,
+      0.297
+     ],
+     "p_adv": 0.59
+    }
+   },
+   "market_proxy_p_home": null,
+   "uncertainty": null,
+   "corners": {
+    "home": 7.0,
+    "away": 2.7,
+    "total": 9.7,
+    "p_over": {
+     "8.5": 0.608,
+     "9.5": 0.495,
+     "10.5": 0.386
+    },
+    "family": "nbinom",
+    "vmr": 1.29
+   },
+   "cards": {
+    "home": 0.5,
+    "away": 1.6,
+    "total": 2.1,
+    "referee": "Jes\u00fas Valenzuela",
+    "referee_factor": 1.15,
+    "p_over_poisson": {
+     "2.5": 0.36,
+     "3.5": 0.168,
+     "4.5": 0.066
+    },
+    "p_over_nb_sensitivity": {
+     "2.5": 0.357,
+     "3.5": 0.179,
+     "4.5": 0.079
+    },
+    "dispersion_source": "assumed",
+    "note": "per-match card counts absent from dataset; Poisson primary, NB var/mean=1.15 sensitivity"
+   },
+   "scorers": {
+    "France": [
+     {
+      "player": "Kylian Mbappe",
+      "pos": "FWD",
+      "tournament_goals": 8,
+      "p_anytime": 0.439
+     },
+     {
+      "player": "Masour Ousmane Dembele",
+      "pos": "FWD",
+      "tournament_goals": 5,
+      "p_anytime": 0.273
+     },
+     {
+      "player": "Michael Akpovie Olise",
+      "pos": "FWD",
+      "tournament_goals": 0,
+      "p_anytime": 0.085
+     },
+     {
+      "player": "D\u00e9sir\u00e9 Nonka-Maho Doue",
+      "pos": "FWD",
+      "tournament_goals": 1,
+      "p_anytime": 0.084
+     },
+     {
+      "player": "Bradley Jean-Manuel Essolisa Barcola",
+      "pos": "FWD",
+      "tournament_goals": 2,
+      "p_anytime": 0.08
+     },
+     {
+      "player": "Emmanuel Boris Kone",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.055
+     },
+     {
+      "player": "Aur\u00e9lien Djani Tchouameni",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.043
+     },
+     {
+      "player": "Adrien Thibault Marie Rabiot",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.034
+     }
+    ],
+    "England": [
+     {
+      "player": "Harry Edward Kane",
+      "pos": "FWD",
+      "tournament_goals": 6,
+      "p_anytime": 0.298
+     },
+     {
+      "player": "Jude Victor William Bellingham",
+      "pos": "MID",
+      "tournament_goals": 6,
+      "p_anytime": 0.213
+     },
+     {
+      "player": "Anthony Michael Gordon",
+      "pos": "FWD",
+      "tournament_goals": 1,
+      "p_anytime": 0.122
+     },
+     {
+      "player": "Bukayo Ayoyinka Saka",
+      "pos": "FWD",
+      "tournament_goals": 0,
+      "p_anytime": 0.05
+     },
+     {
+      "player": "Elliot Junior Anderson",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.045
+     },
+     {
+      "player": "Declan Rice",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.04
+     },
+     {
+      "player": "Morgan Elliot Rogers",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.027
+     },
+     {
+      "player": "Eberechi Oluchi Eze",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.018
+     }
+    ]
+   }
+  },
+  {
+   "match": "Spain v Argentina",
+   "kind": "final",
+   "kickoff_utc": "2026-07-19 19:00:00+00:00",
+   "winner": {
+    "home": "Spain",
+    "away": "Argentina",
+    "p_home_lifts": 0.544,
+    "p_away_lifts": 0.456,
+    "market_component_present": true
+   },
+   "p_1x2_90min": {
+    "home": 0.399,
+    "draw": 0.249,
+    "away": 0.351
+   },
+   "expected_goals": {
+    "home": 1.59,
+    "away": 0.75,
+    "total": 2.35
+   },
+   "p_over_2_5": 0.416,
+   "p_btts": 0.422,
+   "top_scores": [
+    {
+     "score": "1-0",
+     "p": 0.143
+    },
+    {
+     "score": "1-1",
+     "p": 0.124
+    },
+    {
+     "score": "2-0",
+     "p": 0.121
+    },
+    {
+     "score": "0-0",
+     "p": 0.111
+    },
+    {
+     "score": "2-1",
+     "p": 0.09
+    },
+    {
+     "score": "3-0",
+     "p": 0.064
+    },
+    {
+     "score": "0-1",
+     "p": 0.06
+    },
+    {
+     "score": "3-1",
+     "p": 0.048
+    }
+   ],
+   "components": {
+    "dixon_coles": {
+     "lam": [
+      1.74,
+      0.89
+     ],
+     "p_1x2": [
+      0.553,
+      0.28,
+      0.167
+     ],
+     "p_adv": 0.719
+    },
+    "xg_poisson": {
+     "lam": [
+      1.45,
+      0.62
+     ],
+     "p_1x2": [
+      0.572,
+      0.268,
+      0.16
+     ],
+     "p_adv": 0.731
+    },
+    "elo": {
+     "lam": [
+      1.48,
+      1.38
+     ],
+     "p_1x2": [
+      0.399,
+      0.249,
+      0.351
+     ],
+     "p_adv": 0.527
+    }
+   },
+   "market_proxy_p_home": 0.594,
+   "uncertainty": null,
+   "corners": {
+    "home": 3.4,
+    "away": 1.8,
+    "total": 5.2,
+    "p_over": {
+     "8.5": 0.101,
+     "9.5": 0.055,
+     "10.5": 0.028
+    },
+    "family": "nbinom",
+    "vmr": 1.29
+   },
+   "cards": {
+    "home": 0.9,
+    "away": 1.1,
+    "total": 2.0,
+    "referee": "Wilton Sampaio",
+    "referee_factor": 1.06,
+    "p_over_poisson": {
+     "2.5": 0.312,
+     "3.5": 0.136,
+     "4.5": 0.049
+    },
+    "p_over_nb_sensitivity": {
+     "2.5": 0.313,
+     "3.5": 0.148,
+     "4.5": 0.061
+    },
+    "dispersion_source": "assumed",
+    "note": "per-match card counts absent from dataset; Poisson primary, NB var/mean=1.15 sensitivity"
+   },
+   "scorers": {
+    "Spain": [
+     {
+      "player": "Mikel Oyarzabal",
+      "pos": "FWD",
+      "tournament_goals": 5,
+      "p_anytime": 0.433
+     },
+     {
+      "player": "Lamine Yamal Yamal",
+      "pos": "FWD",
+      "tournament_goals": 1,
+      "p_anytime": 0.221
+     },
+     {
+      "player": "Daniel Olmo",
+      "pos": "FWD",
+      "tournament_goals": 0,
+      "p_anytime": 0.137
+     },
+     {
+      "player": "Alejandro Baena",
+      "pos": "MID",
+      "tournament_goals": 1,
+      "p_anytime": 0.123
+     },
+     {
+      "player": "Fabian Ruiz",
+      "pos": "MID",
+      "tournament_goals": 1,
+      "p_anytime": 0.091
+     },
+     {
+      "player": "Rodrigo Rodri",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.081
+     },
+     {
+      "player": "Pedro Antonio Porro",
+      "pos": "DEF",
+      "tournament_goals": 2,
+      "p_anytime": 0.078
+     },
+     {
+      "player": "Ferran Torres",
+      "pos": "FWD",
+      "tournament_goals": 0,
+      "p_anytime": 0.049
+     }
+    ],
+    "Argentina": [
+     {
+      "player": "Lionel Andr\u00e9s Messi",
+      "pos": "FWD",
+      "tournament_goals": 8,
+      "p_anytime": 0.263
+     },
+     {
+      "player": "Juli\u00e1n Alvarez",
+      "pos": "FWD",
+      "tournament_goals": 2,
+      "p_anytime": 0.118
+     },
+     {
+      "player": "Enzo Jerem\u00edas Fernandez",
+      "pos": "MID",
+      "tournament_goals": 1,
+      "p_anytime": 0.052
+     },
+     {
+      "player": "Lautaro Javier Martinez",
+      "pos": "FWD",
+      "tournament_goals": 3,
+      "p_anytime": 0.05
+     },
+     {
+      "player": "Alexis Mac Allister",
+      "pos": "MID",
+      "tournament_goals": 1,
+      "p_anytime": 0.05
+     },
+     {
+      "player": "Leandro Daniel Paredes",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.034
+     },
+     {
+      "player": "Giuliano Simeone",
+      "pos": "FWD",
+      "tournament_goals": 0,
+      "p_anytime": 0.022
+     },
+     {
+      "player": "Rodrigo Javier De Paul",
+      "pos": "MID",
+      "tournament_goals": 0,
+      "p_anytime": 0.021
+     }
+    ]
+   }
+  }
+ ]
+}

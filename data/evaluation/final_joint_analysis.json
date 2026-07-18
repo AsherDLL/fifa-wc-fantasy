@@ -1,0 +1,1668 @@
+{
+ "plans": [
+  {
+   "label": "keep-current/none",
+   "booster": "none",
+   "alpha": 0.0,
+   "transfers": 0,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 491,
+     "name": "Jude Bellingham",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 42,
+     "name": "Nico Gonz\u00e1lez",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 248,
+     "name": "Daniel Mu\u00f1oz",
+     "pos": "DEF",
+     "team": "COL"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 53.79,
+    "p90": 73.98,
+    "p_beat_field": 0.551,
+    "p_beat_field_by_15": 0.107
+   }
+  },
+  {
+   "label": "solve/none",
+   "booster": "none",
+   "alpha": 0.0,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 1997,
+     "name": "Mikel Merino",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 55.31,
+    "p90": 75.39,
+    "p_beat_field": 0.591,
+    "p_beat_field_by_15": 0.207
+   }
+  },
+  {
+   "label": "solve/qualification",
+   "booster": "qualification",
+   "alpha": 0.0,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 1997,
+     "name": "Mikel Merino",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 64.48,
+    "p90": 89.89,
+    "p_beat_field": 0.731,
+    "p_beat_field_by_15": 0.456
+   }
+  },
+  {
+   "label": "solve/shield",
+   "booster": "shield",
+   "alpha": 0.0,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1430,
+     "name": "Jules Kound\u00e9",
+     "pos": "DEF",
+     "team": "FRA"
+    }
+   ],
+   "bench": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 1428,
+     "name": "Robin Risser",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 64.7,
+    "p90": 90.35,
+    "p_beat_field": 0.754,
+    "p_beat_field_by_15": 0.447
+   }
+  },
+  {
+   "label": "solve/twelfth",
+   "booster": "twelfth",
+   "alpha": 0.0,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 1997,
+     "name": "Mikel Merino",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": "Lautaro Mart\u00ednez",
+   "simulation": {
+    "ev": 59.32,
+    "p90": 80.35,
+    "p_beat_field": 0.698,
+    "p_beat_field_by_15": 0.29
+   }
+  },
+  {
+   "label": "solve/wildcard",
+   "booster": "wildcard",
+   "alpha": 0.0,
+   "transfers": 10,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1338,
+     "name": "Lautaro Mart\u00ednez",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 1430,
+     "name": "Jules Kound\u00e9",
+     "pos": "DEF",
+     "team": "FRA"
+    }
+   ],
+   "bench": [
+    {
+     "id": 466,
+     "name": "John Stones",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 1089,
+     "name": "Pau Cubars\u00ed",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 54.5,
+    "p90": 74.96,
+    "p_beat_field": 0.564,
+    "p_beat_field_by_15": 0.204
+   }
+  },
+  {
+   "label": "solve/none+maxcap",
+   "simulation": {
+    "ev": 60.04,
+    "p90": 79.29,
+    "p_beat_field": 0.737,
+    "p_beat_field_by_15": 0.296
+   }
+  },
+  {
+   "label": "solve/none keep-Messi",
+   "booster": "none",
+   "alpha": 0.0,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 1997,
+     "name": "Mikel Merino",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 55.31,
+    "p90": 75.39,
+    "p_beat_field": 0.591,
+    "p_beat_field_by_15": 0.207
+   }
+  },
+  {
+   "label": "solve/none alpha=0.4",
+   "booster": "none",
+   "alpha": 0.4,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 31,
+     "name": "Nicol\u00e1s Otamendi",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 466,
+     "name": "John Stones",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 467,
+     "name": "Djed Spence",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 55.75,
+    "p90": 78.04,
+    "p_beat_field": 0.591,
+    "p_beat_field_by_15": 0.235
+   }
+  },
+  {
+   "label": "solve/qualification alpha=0.4",
+   "booster": "qualification",
+   "alpha": 0.4,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 468,
+    "name": "Harry Kane",
+    "pos": "FWD",
+    "team": "ENG"
+   },
+   "xi": [
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1085,
+     "name": "Pedro Porro",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1088,
+     "name": "Marc Cucurella",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1338,
+     "name": "Lautaro Mart\u00ednez",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 56,
+     "name": "Alexis Mac Allister",
+     "pos": "MID",
+     "team": "ARG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 63.65,
+    "p90": 89.21,
+    "p_beat_field": 0.716,
+    "p_beat_field_by_15": 0.437
+   }
+  },
+  {
+   "label": "solve/none alpha=0.8",
+   "booster": "none",
+   "alpha": 0.8,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 31,
+     "name": "Nicol\u00e1s Otamendi",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 466,
+     "name": "John Stones",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 467,
+     "name": "Djed Spence",
+     "pos": "DEF",
+     "team": "ENG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 475,
+     "name": "Morgan Rogers",
+     "pos": "MID",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 506,
+     "name": "Mike Maignan",
+     "pos": "GK",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 56.38,
+    "p90": 78.7,
+    "p_beat_field": 0.635,
+    "p_beat_field_by_15": 0.201
+   }
+  },
+  {
+   "label": "solve/qualification alpha=0.8",
+   "booster": "qualification",
+   "alpha": 0.8,
+   "transfers": 6,
+   "hit_points": 0.0,
+   "captain": {
+    "id": 500,
+    "name": "Kylian Mbapp\u00e9",
+    "pos": "FWD",
+    "team": "FRA"
+   },
+   "xi": [
+    {
+     "id": 31,
+     "name": "Nicol\u00e1s Otamendi",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 34,
+     "name": "Nicol\u00e1s Tagliafico",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    {
+     "id": 500,
+     "name": "Kylian Mbapp\u00e9",
+     "pos": "FWD",
+     "team": "FRA"
+    },
+    {
+     "id": 501,
+     "name": "Ousmane Demb\u00e9l\u00e9",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 517,
+     "name": "Michael Olise",
+     "pos": "MID",
+     "team": "FRA"
+    },
+    {
+     "id": 1086,
+     "name": "Aymeric Laporte",
+     "pos": "DEF",
+     "team": "ESP"
+    },
+    {
+     "id": 1099,
+     "name": "Unai Sim\u00f3n",
+     "pos": "GK",
+     "team": "ESP"
+    },
+    {
+     "id": 1104,
+     "name": "Rodri",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1105,
+     "name": "Dani Olmo",
+     "pos": "MID",
+     "team": "ESP"
+    },
+    {
+     "id": 1998,
+     "name": "Fabi\u00e1n Ruiz",
+     "pos": "MID",
+     "team": "ESP"
+    }
+   ],
+   "bench": [
+    {
+     "id": 38,
+     "name": "Lionel Messi",
+     "pos": "FWD",
+     "team": "ARG"
+    },
+    {
+     "id": 494,
+     "name": "Dayot Upamecano",
+     "pos": "DEF",
+     "team": "FRA"
+    },
+    {
+     "id": 1320,
+     "name": "Facundo Medina",
+     "pos": "DEF",
+     "team": "ARG"
+    },
+    {
+     "id": 910,
+     "name": "Orlando Gill",
+     "pos": "GK",
+     "team": "PAR"
+    }
+   ],
+   "twelfth_pick": null,
+   "simulation": {
+    "ev": 63.48,
+    "p90": 86.61,
+    "p_beat_field": 0.802,
+    "p_beat_field_by_15": 0.394
+   }
+  }
+ ],
+ "captain_sweep": [
+  {
+   "captain": "Kylian Mbapp\u00e9",
+   "team": "FRA",
+   "ev": 55.94,
+   "p90": 76.83,
+   "p_beat_field": 0.636,
+   "p_beat_field_by_15": 0.172
+  },
+  {
+   "captain": "Harry Kane",
+   "team": "ENG",
+   "ev": 55.31,
+   "p90": 75.39,
+   "p_beat_field": 0.591,
+   "p_beat_field_by_15": 0.207
+  },
+  {
+   "captain": "Rodri",
+   "team": "ESP",
+   "ev": 54.69,
+   "p90": 75.67,
+   "p_beat_field": 0.562,
+   "p_beat_field_by_15": 0.204
+  },
+  {
+   "captain": "Lionel Messi",
+   "team": "ARG",
+   "ev": 54.49,
+   "p90": 73.19,
+   "p_beat_field": 0.583,
+   "p_beat_field_by_15": 0.154
+  },
+  {
+   "captain": "Ousmane Demb\u00e9l\u00e9",
+   "team": "FRA",
+   "ev": 54.49,
+   "p90": 75.08,
+   "p_beat_field": 0.58,
+   "p_beat_field_by_15": 0.158
+  },
+  {
+   "captain": "Morgan Rogers",
+   "team": "ENG",
+   "ev": 54.23,
+   "p90": 74.14,
+   "p_beat_field": 0.558,
+   "p_beat_field_by_15": 0.184
+  },
+  {
+   "captain": "Dani Olmo",
+   "team": "ESP",
+   "ev": 53.98,
+   "p90": 74.1,
+   "p_beat_field": 0.552,
+   "p_beat_field_by_15": 0.175
+  },
+  {
+   "captain": "Mike Maignan",
+   "team": "FRA",
+   "ev": 53.46,
+   "p90": 72.39,
+   "p_beat_field": 0.548,
+   "p_beat_field_by_15": 0.142
+  },
+  {
+   "captain": "Pedro Porro",
+   "team": "ESP",
+   "ev": 53.11,
+   "p90": 72.29,
+   "p_beat_field": 0.531,
+   "p_beat_field_by_15": 0.15
+  },
+  {
+   "captain": "Aymeric Laporte",
+   "team": "ESP",
+   "ev": 53.09,
+   "p90": 72.38,
+   "p_beat_field": 0.533,
+   "p_beat_field_by_15": 0.148
+  },
+  {
+   "captain": "Dayot Upamecano",
+   "team": "FRA",
+   "ev": 53.06,
+   "p90": 72.21,
+   "p_beat_field": 0.538,
+   "p_beat_field_by_15": 0.128
+  }
+ ],
+ "rotation75": {
+  "plans": [
+   {
+    "label": "rot75 solve/none",
+    "booster": "none",
+    "alpha": 0.0,
+    "transfers": 6,
+    "hit_points": 0.0,
+    "captain": {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    "xi": [
+     {
+      "id": 38,
+      "name": "Lionel Messi",
+      "pos": "FWD",
+      "team": "ARG"
+     },
+     {
+      "id": 468,
+      "name": "Harry Kane",
+      "pos": "FWD",
+      "team": "ENG"
+     },
+     {
+      "id": 500,
+      "name": "Kylian Mbapp\u00e9",
+      "pos": "FWD",
+      "team": "FRA"
+     },
+     {
+      "id": 501,
+      "name": "Ousmane Demb\u00e9l\u00e9",
+      "pos": "MID",
+      "team": "FRA"
+     },
+     {
+      "id": 1085,
+      "name": "Pedro Porro",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1086,
+      "name": "Aymeric Laporte",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1088,
+      "name": "Marc Cucurella",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1099,
+      "name": "Unai Sim\u00f3n",
+      "pos": "GK",
+      "team": "ESP"
+     },
+     {
+      "id": 1104,
+      "name": "Rodri",
+      "pos": "MID",
+      "team": "ESP"
+     },
+     {
+      "id": 1105,
+      "name": "Dani Olmo",
+      "pos": "MID",
+      "team": "ESP"
+     },
+     {
+      "id": 1998,
+      "name": "Fabi\u00e1n Ruiz",
+      "pos": "MID",
+      "team": "ESP"
+     }
+    ],
+    "bench": [
+     {
+      "id": 56,
+      "name": "Alexis Mac Allister",
+      "pos": "MID",
+      "team": "ARG"
+     },
+     {
+      "id": 506,
+      "name": "Mike Maignan",
+      "pos": "GK",
+      "team": "FRA"
+     },
+     {
+      "id": 1089,
+      "name": "Pau Cubars\u00ed",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1320,
+      "name": "Facundo Medina",
+      "pos": "DEF",
+      "team": "ARG"
+     }
+    ],
+    "twelfth_pick": null,
+    "simulation": {
+     "ev": 49.64,
+     "p90": 69.95,
+     "p_beat_field": 0.629,
+     "p_beat_field_by_15": 0.25
+    }
+   },
+   {
+    "label": "rot75 solve/qualification",
+    "booster": "qualification",
+    "alpha": 0.0,
+    "transfers": 6,
+    "hit_points": 0.0,
+    "captain": {
+     "id": 468,
+     "name": "Harry Kane",
+     "pos": "FWD",
+     "team": "ENG"
+    },
+    "xi": [
+     {
+      "id": 38,
+      "name": "Lionel Messi",
+      "pos": "FWD",
+      "team": "ARG"
+     },
+     {
+      "id": 468,
+      "name": "Harry Kane",
+      "pos": "FWD",
+      "team": "ENG"
+     },
+     {
+      "id": 500,
+      "name": "Kylian Mbapp\u00e9",
+      "pos": "FWD",
+      "team": "FRA"
+     },
+     {
+      "id": 1085,
+      "name": "Pedro Porro",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1086,
+      "name": "Aymeric Laporte",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1088,
+      "name": "Marc Cucurella",
+      "pos": "DEF",
+      "team": "ESP"
+     },
+     {
+      "id": 1099,
+      "name": "Unai Sim\u00f3n",
+      "pos": "GK",
+      "team": "ESP"
+     },
+     {
+      "id": 1104,
+      "name": "Rodri",
+      "pos": "MID",
+      "team": "ESP"
+     },
+     {
+      "id": 1105,
+      "name": "Dani Olmo",
+      "pos": "MID",
+      "team": "ESP"
+     },
+     {
+      "id": 1997,
+      "name": "Mikel Merino",
+      "pos": "MID",
+      "team": "ESP"
+     },
+     {
+      "id": 1998,
+      "name": "Fabi\u00e1n Ruiz",
+      "pos": "MID",
+      "team": "ESP"
+     }
+    ],
+    "bench": [
+     {
+      "id": 494,
+      "name": "Dayot Upamecano",
+      "pos": "DEF",
+      "team": "FRA"
+     },
+     {
+      "id": 501,
+      "name": "Ousmane Demb\u00e9l\u00e9",
+      "pos": "MID",
+      "team": "FRA"
+     },
+     {
+      "id": 506,
+      "name": "Mike Maignan",
+      "pos": "GK",
+      "team": "FRA"
+     },
+     {
+      "id": 1320,
+      "name": "Facundo Medina",
+      "pos": "DEF",
+      "team": "ARG"
+     }
+    ],
+    "twelfth_pick": null,
+    "simulation": {
+     "ev": 60.42,
+     "p90": 86.81,
+     "p_beat_field": 0.765,
+     "p_beat_field_by_15": 0.524
+    }
+   }
+  ],
+  "sweep": [
+   {
+    "captain": "Rodri",
+    "ev": 50.44,
+    "p90": 73.9,
+    "p_beat_field": 0.616,
+    "p_beat_field_by_15": 0.288
+   },
+   {
+    "captain": "Lionel Messi",
+    "ev": 50.23,
+    "p90": 70.28,
+    "p_beat_field": 0.65,
+    "p_beat_field_by_15": 0.252
+   },
+   {
+    "captain": "Fabi\u00e1n Ruiz",
+    "ev": 50.17,
+    "p90": 73.58,
+    "p_beat_field": 0.611,
+    "p_beat_field_by_15": 0.284
+   },
+   {
+    "captain": "Kylian Mbapp\u00e9",
+    "ev": 50.11,
+    "p90": 70.61,
+    "p_beat_field": 0.655,
+    "p_beat_field_by_15": 0.239
+   },
+   {
+    "captain": "Dani Olmo",
+    "ev": 49.72,
+    "p90": 71.98,
+    "p_beat_field": 0.612,
+    "p_beat_field_by_15": 0.267
+   },
+   {
+    "captain": "Harry Kane",
+    "ev": 49.64,
+    "p90": 69.95,
+    "p_beat_field": 0.629,
+    "p_beat_field_by_15": 0.25
+   },
+   {
+    "captain": "Unai Sim\u00f3n",
+    "ev": 49.07,
+    "p90": 70.07,
+    "p_beat_field": 0.608,
+    "p_beat_field_by_15": 0.246
+   },
+   {
+    "captain": "Ousmane Demb\u00e9l\u00e9",
+    "ev": 49.02,
+    "p90": 69.36,
+    "p_beat_field": 0.617,
+    "p_beat_field_by_15": 0.226
+   },
+   {
+    "captain": "Pedro Porro",
+    "ev": 48.85,
+    "p90": 70.05,
+    "p_beat_field": 0.6,
+    "p_beat_field_by_15": 0.242
+   },
+   {
+    "captain": "Aymeric Laporte",
+    "ev": 48.83,
+    "p90": 70.08,
+    "p_beat_field": 0.599,
+    "p_beat_field_by_15": 0.242
+   },
+   {
+    "captain": "Marc Cucurella",
+    "ev": 48.67,
+    "p90": 70.0,
+    "p_beat_field": 0.597,
+    "p_beat_field_by_15": 0.234
+   }
+  ]
+ }
+}

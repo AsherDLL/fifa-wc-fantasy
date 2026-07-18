@@ -1,0 +1,110 @@
+{
+ "generated_at_utc": "2026-07-18T02:46:08Z",
+ "purpose": "Round-8 (FINAL) locked decision: user's actual transfers/XI/captain/booster for the last round, chosen from the news-adjusted qualification-booster solve; robust across both qualification-rule readings (EV 61.4-63.9, P+15 0.55-0.62)",
+ "round_id": 8,
+ "stage": "FINAL",
+ "inputs": {
+  "predictions": "data/processed/predictions_2026-07-18.parquet (ensemble, GBM v4xg)",
+  "advance_probs": {
+   "FRA": 0.59,
+   "ESP": 0.544,
+   "source": "match_predictions_round8.json skill-audited ensemble"
+  },
+  "market_cap_policy": "market weight capped 0.25 in the forecaster; no direct market anchoring in squad EVs",
+  "news_map": "46-player start-probability haircuts from 2026-07-17 press consensus",
+  "free_transfers": 6,
+  "bank_before": 1.0,
+  "sims": 20000,
+  "seed": 7
+ },
+ "transfers_out": [
+  {
+   "id": 910,
+   "name": "Orlando Gill",
+   "why": "eliminated"
+  },
+  {
+   "id": 248,
+   "name": "Daniel Munoz",
+   "why": "eliminated"
+  },
+  {
+   "id": 494,
+   "name": "Dayot Upamecano",
+   "why": "rotation risk (Konate), bench value only"
+  },
+  {
+   "id": 491,
+   "name": "Jude Bellingham",
+   "why": "FIFA ban risk (slap incident) + England rotation + funds"
+  },
+  {
+   "id": 517,
+   "name": "Michael Olise",
+   "why": "0.55 start probability in bronze"
+  },
+  {
+   "id": 42,
+   "name": "Nico Gonzalez",
+   "why": "ARG bench player"
+  }
+ ],
+ "transfers_in": [
+  {
+   "id": 1085,
+   "name": "Pedro Porro",
+   "price": 5.5
+  },
+  {
+   "id": 1089,
+   "name": "Pau Cubarsi",
+   "price": 5.0
+  },
+  {
+   "id": 1099,
+   "name": "Unai Simon",
+   "price": 5.0
+  },
+  {
+   "id": 1104,
+   "name": "Rodri",
+   "price": 7.5
+  },
+  {
+   "id": 1105,
+   "name": "Dani Olmo",
+   "price": 7.7
+  },
+  {
+   "id": 1998,
+   "name": "Fabian Ruiz",
+   "price": 6.8
+  }
+ ],
+ "xi": [
+  "Maignan (GK)",
+  "Porro",
+  "Laporte",
+  "Cucurella",
+  "Rodri",
+  "Olmo",
+  "Fabian Ruiz",
+  "Dembele",
+  "Messi",
+  "Kane",
+  "Mbappe (C)"
+ ],
+ "bench": [
+  "Simon (GK2)",
+  "Mac Allister",
+  "Cubarsi",
+  "Medina"
+ ],
+ "captain_protocol": "Mbappe (C) Saturday, vice Messi; if Mbappe returns <=5 raw points in the bronze, move the armband to Messi before Sunday kickoff",
+ "booster": "Qualification Booster (verify availability + whether its text covers bronze winners; if it does not, prefer Simon over Maignan in goal)",
+ "contingencies": {
+  "dembele_benched": "swap Dembele -> Mac Allister before Saturday lock",
+  "kane_benched": "no action needed; 0-minute autosub brings Mac Allister (valid 3-5-2)",
+  "porro_late_doubt": "swap Porro -> Cubarsi any time before Sunday kickoff"
+ }
+}
