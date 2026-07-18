@@ -1,0 +1,32 @@
+{
+  "position_rmse": [
+    {
+      "position": "GK",
+      "n": 180,
+      "heuristic_rmse": 2.6980053177764485,
+      "poisson_rmse": 2.4906970503673267,
+      "gbm_rmse": 2.5662500557364756
+    },
+    {
+      "position": "DEF",
+      "n": 910,
+      "heuristic_rmse": 3.1412832560268797,
+      "poisson_rmse": 3.400080218852366,
+      "gbm_rmse": 3.146864010643844
+    },
+    {
+      "position": "MID",
+      "n": 1228,
+      "heuristic_rmse": 2.8738316356757125,
+      "poisson_rmse": 4.371036652211807,
+      "gbm_rmse": 2.6871560911908134
+    },
+    {
+      "position": "FWD",
+      "n": 368,
+      "heuristic_rmse": 3.514517056691276,
+      "poisson_rmse": 4.560273121366269,
+      "gbm_rmse": 3.0810574050469897
+    }
+  ]
+}

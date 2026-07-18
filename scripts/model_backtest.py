@@ -73,9 +73,21 @@ ROUND_PLAN = [
     # round_points length 5), which leaks that fixture's own labels into
     # its stored form_lag. Clean beats complete.
     (5, "features_2026-07-03.parquet", "players_2026-07-08.parquet", Stage.R16),
+    # QF complete (realised scores at index 5). The 07-08 snapshot is the
+    # last strictly pre-round one: max stored round_points length is 5
+    # (nothing from the QF leaked into its form features) and its round-6
+    # rows cover all 8 QF squads.
+    (6, "features_2026-07-08.parquet", "players_2026-07-17.parquet", Stage.QF),
+    # SF complete (realised scores at index 6). Same check: the 07-13
+    # snapshot's max round_points length is 6 and it covers all 4 SF squads.
+    (7, "features_2026-07-13.parquet", "players_2026-07-17.parquet", Stage.SF),
 ]
 
 BACKENDS = ("heuristic", "heuristic_v2", "poisson", "gbm", "monte_carlo", "ensemble")
+
+
+class _SkipAB(Exception):
+    """Availability A/B not applicable for this round's archived features."""
 
 
 @dataclass(frozen=True)
@@ -90,6 +102,7 @@ class RoundResult:
     realised_starter_pts: int
     realised_captain_raw: int
     realised_total: int
+    predicted_total: float  # solver-expected XI + captain points, pre-round
 
 
 def _round_points(raw_players: pd.DataFrame, round_id: int) -> dict[int, int]:
@@ -241,6 +254,11 @@ def run() -> dict:
                 preds = _predict(feat.copy(), backend)
                 chosen, formation, cap_id, starter_ids = _solve_squad(preds, stage, round_id)
                 starter_pts, cap_pts, total = _score_squad(starter_ids, cap_id, realised)
+                in_round = preds[preds["round_id"] == round_id]
+                pred_map = dict(zip(in_round["player_id"].astype(int),
+                                    in_round["predicted_points"].astype(float)))
+                predicted = (sum(pred_map.get(pid, 0.0) for pid in starter_ids)
+                             + pred_map.get(cap_id, 0.0))
             except Exception as e:
                 print(f"  {backend}: FAILED ({type(e).__name__}: {e})")
                 continue
@@ -251,6 +269,7 @@ def run() -> dict:
                 realised_starter_pts=starter_pts,
                 realised_captain_raw=cap_pts,
                 realised_total=total,
+                predicted_total=round(predicted, 2),
             )
             rows.append(r)
             round_summary["backends"].append(asdict(r))
@@ -261,18 +280,73 @@ def run() -> dict:
         user_path = Path("data/user_squads") / f"round_{round_id:02d}.json"
         if user_path.exists():
             us = json.loads(user_path.read_text())
-            sp, cp, ut = _score_squad(us["starter_ids"], us["captain_id"], realised)
-            net = ut - us.get("transfer_cost_points", 0)
-            round_summary["user_actual"] = {
-                "starter_pts": sp,
-                "captain_raw": cp,
-                "gross_total": ut,
-                "transfer_cost_points": us.get("transfer_cost_points", 0),
-                "net_total": net,
-                "stated_total_in_json": us.get("realised_total_pts"),
-            }
-            print(f"  user_actual squad scored {ut} gross, hit -{us.get('transfer_cost_points', 0)}, "
-                  f"net {net}  (user-stated: {us.get('realised_total_pts')})")
+            recorded = us.get("realised_total_pts")
+            rescored = None
+            if us.get("starter_ids"):
+                sp, cp, ut = _score_squad(us["starter_ids"], us["captain_id"],
+                                          realised)
+                rescored = ut - us.get("transfer_cost_points", 0)
+            # The recorded in-app score is the primary record and is
+            # already net of transfer hits; the id-based rescore (which
+            # cannot see boosters or in-round captain switches) is kept
+            # only as a cross-check.
+            if recorded is not None:
+                net = int(recorded)
+            elif rescored is not None:
+                net = rescored
+            else:
+                net = None
+            if net is not None:
+                round_summary["user_actual"] = {
+                    "net_total": net,
+                    "transfer_cost_points": us.get("transfer_cost_points", 0),
+                    "recorded_total_in_json": recorded,
+                    "rescored_total": rescored,
+                }
+                print(f"  user_actual net {net} "
+                      f"(recorded: {recorded}, rescored: {rescored})")
+
+        # Availability-discount A/B on the heuristic backend (MD1-R32):
+        # squads solved with and without the discount, both scored on
+        # realised points. Feeds the whitepaper/paper availability numbers.
+        if round_id <= 4:
+            try:
+                from fifa_fantasy.optimizer.pipeline import (
+                    apply_availability_discount, apply_scouting_bonus,
+                )
+                base_preds = _predict(feat.copy(), "heuristic")
+                probe = apply_availability_discount(
+                    apply_scouting_bonus(base_preds.copy()))
+                if probe["availability_factor"].nunique() <= 1:
+                    # Archived pre-R16 feature snapshots predate the
+                    # start_rate_lag column; the counterfactual cannot be
+                    # replayed on frozen data. The deployment-time
+                    # validation (whitepaper 11g) is the evidence.
+                    round_summary["availability_ab"] = {
+                        "not_applicable":
+                            "archived features predate start_rate_lag"}
+                    print("  availability A/B: n/a (archived features "
+                          "predate start_rate_lag)")
+                    raise _SkipAB
+                ab = {}
+                for label, use_discount in (("with_discount", True),
+                                            ("without_discount", False)):
+                    p = apply_scouting_bonus(base_preds.copy())
+                    if use_discount:
+                        p = apply_availability_discount(p)
+                        p["predicted_points"] = p["effective_points"]
+                    else:
+                        p["predicted_points"] = p["effective_points"]
+                    _, _, cap_ab, starters_ab = _solve_squad(p, stage, round_id)
+                    _, _, total_ab = _score_squad(starters_ab, cap_ab, realised)
+                    ab[label] = int(total_ab)
+                round_summary["availability_ab"] = ab
+                print(f"  availability A/B (heuristic): with {ab['with_discount']} "
+                      f"vs without {ab['without_discount']}")
+            except _SkipAB:
+                pass
+            except Exception as e:
+                print(f"  availability A/B FAILED: {e}")
 
         # Random baseline.
         # Use the heuristic predictions table as the candidate-pool source.

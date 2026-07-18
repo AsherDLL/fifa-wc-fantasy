@@ -42,7 +42,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 44,
           "realised_captain_raw": 2,
-          "realised_total": 46
+          "realised_total": 46,
+          "predicted_total": 79.19
         },
         {
           "round_id": 1,
@@ -82,7 +83,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 37,
           "realised_captain_raw": 2,
-          "realised_total": 39
+          "realised_total": 39,
+          "predicted_total": 83.16
         },
         {
           "round_id": 1,
@@ -122,47 +124,49 @@
           "formation": "3-4-3",
           "realised_starter_pts": 28,
           "realised_captain_raw": 2,
-          "realised_total": 30
+          "realised_total": 30,
+          "predicted_total": 143.69
         },
         {
           "round_id": 1,
           "stage": "GROUP_MD1",
           "backend": "gbm",
           "squad_player_ids": [
-            45,
-            501,
-            517,
-            740,
-            741,
-            742,
+            125,
+            182,
+            183,
+            469,
+            471,
+            491,
+            525,
             855,
             1009,
             1085,
-            1114,
+            1088,
+            1089,
+            1116,
             1124,
-            1520,
-            1522,
-            1603,
-            1710
+            1520
           ],
           "starter_ids": [
-            45,
-            501,
-            517,
-            740,
-            741,
+            183,
+            469,
+            471,
+            491,
             855,
             1009,
             1085,
+            1088,
+            1089,
             1124,
-            1520,
-            1710
+            1520
           ],
           "captain_id": 855,
           "formation": "4-3-3",
-          "realised_starter_pts": 88,
+          "realised_starter_pts": 94,
           "realised_captain_raw": 17,
-          "realised_total": 105
+          "realised_total": 111,
+          "predicted_total": 72.96
         },
         {
           "round_id": 1,
@@ -202,7 +206,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 63,
           "realised_captain_raw": 14,
-          "realised_total": 77
+          "realised_total": 77,
+          "predicted_total": 147.55
         },
         {
           "round_id": 1,
@@ -210,14 +215,14 @@
           "backend": "ensemble",
           "squad_player_ids": [
             469,
-            501,
-            517,
-            523,
+            471,
+            491,
+            520,
             534,
             542,
-            836,
             855,
-            918,
+            916,
+            1027,
             1086,
             1101,
             1102,
@@ -227,11 +232,11 @@
           ],
           "starter_ids": [
             469,
-            501,
-            517,
-            523,
-            542,
+            471,
+            491,
+            520,
             855,
+            916,
             1086,
             1101,
             1102,
@@ -240,18 +245,20 @@
           ],
           "captain_id": 855,
           "formation": "4-3-3",
-          "realised_starter_pts": 88,
+          "realised_starter_pts": 90,
           "realised_captain_raw": 17,
-          "realised_total": 105
+          "realised_total": 107,
+          "predicted_total": 74.69
         }
       ],
       "user_actual": {
-        "starter_pts": 32,
-        "captain_raw": 1,
-        "gross_total": 33,
-        "transfer_cost_points": 0,
         "net_total": 33,
-        "stated_total_in_json": 33
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": 33,
+        "rescored_total": 33
+      },
+      "availability_ab": {
+        "not_applicable": "archived features predate start_rate_lag"
       },
       "random_baseline": {
         "n_valid_trials": 500,
@@ -303,7 +310,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 68,
           "realised_captain_raw": 13,
-          "realised_total": 81
+          "realised_total": 81,
+          "predicted_total": 81.04
         },
         {
           "round_id": 2,
@@ -343,7 +351,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 66,
           "realised_captain_raw": 13,
-          "realised_total": 79
+          "realised_total": 79,
+          "predicted_total": 91.67
         },
         {
           "round_id": 2,
@@ -383,7 +392,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 41,
           "realised_captain_raw": 15,
-          "realised_total": 56
+          "realised_total": 56,
+          "predicted_total": 141.77
         },
         {
           "round_id": 2,
@@ -393,37 +403,38 @@
             38,
             235,
             248,
+            348,
             500,
             501,
             517,
-            682,
+            671,
+            684,
             855,
-            1089,
-            1102,
             1223,
             1264,
             1271,
-            1601,
-            2031
+            2031,
+            2052
           ],
           "starter_ids": [
             38,
             248,
+            348,
             500,
             501,
             517,
+            684,
             855,
             1223,
             1264,
-            1271,
-            1601,
-            2031
+            1271
           ],
-          "captain_id": 500,
+          "captain_id": 855,
           "formation": "3-4-3",
-          "realised_starter_pts": 135,
+          "realised_starter_pts": 125,
           "realised_captain_raw": 13,
-          "realised_total": 148
+          "realised_total": 138,
+          "predicted_total": 93.65
         },
         {
           "round_id": 2,
@@ -463,7 +474,8 @@
           "formation": "3-5-2",
           "realised_starter_pts": 75,
           "realised_captain_raw": 4,
-          "realised_total": 79
+          "realised_total": 79,
+          "predicted_total": 310.56
         },
         {
           "round_id": 2,
@@ -472,47 +484,49 @@
           "squad_player_ids": [
             38,
             164,
-            479,
             500,
             517,
+            671,
             682,
-            792,
             855,
             916,
             1085,
             1086,
-            1088,
+            1102,
             1223,
-            1428,
-            1601
+            1256,
+            1343,
+            1428
           ],
           "starter_ids": [
             38,
             164,
             500,
             517,
-            792,
+            682,
             855,
             916,
-            1086,
+            1085,
             1223,
-            1428,
-            1601
+            1256,
+            1343
           ],
-          "captain_id": 500,
+          "captain_id": 855,
           "formation": "3-4-3",
-          "realised_starter_pts": 117,
+          "realised_starter_pts": 103,
           "realised_captain_raw": 13,
-          "realised_total": 130
+          "realised_total": 116,
+          "predicted_total": 88.16
         }
       ],
       "user_actual": {
-        "starter_pts": 75,
-        "captain_raw": 9,
-        "gross_total": 84,
-        "transfer_cost_points": 0,
         "net_total": 84,
-        "stated_total_in_json": 84
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": 84,
+        "rescored_total": 84
+      },
+      "availability_ab": {
+        "not_applicable": "archived features predate start_rate_lag"
       },
       "random_baseline": {
         "n_valid_trials": 500,
@@ -564,7 +578,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 76,
           "realised_captain_raw": 8,
-          "realised_total": 84
+          "realised_total": 84,
+          "predicted_total": 71.45
         },
         {
           "round_id": 3,
@@ -604,7 +619,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 65,
           "realised_captain_raw": 7,
-          "realised_total": 72
+          "realised_total": 72,
+          "predicted_total": 89.63
         },
         {
           "round_id": 3,
@@ -644,7 +660,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 37,
           "realised_captain_raw": 7,
-          "realised_total": 44
+          "realised_total": 44,
+          "predicted_total": 143.71
         },
         {
           "round_id": 3,
@@ -652,39 +669,40 @@
           "backend": "gbm",
           "squad_player_ids": [
             38,
+            39,
             173,
             491,
-            500,
-            517,
+            501,
             792,
             893,
             895,
             910,
+            916,
             1001,
-            1043,
-            1086,
             1102,
             1133,
+            1149,
             2012
           ],
           "starter_ids": [
             38,
+            39,
             173,
             491,
-            500,
-            517,
+            501,
             792,
+            893,
             910,
-            1043,
-            1086,
-            1102,
+            916,
+            1149,
             2012
           ],
-          "captain_id": 38,
+          "captain_id": 173,
           "formation": "3-4-3",
-          "realised_starter_pts": 108,
-          "realised_captain_raw": 7,
-          "realised_total": 115
+          "realised_starter_pts": 111,
+          "realised_captain_raw": 15,
+          "realised_total": 126,
+          "predicted_total": 83.44
         },
         {
           "round_id": 3,
@@ -724,7 +742,8 @@
           "formation": "3-5-2",
           "realised_starter_pts": 44,
           "realised_captain_raw": 0,
-          "realised_total": 44
+          "realised_total": 44,
+          "predicted_total": 316.53
         },
         {
           "round_id": 3,
@@ -735,15 +754,15 @@
             38,
             47,
             173,
+            174,
             491,
-            500,
+            501,
             792,
             795,
             797,
             798,
             1133,
             1149,
-            1158,
             2009,
             2012
           ],
@@ -752,28 +771,30 @@
             47,
             173,
             491,
-            500,
+            501,
             792,
             795,
             797,
+            1133,
             1149,
-            1158,
             2012
           ],
-          "captain_id": 38,
-          "formation": "3-4-3",
-          "realised_starter_pts": 87,
-          "realised_captain_raw": 7,
-          "realised_total": 94
+          "captain_id": 173,
+          "formation": "3-5-2",
+          "realised_starter_pts": 101,
+          "realised_captain_raw": 15,
+          "realised_total": 116,
+          "predicted_total": 78.16
         }
       ],
       "user_actual": {
-        "starter_pts": 39,
-        "captain_raw": 7,
-        "gross_total": 46,
+        "net_total": 42,
         "transfer_cost_points": 6,
-        "net_total": 40,
-        "stated_total_in_json": 42
+        "recorded_total_in_json": 42,
+        "rescored_total": 40
+      },
+      "availability_ab": {
+        "not_applicable": "archived features predate start_rate_lag"
       },
       "random_baseline": {
         "n_valid_trials": 500,
@@ -825,7 +846,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 60,
           "realised_captain_raw": 13,
-          "realised_total": 73
+          "realised_total": 73,
+          "predicted_total": 78.96
         },
         {
           "round_id": 4,
@@ -865,7 +887,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 77,
           "realised_captain_raw": 10,
-          "realised_total": 87
+          "realised_total": 87,
+          "predicted_total": 99.48
         },
         {
           "round_id": 4,
@@ -905,7 +928,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 32,
           "realised_captain_raw": 10,
-          "realised_total": 42
+          "realised_total": 42,
+          "predicted_total": 158.31
         },
         {
           "round_id": 4,
@@ -914,38 +938,39 @@
           "squad_player_ids": [
             38,
             173,
+            235,
             248,
-            250,
             262,
+            268,
             468,
             500,
             501,
             517,
             740,
-            1086,
+            741,
+            742,
             1133,
-            1271,
-            1361,
-            2031
+            1258
           ],
           "starter_ids": [
             38,
             173,
             248,
             262,
+            268,
             468,
             500,
             501,
             517,
             740,
-            1086,
-            1361
+            742
           ],
           "captain_id": 500,
           "formation": "3-4-3",
-          "realised_starter_pts": 94,
+          "realised_starter_pts": 90,
           "realised_captain_raw": 14,
-          "realised_total": 108
+          "realised_total": 104,
+          "predicted_total": 90.3
         },
         {
           "round_id": 4,
@@ -985,7 +1010,8 @@
           "formation": "3-5-2",
           "realised_starter_pts": 79,
           "realised_captain_raw": 2,
-          "realised_total": 81
+          "realised_total": 81,
+          "predicted_total": 341.82
         },
         {
           "round_id": 4,
@@ -995,46 +1021,48 @@
             38,
             46,
             47,
+            173,
             268,
             461,
-            468,
             500,
             501,
             517,
+            804,
+            916,
             1085,
             1086,
             1102,
-            1361,
-            1526,
-            1709
+            1133
           ],
           "starter_ids": [
             38,
             47,
-            468,
+            173,
+            268,
             500,
             501,
             517,
+            804,
             1085,
             1086,
-            1102,
-            1361,
-            1526
+            1102
           ],
           "captain_id": 500,
           "formation": "3-4-3",
-          "realised_starter_pts": 90,
+          "realised_starter_pts": 75,
           "realised_captain_raw": 14,
-          "realised_total": 104
+          "realised_total": 89,
+          "predicted_total": 84.08
         }
       ],
       "user_actual": {
-        "starter_pts": 73,
-        "captain_raw": 10,
-        "gross_total": 83,
-        "transfer_cost_points": 0,
         "net_total": 83,
-        "stated_total_in_json": null
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": null,
+        "rescored_total": 83
+      },
+      "availability_ab": {
+        "not_applicable": "archived features predate start_rate_lag"
       },
       "random_baseline": {
         "n_valid_trials": 500,
@@ -1086,7 +1114,8 @@
           "formation": "3-5-2",
           "realised_starter_pts": 32,
           "realised_captain_raw": 9,
-          "realised_total": 41
+          "realised_total": 41,
+          "predicted_total": 69.81
         },
         {
           "round_id": 5,
@@ -1126,7 +1155,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 54,
           "realised_captain_raw": 9,
-          "realised_total": 63
+          "realised_total": 63,
+          "predicted_total": 89.3
         },
         {
           "round_id": 5,
@@ -1166,7 +1196,8 @@
           "formation": "3-4-3",
           "realised_starter_pts": 15,
           "realised_captain_raw": 9,
-          "realised_total": 24
+          "realised_total": 24,
+          "predicted_total": 106.69
         },
         {
           "round_id": 5,
@@ -1174,39 +1205,40 @@
           "backend": "gbm",
           "squad_player_ids": [
             137,
-            138,
+            188,
             468,
             469,
-            491,
-            494,
-            498,
             500,
+            501,
             506,
             855,
             859,
             1086,
+            1430,
             1526,
             2012,
+            2014,
             2016
           ],
           "starter_ids": [
-            138,
+            188,
             468,
             469,
-            491,
-            494,
-            498,
             500,
+            501,
             506,
             855,
             1086,
+            1430,
+            1526,
             2012
           ],
           "captain_id": 468,
-          "formation": "4-3-3",
-          "realised_starter_pts": 92,
+          "formation": "3-4-3",
+          "realised_starter_pts": 80,
           "realised_captain_raw": 9,
-          "realised_total": 101
+          "realised_total": 89,
+          "predicted_total": 74.95
         },
         {
           "round_id": 5,
@@ -1246,7 +1278,8 @@
           "formation": "3-5-2",
           "realised_starter_pts": 54,
           "realised_captain_raw": 2,
-          "realised_total": 56
+          "realised_total": 56,
+          "predicted_total": 237.67
         },
         {
           "round_id": 5,
@@ -1254,41 +1287,48 @@
           "backend": "ensemble",
           "squad_player_ids": [
             137,
-            138,
             164,
             165,
+            188,
+            461,
             468,
             469,
-            491,
             500,
+            501,
             508,
             855,
             1428,
-            1430,
             1526,
             1709,
             2012
           ],
           "starter_ids": [
-            138,
             164,
+            165,
+            188,
             468,
             469,
-            491,
             500,
-            508,
+            501,
             855,
-            1430,
+            1428,
             1526,
             2012
           ],
           "captain_id": 468,
           "formation": "3-4-3",
-          "realised_starter_pts": 75,
+          "realised_starter_pts": 61,
           "realised_captain_raw": 9,
-          "realised_total": 84
+          "realised_total": 70,
+          "predicted_total": 69.54
         }
       ],
+      "user_actual": {
+        "net_total": 66,
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": 66,
+        "rescored_total": null
+      },
       "random_baseline": {
         "n_valid_trials": 500,
         "mean": 19.81,
@@ -1296,16 +1336,546 @@
         "p10": 7.0,
         "p90": 34.0
       }
+    },
+    {
+      "round_id": 6,
+      "stage": "QF",
+      "backends": [
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "heuristic",
+          "squad_player_ids": [
+            34,
+            38,
+            500,
+            501,
+            517,
+            1087,
+            1088,
+            1092,
+            1101,
+            1106,
+            1320,
+            1323,
+            1338,
+            1428,
+            1431
+          ],
+          "starter_ids": [
+            34,
+            38,
+            500,
+            501,
+            517,
+            1087,
+            1088,
+            1092,
+            1101,
+            1106,
+            1338
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 45,
+          "realised_captain_raw": 13,
+          "realised_total": 58,
+          "predicted_total": 72.16
+        },
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "heuristic_v2",
+          "squad_player_ids": [
+            38,
+            56,
+            468,
+            491,
+            500,
+            501,
+            1085,
+            1086,
+            1088,
+            1089,
+            1099,
+            1133,
+            1153,
+            1318,
+            1431
+          ],
+          "starter_ids": [
+            38,
+            468,
+            491,
+            500,
+            501,
+            1086,
+            1088,
+            1089,
+            1099,
+            1133,
+            1431
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 55,
+          "realised_captain_raw": 13,
+          "realised_total": 68,
+          "predicted_total": 88.01
+        },
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "poisson",
+          "squad_player_ids": [
+            42,
+            50,
+            51,
+            492,
+            495,
+            498,
+            506,
+            1082,
+            1094,
+            1095,
+            1097,
+            1106,
+            1318,
+            1320,
+            1428
+          ],
+          "starter_ids": [
+            50,
+            51,
+            498,
+            506,
+            1082,
+            1094,
+            1095,
+            1097,
+            1106,
+            1318,
+            1320
+          ],
+          "captain_id": 1094,
+          "formation": "3-4-3",
+          "realised_starter_pts": 22,
+          "realised_captain_raw": 2,
+          "realised_total": 24,
+          "predicted_total": 107.97
+        },
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "gbm",
+          "squad_player_ids": [
+            38,
+            461,
+            491,
+            500,
+            501,
+            517,
+            850,
+            1082,
+            1088,
+            1089,
+            1094,
+            1099,
+            1430,
+            1431,
+            1522
+          ],
+          "starter_ids": [
+            38,
+            491,
+            500,
+            501,
+            517,
+            1088,
+            1089,
+            1094,
+            1099,
+            1430,
+            1431
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 63,
+          "realised_captain_raw": 13,
+          "realised_total": 76,
+          "predicted_total": 80.9
+        },
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "monte_carlo",
+          "squad_player_ids": [
+            38,
+            45,
+            56,
+            500,
+            501,
+            517,
+            1082,
+            1085,
+            1089,
+            1094,
+            1099,
+            1318,
+            1320,
+            1430,
+            1431
+          ],
+          "starter_ids": [
+            38,
+            500,
+            501,
+            517,
+            1082,
+            1085,
+            1089,
+            1094,
+            1099,
+            1318,
+            1431
+          ],
+          "captain_id": 1082,
+          "formation": "3-4-3",
+          "realised_starter_pts": 45,
+          "realised_captain_raw": 1,
+          "realised_total": 46,
+          "predicted_total": 235.97
+        },
+        {
+          "round_id": 6,
+          "stage": "QF",
+          "backend": "ensemble",
+          "squad_player_ids": [
+            38,
+            47,
+            491,
+            500,
+            501,
+            505,
+            517,
+            1085,
+            1086,
+            1094,
+            1101,
+            1102,
+            1320,
+            1323,
+            1431
+          ],
+          "starter_ids": [
+            38,
+            491,
+            500,
+            501,
+            517,
+            1085,
+            1086,
+            1094,
+            1101,
+            1102,
+            1431
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 51,
+          "realised_captain_raw": 13,
+          "realised_total": 64,
+          "predicted_total": 80.79
+        }
+      ],
+      "user_actual": {
+        "net_total": 73,
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": 73,
+        "rescored_total": null
+      },
+      "random_baseline": {
+        "n_valid_trials": 500,
+        "mean": 22.452,
+        "median": 21.5,
+        "p10": 11.0,
+        "p90": 35.0
+      }
+    },
+    {
+      "round_id": 7,
+      "stage": "SF",
+      "backends": [
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "heuristic",
+          "squad_player_ids": [
+            461,
+            468,
+            469,
+            491,
+            500,
+            501,
+            516,
+            517,
+            1101,
+            1320,
+            1323,
+            1428,
+            1430,
+            1711,
+            2078
+          ],
+          "starter_ids": [
+            461,
+            468,
+            469,
+            491,
+            500,
+            501,
+            517,
+            1101,
+            1430,
+            1711,
+            2078
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 12,
+          "realised_captain_raw": 1,
+          "realised_total": 13,
+          "predicted_total": 61.25
+        },
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "heuristic_v2",
+          "squad_player_ids": [
+            38,
+            56,
+            468,
+            474,
+            491,
+            498,
+            500,
+            501,
+            506,
+            1082,
+            1086,
+            1088,
+            1089,
+            1099,
+            1102
+          ],
+          "starter_ids": [
+            38,
+            56,
+            468,
+            491,
+            500,
+            501,
+            506,
+            1086,
+            1088,
+            1089,
+            1102
+          ],
+          "captain_id": 500,
+          "formation": "4-3-3",
+          "realised_starter_pts": 39,
+          "realised_captain_raw": 1,
+          "realised_total": 40,
+          "predicted_total": 77.93
+        },
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "poisson",
+          "squad_player_ids": [
+            30,
+            31,
+            34,
+            54,
+            56,
+            463,
+            478,
+            479,
+            500,
+            502,
+            509,
+            510,
+            514,
+            1323,
+            1432
+          ],
+          "starter_ids": [
+            30,
+            31,
+            34,
+            54,
+            479,
+            500,
+            502,
+            509,
+            510,
+            514,
+            1432
+          ],
+          "captain_id": 500,
+          "formation": "3-4-3",
+          "realised_starter_pts": 7,
+          "realised_captain_raw": 1,
+          "realised_total": 8,
+          "predicted_total": 68.17
+        },
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "gbm",
+          "squad_player_ids": [
+            38,
+            457,
+            461,
+            463,
+            474,
+            477,
+            491,
+            500,
+            505,
+            517,
+            1085,
+            1086,
+            1099,
+            1338,
+            1431
+          ],
+          "starter_ids": [
+            38,
+            461,
+            474,
+            477,
+            491,
+            500,
+            517,
+            1085,
+            1086,
+            1338,
+            1431
+          ],
+          "captain_id": 517,
+          "formation": "3-4-3",
+          "realised_starter_pts": 56,
+          "realised_captain_raw": 3,
+          "realised_total": 59,
+          "predicted_total": 58.87
+        },
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "monte_carlo",
+          "squad_player_ids": [
+            38,
+            45,
+            46,
+            56,
+            491,
+            498,
+            500,
+            501,
+            517,
+            1086,
+            1094,
+            1318,
+            1320,
+            1429,
+            1431
+          ],
+          "starter_ids": [
+            38,
+            45,
+            56,
+            498,
+            500,
+            501,
+            517,
+            1094,
+            1318,
+            1429,
+            1431
+          ],
+          "captain_id": 517,
+          "formation": "3-4-3",
+          "realised_starter_pts": 28,
+          "realised_captain_raw": 3,
+          "realised_total": 31,
+          "predicted_total": 143.89
+        },
+        {
+          "round_id": 7,
+          "stage": "SF",
+          "backend": "ensemble",
+          "squad_player_ids": [
+            38,
+            47,
+            461,
+            466,
+            469,
+            474,
+            491,
+            494,
+            500,
+            517,
+            1338,
+            1428,
+            1430,
+            1431,
+            1709
+          ],
+          "starter_ids": [
+            38,
+            469,
+            491,
+            494,
+            500,
+            517,
+            1338,
+            1428,
+            1430,
+            1431,
+            1709
+          ],
+          "captain_id": 517,
+          "formation": "3-4-3",
+          "realised_starter_pts": 34,
+          "realised_captain_raw": 3,
+          "realised_total": 37,
+          "predicted_total": 57.58
+        }
+      ],
+      "user_actual": {
+        "net_total": 37,
+        "transfer_cost_points": 0,
+        "recorded_total_in_json": 37,
+        "rescored_total": 36
+      },
+      "random_baseline": {
+        "n_valid_trials": 500,
+        "mean": 21.638,
+        "median": 20.0,
+        "p10": 10.900000000000006,
+        "p90": 34.0
+      }
     }
   ],
   "totals_by_source": {
-    "heuristic": 325,
-    "heuristic_v2": 340,
-    "poisson": 196,
-    "gbm": 577,
-    "monte_carlo": 337,
-    "ensemble": 517,
-    "user_actual_net": 240,
-    "random_baseline_mean": 105
+    "heuristic": 396,
+    "heuristic_v2": 448,
+    "poisson": 228,
+    "gbm": 703,
+    "monte_carlo": 414,
+    "ensemble": 599,
+    "user_actual_net": 418,
+    "random_baseline_mean": 148
   }
 }

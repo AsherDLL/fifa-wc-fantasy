@@ -1,0 +1,13 @@
+{
+  "round_id": 6,
+  "stage": "QF",
+  "squad_player_ids": [],
+  "starter_ids": [],
+  "captain_id": null,
+  "vice_captain_id": null,
+  "formation": null,
+  "transfer_cost_points": 0,
+  "realised_total_pts": 73,
+  "notes": "In-app record supplied by the user on 2026-07-18; squad ids were not archived for this round. realised_total_pts is the authoritative in-app net score (transfer hits already subtracted). The backtest reports this recorded value directly and does not rescore.",
+  "player_names": {}
+}

@@ -1,0 +1,29 @@
+{
+  "round_id": 7,
+  "stage": "SF",
+  "squad_player_ids": [506, 910, 1086, 1088, 494, 1320, 248, 491, 56, 517, 501, 42, 38, 500, 468],
+  "starter_ids":     [506, 1086, 1088, 494, 491, 56, 517, 501, 38, 500, 468],
+  "captain_id": 500,
+  "vice_captain_id": 38,
+  "formation": "3-4-3",
+  "transfer_cost_points": 0,
+  "realised_total_pts": 37,
+  "notes": "Squad and XI from the registered pre-round record in data/evaluation/sf_pick_comparison.json (user_pick). Captain Mbappe, vice Messi, Clean Sheet Shield booster played. realised_total_pts is the authoritative in-app net score; the France triple stack blanked in the 0-2 semifinal loss to Spain (Maignan 1, Upamecano 1, Dembele 2, captain Mbappe 1 raw). Eliminated bench players Gill and Munoz were retained as zero-point assets.",
+  "player_names": {
+    "506": "Mike Maignan (FRA GK)",
+    "910": "Orlando Gill (PAR GK BENCH, eliminated)",
+    "1086": "Aymeric Laporte (ESP DEF)",
+    "1088": "Marc Cucurella (ESP DEF)",
+    "494": "Dayot Upamecano (FRA DEF)",
+    "1320": "Facundo Medina (ARG DEF BENCH)",
+    "248": "Daniel Munoz (COL DEF BENCH, eliminated)",
+    "491": "Jude Bellingham (ENG MID)",
+    "56": "Alexis Mac Allister (ARG MID)",
+    "517": "Michael Olise (FRA MID)",
+    "501": "Ousmane Dembele (FRA MID)",
+    "42": "Nico Gonzalez (ARG MID BENCH)",
+    "38": "Lionel Messi (ARG FWD VICE)",
+    "500": "Kylian Mbappe (FRA FWD CAPTAIN)",
+    "468": "Harry Kane (ENG FWD)"
+  }
+}
