@@ -29,7 +29,7 @@ with one lockout time. Eight rounds total:
 | 5 | `R16` | Round of 16. |
 | 6 | `QF` | Quarter-finals (8 teams, 4 matches). |
 | 7 | `SF` | Semi-finals (4 teams, 2 matches). |
-| 8 | `FINAL` | The final (and the third-place game; the third-place game does not normally count for fantasy points). |
+| 8 | `FINAL` | The final AND the third-place game: both score fantasy points in round 8 (confirmed 2026-07-15 against the live rounds.json - the round window opens at the bronze kickoff and both SF losers stay non-eliminated - and by Fantasy Football Scout's 2026-07-13 explainer; the play-off also counted in 2010-2022). The round deadline is the bronze kickoff. |
 
 `MD` stands for "matchday". MD1 is the first round of group games. MD2
 the second, and so on. Each MD spans roughly one calendar week in the

@@ -100,3 +100,4 @@ data/external/player_signals/
 # Demo scraping outputs (out-of-project reusability)
 data/external/startup_articles_demo/
 data/external/cache/scraping_demo/
+dist/

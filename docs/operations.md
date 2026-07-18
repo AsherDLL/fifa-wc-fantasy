@@ -165,3 +165,27 @@ tools are batch reads triggered by the user. The original sketch is explicit:
 None of the cadence machinery (cron, scheduler, etc.) is built in Phase 0. The
 design is captured here so that Phase 1's collector and Phase 4's optimizer can
 be wired into it without retrofitting.
+
+## Final round manual rerun (deadline Sat 18 Jul 2026, 21:00 UTC)
+
+Round 8 covers BOTH the third-place match (18 Jul) and the final (19
+Jul); the deadline is the bronze kickoff. Full rerun, in order:
+
+```bash
+.venv/bin/python -m fifa_fantasy.external          # Elo, markets, wc2026 dataset
+.venv/bin/python -m fifa_fantasy.collector         # fresh prices/points/fixtures
+.venv/bin/python -m fifa_fantasy.features
+.venv/bin/python -m fifa_fantasy.model.train --include-wc   # retrain on rounds 1-7
+.venv/bin/python -m fifa_fantasy.model --backend ensemble
+.venv/bin/python -m fifa_fantasy.optimizer --stage FINAL --from <prev-recommendation.json>
+.venv/bin/python scripts/sf_joint_analysis.py --round 8 --squad <my15.json> --free 6
+.venv/bin/python scripts/match_predictions.py      # winner/score/corners/cards/scorers
+```
+
+Notes:
+- The GBM is v4xg (config E: real-xG form features) as of 16 Jul; the
+  retrain command above rebuilds it against all completed rounds.
+- `--squad` JSON shape: `{"squad": [15 ids], "xi": [...], "captain": id}`.
+- Verify booster availability in the app before trusting booster EVs;
+  the Qualification Booster's bronze-match payout is unconfirmed (see
+  the sf_joint_analysis.py docstring caveat).
