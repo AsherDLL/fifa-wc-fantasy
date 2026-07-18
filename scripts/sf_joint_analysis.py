@@ -41,8 +41,12 @@ Usage:
 data/evaluation/sf_pick_comparison.json and re-simulates both stored picks.
 
 The fantasy round's matches are read from the newest fixtures parquet, so the
-script works unchanged for the FINAL round (the third-place match does not
-award fantasy points and is excluded by the fixtures round grouping).
+script works unchanged for the FINAL round: round 8 contains BOTH the
+third-place match and the final, and both award fantasy points (verified
+2026-07-15 against the live game data; an earlier version of this docstring
+claimed otherwise). One caveat: the Qualification Booster's in-game wording
+("progresses ... or wins the final") may not pay for bronze-match winners;
+check the in-app booster text before trusting the qualification EV here.
 Deterministic under --seed (default 7).
 """
 from __future__ import annotations
@@ -71,6 +75,11 @@ from fifa_fantasy.optimizer.stage_config import STAGE_CONFIGS
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 BENCH_WEIGHT = 0.1
+# The bench GK can never be promoted within a round (one XI GK slot; he
+# scores only via autosub when the starter plays 0 minutes), so his bench
+# weight is the autosub probability, not the generic bench weight. One
+# strong GK + cheapest backup dominates two good GKs.
+GK_BENCH_WEIGHT = 0.02
 RHO_TEAM = 0.3
 Z90 = 1.2816
 CS_POINTS = {"GK": 5.0, "DEF": 5.0, "MID": 1.0, "FWD": 0.0}
@@ -249,8 +258,10 @@ def solve_joint(pool: pd.DataFrame, config, current_ids: list[int] | None,
     score = (1 - alpha) * pool["eff"] + alpha * pool["eff_q90"]
     obj = (
         pulp.lpSum(float(score[i]) * (y[i] + c[i]) for i in range(n))
-        + BENCH_WEIGHT * pulp.lpSum(
-            float(pool["eff"][i]) * (x[i] - y[i]) for i in range(n))
+        + pulp.lpSum(
+            (GK_BENCH_WEIGHT if pool["position"][i] == "GK"
+             else BENCH_WEIGHT)
+            * float(pool["eff"][i]) * (x[i] - y[i]) for i in range(n))
         - TRANSFER_HIT_POINTS * extra
     )
     if booster == "qualification":

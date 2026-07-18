@@ -32,6 +32,40 @@ SQUAD_POSITION_COUNTS: dict[Position, int] = {
 # Fantasy.md: -3 points per additional transfer above the free quota.
 TRANSFER_HIT_POINTS = 3
 
+# Only one of the two squad goalkeepers can score in a round: the XI has
+# exactly one GK slot and the bench GK enters only via autosub (the starter
+# playing 0 minutes). A squad-sum objective therefore overvalues the second
+# goalkeeper; the optimum is one strong starter plus the cheapest legal
+# backup, with the freed budget spent on outfielders. The second GK's
+# points are discounted to the autosub probability below.
+GK2_AUTOSUB_EPS = 0.05
+
+
+def _gk_aware_objective(players: pd.DataFrame, x: dict, prob: "pulp.LpProblem"):
+    """Squad objective with the backup goalkeeper discounted to autosub value.
+
+    Adds binary z_i per goalkeeper ("the scoring GK", exactly one, only if
+    selected); GK i contributes eps*pts*x_i + (1-eps)*pts*z_i, outfielders
+    contribute pts*x_i unchanged.
+    """
+    gk_ids = [int(r.player_id) for r in players.itertuples()
+              if r.position == Position.GK.value]
+    z = {i: pulp.LpVariable(f"zgk_{i}", cat="Binary") for i in gk_ids}
+    for i in gk_ids:
+        prob += z[i] <= x[i]
+    prob += pulp.lpSum(z.values()) == 1, "one_scoring_gk"
+    terms = []
+    for r in players.itertuples():
+        pid = int(r.player_id)
+        pts = float(r.total_effective_points)
+        if pid in z:
+            terms.append(GK2_AUTOSUB_EPS * pts * x[pid]
+                         + (1 - GK2_AUTOSUB_EPS) * pts * z[pid])
+        else:
+            terms.append(pts * x[pid])
+    return pulp.lpSum(terms)
+
+
 # Each formation: (DEF, MID, FWD) - GK is always 1.
 VALID_FORMATIONS: dict[str, tuple[int, int, int]] = {
     "4-4-2": (4, 4, 2),
@@ -79,10 +113,7 @@ def solve_squad(
         for row in players.itertuples()
     }
 
-    prob += pulp.lpSum(
-        x[int(row.player_id)] * float(row.total_effective_points)
-        for row in players.itertuples()
-    )
+    prob += _gk_aware_objective(players, x, prob)
 
     # Exactly 15 players total
     prob += pulp.lpSum(x.values()) == SQUAD_SIZE
@@ -204,13 +235,7 @@ def solve_transfer(
     )
     prob += new_picks <= free + extra, "transfer_quota"
 
-    prob += (
-        pulp.lpSum(
-            x[int(r.player_id)] * float(r.total_effective_points)
-            for r in players.itertuples()
-        )
-        - TRANSFER_HIT_POINTS * extra
-    )
+    prob += _gk_aware_objective(players, x, prob) - TRANSFER_HIT_POINTS * extra
 
     status = prob.solve(pulp.PULP_CBC_CMD(msg=int(verbose)))
     if pulp.LpStatus[status] != "Optimal":
