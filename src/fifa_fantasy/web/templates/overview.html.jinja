@@ -85,6 +85,34 @@ will restore the official backend.</div>
   {% endif %}
 </div>
 
+{# ---------------- Final round plan ---------------- #}
+{% if final_plan %}
+<div class="srule"><h2>Final round plan (locked)</h2></div>
+<div class="prose">
+  <p><strong>Captaincy:</strong> {{ final_plan.captain_protocol }}<br>
+  <strong>Booster:</strong> {{ final_plan.booster }}</p>
+  <p><strong>XI:</strong> {{ final_plan.xi|join(", ") }}<br>
+  <strong>Bench:</strong> {{ final_plan.bench|join(", ") }}</p>
+  <p><strong>Transfers out:</strong>
+  {% for t in final_plan.transfers_out %}{{ t.name }}{{ ", " if not loop.last }}{% endfor %}.
+  <strong>In:</strong>
+  {% for t in final_plan.transfers_in %}{{ t.name }}{{ ", " if not loop.last }}{% endfor %}.</p>
+  {% if final_plan.contingencies %}
+  <p><strong>Contingencies:</strong>
+  {% for k, v in final_plan.contingencies.items() %}{{ v }}{{ "; " if not loop.last }}{% endfor %}.</p>
+  {% endif %}
+</div>
+{% if figs and figs.get("fig_final_probs") %}
+{{ m.figure(figs.get("fig_final_probs"), "F",
+   "Skill-weighted ensemble forecasts for the closing matches: 90-minute
+    outcome split and probability of lifting the trophy or bronze, with the
+    weight-selection 90 percent interval.") }}
+{% endif %}
+<p class="note">Decision record data/evaluation/final_pick_decision.json;
+forecasts from scripts/match_predictions.py (details on the
+<a href="research.html">Research</a> page).</p>
+{% endif %}
+
 {# ---------------- Squad intelligence ---------------- #}
 <div class="srule"><h2>Squad intelligence, last {{ signal_days }} days</h2></div>
 {% if squad_signals %}

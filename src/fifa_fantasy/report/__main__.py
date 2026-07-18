@@ -60,6 +60,12 @@ def generate(root: Path, skip_figures: bool = False) -> dict:
             figures.fig_signal_volume(
                 data.signal_volume_by_day(signals),
                 figures_dir / "fig_signal_volume.svg"),
+            figures.fig_forecast_skill(
+                bundle["match_forecast"],
+                figures_dir / "fig_forecast_skill.svg"),
+            figures.fig_final_probs(
+                bundle["match_forecast"],
+                figures_dir / "fig_final_probs.svg"),
         ]
         for record in MODEL_REGISTRY:
             jobs.append(figures.render_formula(

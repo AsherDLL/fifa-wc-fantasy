@@ -101,15 +101,18 @@ per position.</p></div>
 <div class="prose"><p>The EPL benchmark cannot answer whether a change survives
 the shift to international football. The walk-forward design can. For each
 completed round, the GBM trains strictly on earlier data and predicts that
-round, so form features and WC retraining are tested leak-free. The shipped
-configuration, WC rows plus the trailing-form feature, wins pooled RMSE, and
-config D shows why the minutes features were rejected.</p></div>
+round, so form features and WC retraining are tested leak-free. Config E,
+which adds real team xG for/against trailing form from the community WC-2026
+dataset, wins the pooled RMSE and is the deployed v4xg model; config D shows
+why the proxy-minutes features were rejected, and config F shows that even
+REAL lineup minutes pass only marginally and lose to the xG features.</p></div>
 
 {{ m.figure(figs.get("fig_walkforward"), "4",
    "Pooled leak-free RMSE per configuration across held-out WC rounds.
-    A is the old form-blind EPL-only model, B adds the form feature, C (shipped)
-    additionally retrains on completed WC rounds, D adds the rejected minutes
-    features.") }}
+    A is the old form-blind EPL-only model, B adds the form feature, C
+    additionally retrains on completed WC rounds, D adds the rejected
+    proxy-minutes features, E (deployed as v4xg) adds real xG form from the
+    community WC-2026 dataset, F adds real lineup minutes.") }}
 
 {% if walkforward %}
 <p class="note">Artifact generated {{ walkforward.generated_at_utc }},
@@ -171,8 +174,50 @@ derivations propose and measurements decide.</p></div>
     bonus, on held-out EPL and on realized WC rounds. Deltas annotate the v2
     bars; negative is improvement.") }}
 
-{# ---------------- 7. Negative results ---------------- #}
-<div class="srule"><span class="no">7</span><h2>Negative results</h2></div>
+{# ---------------- 7. Match forecasting ---------------- #}
+<div class="srule"><span class="no">7</span><h2>Match forecasting and the market-skill audit</h2></div>
+<div class="prose"><p>For the closing matches a dedicated forecaster ensembles
+four components: a penalized Dixon-Coles model, an xG-weighted scoring-rates
+model, leak-free as-of-kickoff country Elo, and the prediction market's
+trophy-price ratio. Every component is scored under the same nested
+walk-forward protocol used for the fantasy models, and the ensemble weights
+are learned from that out-of-sample skill, never hand-set. The audit's
+headline: the market proxy LOSES to plain Elo on knockout advance log-loss
+{%- if match_forecast and match_forecast.skill_advance %}
+({{ "%.3f"|format(match_forecast.skill_advance.market.log_loss) }} vs
+{{ "%.3f"|format(match_forecast.skill_advance.elo.log_loss) }})
+{%- endif %}, and its learned ensemble weight is capped at
+{%- if match_forecast and match_forecast.weights %}
+{{ " %.2f"|format(match_forecast.weights.pool_advance.cap) }}
+{%- else %} 0.25{% endif %}. Sentiment is a signal, not an anchor.</p></div>
+
+{{ m.figure(figs.get("fig_forecast_skill"), "7",
+   "Out-of-sample skill per forecaster component: 90-minute outcome ranked
+    probability score on held-out rounds 2-7 (left, dotted line = uniform
+    baseline) and knockout advance log-loss on rounds 4-7 (right). Elo wins
+    both; the market underperforms Elo despite pricing the same matches.") }}
+
+{% if match_forecast and match_forecast.skill_1x2 %}
+<table>
+  <thead><tr><th>Component</th><th>1X2 RPS</th><th>Advance log-loss</th></tr></thead>
+  <tbody>
+  {% for key, label in [("elo", "Elo"), ("dixon_coles", "Dixon-Coles"),
+                        ("xg_poisson", "xG-Poisson"), ("market", "Market")] %}
+    {% if key in match_forecast.skill_1x2 or key in match_forecast.skill_advance %}
+    <tr><td>{{ label }}</td>
+        <td>{{ "%.3f"|format(match_forecast.skill_1x2[key].rps) if key in match_forecast.skill_1x2 else "-" }}</td>
+        <td>{{ "%.3f"|format(match_forecast.skill_advance[key].log_loss) if key in match_forecast.skill_advance else "-" }}</td></tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+<p class="note">Artifacts data/evaluation/match_prediction_skill.json and
+match_predictions_round8.json; regenerate with
+<span class="num">python scripts/match_predictions.py --fit</span>.</p>
+{% endif %}
+
+{# ---------------- 8. Negative results ---------------- #}
+<div class="srule"><span class="no">8</span><h2>Negative results</h2></div>
 <div class="prose"><p>Rejected ideas are results. Each row below was built,
 measured under the same gates as everything that shipped, and turned down on
 the numbers. Recording them keeps the same mistake from being made twice and
@@ -200,7 +245,7 @@ keeps the shipped stack honest about why it looks the way it does.</p></div>
     prediction worse; it did so for every backend in every round tested.") }}
 
 {# ---------------- 8. Reproducibility ---------------- #}
-<div class="srule"><span class="no">8</span><h2>Reproducibility</h2></div>
+<div class="srule"><span class="no">9</span><h2>Reproducibility</h2></div>
 <div class="prose"><p>Every figure and table on this page regenerates from the
 repository. The companion notebook,
 <a href="../notebooks/model_evolution.ipynb">notebooks/model_evolution.ipynb</a>,

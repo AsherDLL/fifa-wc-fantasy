@@ -157,6 +157,7 @@ def test_research_page_has_ledger_and_caveat(pages):
     assert "Benter" in html
     assert "In-sample" in html or "in-sample" in html
     assert "Walk-forward" in html or "walk-forward" in html
+    assert "Match forecasting" in html
 
 
 def test_pages_are_self_contained(pages):

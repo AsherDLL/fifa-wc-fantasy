@@ -204,7 +204,8 @@ def fig_walkforward(walkforward: dict | None, out_path: Path) -> Path | None:
     cols = list(POSITIONS) + ["ALL"]
     x = np.arange(len(cols))
     width = 0.9 / max(len(configs), 1)
-    palette = ["#b8b0a1", "#E69F00", "#0072B2", "#D55E00"]
+    palette = ["#b8b0a1", "#E69F00", "#0072B2", "#D55E00",
+               "#009E73", "#CC79A7"]
     fig, ax = plt.subplots()
     for i, cfg in enumerate(configs):
         vals = [pooled[cfg].get(c) for c in cols]
@@ -359,6 +360,84 @@ def fig_signal_volume(volume: pd.DataFrame, out_path: Path) -> Path | None:
     ax.set_ylabel("Signal rows")
     ax.set_title("Player-signal volume by publication day")
     _legend_below(ax, ncol=3)
+    return _save(fig, out_path)
+
+
+# ---------------------------------------------------------------------------
+# Match forecasting
+# ---------------------------------------------------------------------------
+
+def fig_forecast_skill(forecast: dict | None, out_path: Path) -> Path | None:
+    """Component skill of the match forecaster: 1X2 RPS and advance
+    log-loss per component, against the uniform baseline."""
+    if not forecast or not forecast.get("skill_1x2"):
+        return None
+    apply_style()
+    comp_order = ["elo", "dixon_coles", "xg_poisson", "market"]
+    labels = {"elo": "Elo", "dixon_coles": "Dixon-Coles",
+              "xg_poisson": "xG-Poisson", "market": "Market"}
+    colors = {"elo": "#0072B2", "dixon_coles": "#D55E00",
+              "xg_poisson": "#E69F00", "market": "#CC79A7"}
+    s1 = forecast["skill_1x2"]
+    sa = forecast.get("skill_advance", {})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.4, 3.4))
+    present1 = [c for c in comp_order if c in s1]
+    ax1.bar(range(len(present1)), [s1[c]["rps"] for c in present1],
+            0.62, color=[colors[c] for c in present1])
+    ax1.set_xticks(range(len(present1)), [labels[c] for c in present1])
+    base = (forecast.get("baselines") or {}).get("uniform_rps")
+    if base is not None:
+        ax1.axhline(base, color=_INK_SOFT, linestyle=":", linewidth=1.4)
+        ax1.text(len(present1) - 0.5, base, " uniform", va="bottom",
+                 color=_INK_SOFT, fontsize=9)
+    ax1.set_ylabel("1X2 RPS (lower is better)")
+    ax1.set_title("90-minute outcome skill,\nheld-out rounds 2-7")
+    presenta = [c for c in comp_order if c in sa]
+    ax2.bar(range(len(presenta)), [sa[c]["log_loss"] for c in presenta],
+            0.62, color=[colors[c] for c in presenta])
+    ax2.set_xticks(range(len(presenta)), [labels[c] for c in presenta])
+    ax2.set_ylabel("Advance log-loss (lower is better)")
+    ax2.set_title("Knockout advance skill,\nrounds 4-7")
+    fig.tight_layout()
+    return _save(fig, out_path)
+
+
+def fig_final_probs(forecast: dict | None, out_path: Path) -> Path | None:
+    """Round-8 forecasts: stacked 1X2 bars plus winner probability with
+    its 90 percent interval, one row per match."""
+    if not forecast or not forecast.get("matches"):
+        return None
+    apply_style()
+    matches = forecast["matches"]
+    fig, axes = plt.subplots(len(matches), 1,
+                             figsize=(7.4, 1.9 * len(matches)))
+    if len(matches) == 1:
+        axes = [axes]
+    seg_colors = ["#2f6b3f", "#b8b0a1", "#a8620a"]
+    for ax, m in zip(axes, matches):
+        p = m["p_1x2_90min"]
+        segs = [p["home"], p["draw"], p["away"]]
+        left = 0.0
+        for val, color, lab in zip(segs, seg_colors,
+                                   ("home", "draw", "away")):
+            ax.barh([0], [val], left=left, color=color, height=0.5)
+            if val > 0.08:
+                ax.text(left + val / 2, 0, f"{lab} {val:.0%}",
+                        ha="center", va="center", color="white", fontsize=9)
+            left += val
+        w = m["winner"]
+        u = m.get("uncertainty") or {}
+        ci = u.get("p_advance_ci90")
+        title = (f"{m['match']} ({m['kind'].replace('_', ' ')}): "
+                 f"{w['home']} {w['p_home_lifts']:.0%} to win")
+        if ci:
+            title += f"  [90% CI {ci[0]:.0%}-{ci[1]:.0%}]"
+        ax.set_title(title, fontsize=10, loc="left")
+        ax.set_xlim(0, 1)
+        ax.set_yticks([])
+        ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+        ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=8)
+    fig.tight_layout()
     return _save(fig, out_path)
 
 

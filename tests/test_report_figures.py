@@ -111,3 +111,28 @@ def test_formula_renderer_covers_registry(tmp_path):
             record.formula_mathtext, tmp_path / f"formula_{record.key}.svg")
         _assert_svg(path)
     assert figures.render_formula((), tmp_path / "empty.svg") is None
+
+
+def test_forecast_skill(tmp_path):
+    forecast = {
+        "skill_1x2": {"elo": {"rps": 0.148, "n": 78},
+                      "dixon_coles": {"rps": 0.204, "n": 78}},
+        "skill_advance": {"elo": {"log_loss": 0.44, "n": 30},
+                          "market": {"log_loss": 0.53, "n": 29}},
+        "baselines": {"uniform_rps": 0.237},
+    }
+    _assert_svg(figures.fig_forecast_skill(forecast, tmp_path / "q.svg"))
+    assert figures.fig_forecast_skill(None, tmp_path / "r.svg") is None
+    assert figures.fig_forecast_skill({}, tmp_path / "s.svg") is None
+
+
+def test_final_probs(tmp_path):
+    forecast = {"matches": [{
+        "match": "Spain v Argentina", "kind": "final",
+        "p_1x2_90min": {"home": 0.4, "draw": 0.25, "away": 0.35},
+        "winner": {"home": "Spain", "p_home_lifts": 0.54},
+        "uncertainty": {"p_advance_ci90": [0.53, 0.54]},
+    }]}
+    _assert_svg(figures.fig_final_probs(forecast, tmp_path / "t.svg"))
+    assert figures.fig_final_probs(None, tmp_path / "u.svg") is None
+    assert figures.fig_final_probs({"matches": []}, tmp_path / "v.svg") is None

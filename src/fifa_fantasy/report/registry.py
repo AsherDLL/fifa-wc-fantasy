@@ -135,23 +135,25 @@ MODEL_REGISTRY: tuple[ModelRecord, ...] = (
         key="gbm",
         label="GBM",
         status="shipped",
-        generation="GBM v3form",
-        introduced="2026-07-08",
+        generation="GBM v4xg",
+        introduced="2026-07-17",
         summary=(
             "A LightGBM model per position with four heads each, a mean "
             "regression plus pinball-loss quantile heads at the 10th, 50th "
             "and 90th percentiles. Trained on three EPL FPL seasons and, "
             "since v3form, retrained every tick on the completed World Cup "
-            "rounds as well, with a leak-free trailing-form feature. The "
-            "earlier v1 and v2 generations were form-blind, which is why the "
-            "model missed in-form cheap players until July. It owns "
-            "midfielders and forwards in the ensemble, and its q90 head "
-            "drives the ceiling-seeking captain pick."
+            "rounds as well, with a leak-free trailing-form feature. v4xg "
+            "adds real team xG for/against trailing form from the community "
+            "WC-2026 match dataset (walk-forward config E), which improved "
+            "the leak-free RMSE at every position, pooled 2.699 to 2.645. "
+            "It owns midfielders and forwards in the ensemble, and its q90 "
+            "head drives the ceiling-seeking captain pick."
         ),
         formula_text=(
             "predicted[pos] = LightGBM_pos(price_millions, is_home, strength_diff,\n"
             "                              squad_top_n_avg_price,\n"
-            "                              opp_squad_top_n_avg_price, form_lag)\n"
+            "                              opp_squad_top_n_avg_price, form_lag,\n"
+            "                              team_xg_form_real, team_xga_form_real)\n"
             "heads: mean (L2) and quantiles tau in {0.10, 0.50, 0.90}\n"
             "pinball loss L_tau(y, q) = max(tau*(y-q), (tau-1)*(y-q))\n"
             "15 leaves, 200 trees, lr 0.05, seed 42, deterministic"
@@ -159,7 +161,7 @@ MODEL_REGISTRY: tuple[ModelRecord, ...] = (
         formula_mathtext=(
             r"$\hat{y}_{pos} = f^{\,\mathrm{LGBM}}_{pos}\!\left(p,\ h,\ "
             r"\Delta_{price},\ \bar{p}_{11},\ \bar{p}^{\,opp}_{11},\ "
-            r"\mathrm{form\_lag}\right)$",
+            r"\mathrm{form\_lag},\ \mathrm{xG}^{\pm}_{form}\right)$",
             r"$L_{\tau}(y, q) = \max\!\left(\tau\,(y-q),\ "
             r"(\tau - 1)\,(y-q)\right),\quad \tau \in \{0.1,\ 0.5,\ 0.9\}$",
         ),
@@ -364,10 +366,32 @@ NEGATIVE_RESULTS: tuple[NegativeResult, ...] = (
             "strength signals. Each signal is still used where it helps, in "
             "the Poisson clean-sheet term and the rotation-risk flag."
         ),
-        measured="Pooled walk-forward RMSE 3.281 to 3.307 when added",
+        measured=("Pooled walk-forward RMSE 3.281 to 3.307 when added "
+                  "(July-8 population, before the round-points padding fix; "
+                  "the regenerated artifact reproduces the same ordering, "
+                  "C 2.699 vs D 2.710)"),
         evidence=("data/evaluation/wc_forward_validation.json",
                   "scripts/wc_forward_validation.py"),
         whitepaper_refs=("docs/whitepaper/sections/11g_minutes_captaincy_variance.md",),
+    ),
+    NegativeResult(
+        key="real_minutes_features",
+        label="Real lineup minutes as GBM features (config F)",
+        tested="2026-07-16",
+        summary=(
+            "Config F replaced the noisy points-based participation proxy "
+            "with REAL start rates and minutes shares from the community "
+            "WC-2026 lineup dataset. It beat the deployed config C but only "
+            "marginally, regressed forwards, and lost to the real-xG config "
+            "E evaluated in the same run, so E was deployed and F was not. "
+            "Real minutes remain in the optimizer's availability discount, "
+            "where they help."
+        ),
+        measured=("Pooled walk-forward RMSE 2.681 vs C 2.699 and E 2.645; "
+                  "FWD regressed 2.759 to 2.766"),
+        evidence=("data/evaluation/wc_forward_validation.json",
+                  "scripts/wc_forward_validation.py"),
+        whitepaper_refs=("docs/whitepaper/sections/11f_model_improvement_retrospective.md",),
     ),
     NegativeResult(
         key="benter_market_combiner",
@@ -426,6 +450,18 @@ TIMELINE: tuple[tuple[str, str, str], ...] = (
     ("2026-07-08", "GBM v3form and the ensemble",
      "A leak-free trailing-form feature plus retraining on completed World Cup rounds "
      "fixes the form-blindness defect; per-position routing becomes the production backend."),
+    ("2026-07-17", "GBM v4xg: real xG form",
+     "Real team xG for/against trailing form from the community WC-2026 dataset "
+     "(walk-forward config E) improves the leak-free RMSE at every position, pooled "
+     "2.699 to 2.645; the real-minutes config F passes only marginally and is not shipped."),
+    ("2026-07-17", "Match forecaster and the market-skill audit",
+     "A Dixon-Coles/xG/Elo/market ensemble with nested walk-forward weight learning "
+     "forecasts the closing matches; the prediction market's trophy-ratio proxy loses "
+     "to plain Elo out of sample and its weight is capped at 0.25."),
+    ("2026-07-18", "Backup-goalkeeper autosub discount",
+     "Only one of the two mandatory goalkeepers can score in a round, so the squad "
+     "solvers discount the backup to autosub value: one strong starter plus the "
+     "cheapest legal backup, savings spent outfield."),
 )
 
 

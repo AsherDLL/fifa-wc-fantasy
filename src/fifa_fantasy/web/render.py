@@ -319,6 +319,7 @@ def build_overview(results_dir: Path) -> str:
             history.append({**group, "items": items})
     history.reverse()
 
+    bundle = _load_report_bundle(results_dir)
     return _env().get_template("overview.html.jinja").render(
         **ctx,
         official=official,
@@ -330,6 +331,9 @@ def build_overview(results_dir: Path) -> str:
         squad_signals_total=squad_signals_total,
         signal_days=int(SIGNAL_WINDOW_DAYS),
         history=history,
+        final_plan=bundle.get("final_plan"),
+        match_forecast=bundle.get("match_forecast"),
+        figs=_figs(results_dir, ["fig_final_probs"]),
     )
 
 
@@ -433,10 +437,11 @@ def build_research(results_dir: Path) -> str:
         backend_labels=BACKEND_LABELS,
         walkforward=bundle.get("walkforward"),
         calibration_summary=bundle.get("calibration_summary") or [],
+        match_forecast=bundle.get("match_forecast"),
         figs=_figs(results_dir, [
             "fig_backtest_cumulative", "fig_backtest_rounds",
             "fig_holdout_rmse", "fig_walkforward", "fig_calibration",
-            "fig_gk_sweep", "fig_market_negative",
+            "fig_gk_sweep", "fig_market_negative", "fig_forecast_skill",
         ]),
     )
 

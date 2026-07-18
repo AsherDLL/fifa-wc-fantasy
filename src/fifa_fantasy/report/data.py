@@ -210,6 +210,35 @@ def load_market_negative(eval_dir: Path) -> dict | None:
     return _read_json(eval_dir / "with_vs_without_market.json")
 
 
+def load_match_forecast(eval_dir: Path) -> dict | None:
+    """Round-8 match forecasts plus the component skill audit, or None.
+
+    Merges match_predictions_round8.json (per-match ensemble predictions
+    with CIs) and match_prediction_skill.json (walk-forward component
+    skill, learned weights) into one bundle for the research page.
+    """
+    preds = _read_json(eval_dir / "match_predictions_round8.json")
+    skill = _read_json(eval_dir / "match_prediction_skill.json")
+    if not preds and not skill:
+        return None
+    out: dict = {}
+    if preds:
+        out["matches"] = preds.get("matches", [])
+        out["inputs"] = preds.get("inputs", {})
+    if skill:
+        out["skill_1x2"] = skill.get("skill_1x2", {})
+        out["skill_advance"] = skill.get("skill_advance", {})
+        out["weights"] = skill.get("weights", {})
+        out["baselines"] = skill.get("baselines", {})
+        out["calibration"] = skill.get("calibration", {})
+    return out
+
+
+def load_final_plan(eval_dir: Path) -> dict | None:
+    """The locked round-8 squad decision record, or None."""
+    return _read_json(eval_dir / "final_pick_decision.json")
+
+
 # ---------------------------------------------------------------------------
 # Calibration: pre-match predictions vs realized points
 # ---------------------------------------------------------------------------
@@ -529,4 +558,6 @@ def assemble(root: Path) -> dict:
         "calibration_summary": calibration_summary(calib),
         "signals_coverage": signals_coverage(signals, news_dir),
         "market_latest": market_latest_table(market_history),
+        "match_forecast": load_match_forecast(eval_dir),
+        "final_plan": load_final_plan(eval_dir),
     }
