@@ -1,11 +1,12 @@
 {
- "generated_at_utc": "2026-07-10T01:29:27Z",
+ "generated_at_utc": "2026-07-16T22:49:45Z",
  "holdout_rounds": [
   2,
   3,
   4,
   5,
-  6
+  6,
+  7
  ],
  "configs": {
   "A_epl_noform": [
@@ -40,6 +41,26 @@
    "form_lag",
    "start_rate_lag",
    "team_gc_form"
+  ],
+  "E_eplwc_xg": [
+   "price_millions",
+   "is_home",
+   "strength_diff",
+   "squad_top_n_avg_price",
+   "opp_squad_top_n_avg_price",
+   "form_lag",
+   "team_xg_form_real",
+   "team_xga_form_real"
+  ],
+  "F_eplwc_minutes": [
+   "price_millions",
+   "is_home",
+   "strength_diff",
+   "squad_top_n_avg_price",
+   "opp_squad_top_n_avg_price",
+   "form_lag",
+   "real_start_rate_lag",
+   "minutes_share_lag"
   ]
  },
  "per_round": [
@@ -156,6 +177,62 @@
    "rmse": 3.2394573290511435
   },
   {
+   "round": 2,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 181,
+   "rmse": 3.3477323647772295
+  },
+  {
+   "round": 2,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 486,
+   "rmse": 3.1648850257435215
+  },
+  {
+   "round": 2,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 515,
+   "rmse": 2.6438322392596594
+  },
+  {
+   "round": 2,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 307,
+   "rmse": 3.1465707612488463
+  },
+  {
+   "round": 2,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 181,
+   "rmse": 3.3477323647772295
+  },
+  {
+   "round": 2,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 486,
+   "rmse": 3.1648850257435215
+  },
+  {
+   "round": 2,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 515,
+   "rmse": 2.6438322392596594
+  },
+  {
+   "round": 2,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 307,
+   "rmse": 3.1465707612488463
+  },
+  {
    "round": 3,
    "config": "A_epl_noform",
    "position": "GK",
@@ -268,6 +345,62 @@
    "rmse": 2.7706357280988425
   },
   {
+   "round": 3,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 181,
+   "rmse": 1.8062893239936018
+  },
+  {
+   "round": 3,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 486,
+   "rmse": 2.9742939171366336
+  },
+  {
+   "round": 3,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 515,
+   "rmse": 2.688781298180599
+  },
+  {
+   "round": 3,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 307,
+   "rmse": 2.7646352579009603
+  },
+  {
+   "round": 3,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 181,
+   "rmse": 2.1116929197529277
+  },
+  {
+   "round": 3,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 486,
+   "rmse": 2.9822743751859795
+  },
+  {
+   "round": 3,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 515,
+   "rmse": 2.8050138667092805
+  },
+  {
+   "round": 3,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 307,
+   "rmse": 2.8258056181917612
+  },
+  {
    "round": 4,
    "config": "A_epl_noform",
    "position": "GK",
@@ -279,14 +412,14 @@
    "config": "A_epl_noform",
    "position": "DEF",
    "n": 319,
-   "rmse": 2.799649554289667
+   "rmse": 2.7977347485764863
   },
   {
    "round": 4,
    "config": "A_epl_noform",
    "position": "MID",
    "n": 372,
-   "rmse": 2.9453233883605145
+   "rmse": 2.9445327344571166
   },
   {
    "round": 4,
@@ -307,14 +440,14 @@
    "config": "B_epl_form",
    "position": "DEF",
    "n": 319,
-   "rmse": 2.6289148053885287
+   "rmse": 2.6261441677473467
   },
   {
    "round": 4,
    "config": "B_epl_form",
    "position": "MID",
    "n": 372,
-   "rmse": 2.6172565582080836
+   "rmse": 2.615562363517263
   },
   {
    "round": 4,
@@ -335,14 +468,14 @@
    "config": "C_eplwc_form",
    "position": "DEF",
    "n": 319,
-   "rmse": 2.501703131462187
+   "rmse": 2.4990728314771067
   },
   {
    "round": 4,
    "config": "C_eplwc_form",
    "position": "MID",
    "n": 372,
-   "rmse": 2.398567271477818
+   "rmse": 2.3967869992247346
   },
   {
    "round": 4,
@@ -363,14 +496,14 @@
    "config": "D_eplwc_all",
    "position": "DEF",
    "n": 319,
-   "rmse": 2.4557425428503983
+   "rmse": 2.452797343726166
   },
   {
    "round": 4,
    "config": "D_eplwc_all",
    "position": "MID",
    "n": 372,
-   "rmse": 2.422610817089194
+   "rmse": 2.4205249894004814
   },
   {
    "round": 4,
@@ -378,6 +511,62 @@
    "position": "FWD",
    "n": 194,
    "rmse": 2.414004118085527
+  },
+  {
+   "round": 4,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 123,
+   "rmse": 1.2031090413555534
+  },
+  {
+   "round": 4,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 319,
+   "rmse": 2.5065405828129386
+  },
+  {
+   "round": 4,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 372,
+   "rmse": 2.282394451441441
+  },
+  {
+   "round": 4,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 194,
+   "rmse": 2.3250035334215466
+  },
+  {
+   "round": 4,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 123,
+   "rmse": 1.3433070278135817
+  },
+  {
+   "round": 4,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 319,
+   "rmse": 2.4036284397778966
+  },
+  {
+   "round": 4,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 372,
+   "rmse": 2.315290291743694
+  },
+  {
+   "round": 4,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 194,
+   "rmse": 2.288115203527243
   },
   {
    "round": 5,
@@ -447,14 +636,14 @@
    "config": "C_eplwc_form",
    "position": "DEF",
    "n": 166,
-   "rmse": 2.7009588819300725
+   "rmse": 2.739813467886512
   },
   {
    "round": 5,
    "config": "C_eplwc_form",
    "position": "MID",
    "n": 212,
-   "rmse": 2.7476172406889448
+   "rmse": 2.7545832242425075
   },
   {
    "round": 5,
@@ -475,14 +664,14 @@
    "config": "D_eplwc_all",
    "position": "DEF",
    "n": 166,
-   "rmse": 2.6897497193261453
+   "rmse": 2.7337203379714934
   },
   {
    "round": 5,
    "config": "D_eplwc_all",
    "position": "MID",
    "n": 212,
-   "rmse": 2.7371165232407924
+   "rmse": 2.7487615663195464
   },
   {
    "round": 5,
@@ -492,146 +681,440 @@
    "rmse": 2.1909156991248198
   },
   {
+   "round": 5,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 63,
+   "rmse": 1.7630550042978752
+  },
+  {
+   "round": 5,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 166,
+   "rmse": 2.603808634288909
+  },
+  {
+   "round": 5,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 212,
+   "rmse": 2.570985925296984
+  },
+  {
+   "round": 5,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 93,
+   "rmse": 2.1168439126803325
+  },
+  {
+   "round": 5,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 63,
+   "rmse": 1.8466754833352685
+  },
+  {
+   "round": 5,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 166,
+   "rmse": 2.6658596471083245
+  },
+  {
+   "round": 5,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 212,
+   "rmse": 2.6648949886349347
+  },
+  {
+   "round": 5,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 93,
+   "rmse": 2.1521216524093463
+  },
+  {
    "round": 6,
    "config": "A_epl_noform",
    "position": "GK",
-   "n": 9,
-   "rmse": 2.978859460632492
+   "n": 30,
+   "rmse": 3.040732621281342
   },
   {
    "round": 6,
    "config": "A_epl_noform",
    "position": "DEF",
-   "n": 23,
-   "rmse": 2.3131686306812766
+   "n": 84,
+   "rmse": 2.0598520054645535
   },
   {
    "round": 6,
    "config": "A_epl_noform",
    "position": "MID",
-   "n": 26,
-   "rmse": 3.0041349863367293
+   "n": 104,
+   "rmse": 2.956185397058649
   },
   {
    "round": 6,
    "config": "A_epl_noform",
    "position": "FWD",
-   "n": 14,
-   "rmse": 3.399004020136504
+   "n": 40,
+   "rmse": 3.1000624469965112
   },
   {
    "round": 6,
    "config": "B_epl_form",
    "position": "GK",
-   "n": 9,
-   "rmse": 2.6963721930952556
+   "n": 30,
+   "rmse": 2.5383696505112208
   },
   {
    "round": 6,
    "config": "B_epl_form",
    "position": "DEF",
-   "n": 23,
-   "rmse": 2.00504829170151
+   "n": 84,
+   "rmse": 1.8832447295552988
   },
   {
    "round": 6,
    "config": "B_epl_form",
    "position": "MID",
-   "n": 26,
-   "rmse": 2.588850391144425
+   "n": 104,
+   "rmse": 2.6269142742320493
   },
   {
    "round": 6,
    "config": "B_epl_form",
    "position": "FWD",
-   "n": 14,
-   "rmse": 2.853289550053949
+   "n": 40,
+   "rmse": 2.7149890409660626
   },
   {
    "round": 6,
    "config": "C_eplwc_form",
    "position": "GK",
-   "n": 9,
-   "rmse": 1.386658999814445
+   "n": 30,
+   "rmse": 1.2515562122893977
   },
   {
    "round": 6,
    "config": "C_eplwc_form",
    "position": "DEF",
-   "n": 23,
-   "rmse": 1.967461571554373
+   "n": 84,
+   "rmse": 1.7651350872848615
   },
   {
    "round": 6,
    "config": "C_eplwc_form",
    "position": "MID",
-   "n": 26,
-   "rmse": 2.236219233651007
+   "n": 104,
+   "rmse": 2.376814703217817
   },
   {
    "round": 6,
    "config": "C_eplwc_form",
    "position": "FWD",
-   "n": 14,
-   "rmse": 1.2473666652323225
+   "n": 40,
+   "rmse": 2.4584859701722688
   },
   {
    "round": 6,
    "config": "D_eplwc_all",
    "position": "GK",
-   "n": 9,
-   "rmse": 1.4327729596013319
+   "n": 30,
+   "rmse": 1.3778511432830955
   },
   {
    "round": 6,
    "config": "D_eplwc_all",
    "position": "DEF",
-   "n": 23,
-   "rmse": 1.802349929890377
+   "n": 84,
+   "rmse": 1.7634158070672676
   },
   {
    "round": 6,
    "config": "D_eplwc_all",
    "position": "MID",
-   "n": 26,
-   "rmse": 2.0765549036501296
+   "n": 104,
+   "rmse": 2.3700566181054117
   },
   {
    "round": 6,
    "config": "D_eplwc_all",
    "position": "FWD",
-   "n": 14,
-   "rmse": 1.10754487036265
+   "n": 40,
+   "rmse": 2.4594179458124668
+  },
+  {
+   "round": 6,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 30,
+   "rmse": 1.0434963831963622
+  },
+  {
+   "round": 6,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 84,
+   "rmse": 1.5417094569833385
+  },
+  {
+   "round": 6,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 104,
+   "rmse": 2.1828805558424613
+  },
+  {
+   "round": 6,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 40,
+   "rmse": 2.395897322812977
+  },
+  {
+   "round": 6,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 30,
+   "rmse": 1.2112076707193324
+  },
+  {
+   "round": 6,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 84,
+   "rmse": 1.6499664524927107
+  },
+  {
+   "round": 6,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 104,
+   "rmse": 2.2465285097003895
+  },
+  {
+   "round": 6,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 40,
+   "rmse": 2.6266427950122546
+  },
+  {
+   "round": 7,
+   "config": "A_epl_noform",
+   "position": "GK",
+   "n": 15,
+   "rmse": 3.3393706121163924
+  },
+  {
+   "round": 7,
+   "config": "A_epl_noform",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 3.0171523319227793
+  },
+  {
+   "round": 7,
+   "config": "A_epl_noform",
+   "position": "MID",
+   "n": 58,
+   "rmse": 2.8395820288585862
+  },
+  {
+   "round": 7,
+   "config": "A_epl_noform",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.9945548811808282
+  },
+  {
+   "round": 7,
+   "config": "B_epl_form",
+   "position": "GK",
+   "n": 15,
+   "rmse": 2.9894588879067054
+  },
+  {
+   "round": 7,
+   "config": "B_epl_form",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 2.75216730943438
+  },
+  {
+   "round": 7,
+   "config": "B_epl_form",
+   "position": "MID",
+   "n": 58,
+   "rmse": 2.5957134135153215
+  },
+  {
+   "round": 7,
+   "config": "B_epl_form",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.6627648378882083
+  },
+  {
+   "round": 7,
+   "config": "C_eplwc_form",
+   "position": "GK",
+   "n": 15,
+   "rmse": 1.9330798075188214
+  },
+  {
+   "round": 7,
+   "config": "C_eplwc_form",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 2.66530183312665
+  },
+  {
+   "round": 7,
+   "config": "C_eplwc_form",
+   "position": "MID",
+   "n": 58,
+   "rmse": 2.3139634788652312
+  },
+  {
+   "round": 7,
+   "config": "C_eplwc_form",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.63885991387476
+  },
+  {
+   "round": 7,
+   "config": "D_eplwc_all",
+   "position": "GK",
+   "n": 15,
+   "rmse": 1.9466493659636037
+  },
+  {
+   "round": 7,
+   "config": "D_eplwc_all",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 2.65595210326576
+  },
+  {
+   "round": 7,
+   "config": "D_eplwc_all",
+   "position": "MID",
+   "n": 58,
+   "rmse": 2.145251494406233
+  },
+  {
+   "round": 7,
+   "config": "D_eplwc_all",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.75855295971643
+  },
+  {
+   "round": 7,
+   "config": "E_eplwc_xg",
+   "position": "GK",
+   "n": 15,
+   "rmse": 1.7255211586506505
+  },
+  {
+   "round": 7,
+   "config": "E_eplwc_xg",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 2.410383895771522
+  },
+  {
+   "round": 7,
+   "config": "E_eplwc_xg",
+   "position": "MID",
+   "n": 58,
+   "rmse": 1.8912423247702923
+  },
+  {
+   "round": 7,
+   "config": "E_eplwc_xg",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.479965666059235
+  },
+  {
+   "round": 7,
+   "config": "F_eplwc_minutes",
+   "position": "GK",
+   "n": 15,
+   "rmse": 1.8644323748176064
+  },
+  {
+   "round": 7,
+   "config": "F_eplwc_minutes",
+   "position": "DEF",
+   "n": 44,
+   "rmse": 2.487929495167985
+  },
+  {
+   "round": 7,
+   "config": "F_eplwc_minutes",
+   "position": "MID",
+   "n": 58,
+   "rmse": 1.9346792019753625
+  },
+  {
+   "round": 7,
+   "config": "F_eplwc_minutes",
+   "position": "FWD",
+   "n": 17,
+   "rmse": 2.596408480879835
   }
  ],
  "pooled": {
   "A_epl_noform": {
-   "GK": 3.5172823488703924,
-   "DEF": 3.1216025458368315,
-   "MID": 3.0625373665688174,
-   "FWD": 3.1845417868649033,
-   "ALL": 3.164122455122843
+   "GK": 3.497913229297071,
+   "DEF": 3.081662640241034,
+   "MID": 3.050063709063823,
+   "FWD": 3.174535085266535,
+   "ALL": 3.1417422226825016
   },
   "B_epl_form": {
-   "GK": 3.3504675977031644,
-   "DEF": 2.9619104798688896,
-   "MID": 2.775610543622368,
-   "FWD": 2.9838099149203434,
-   "ALL": 2.9520532984037806
+   "GK": 3.314487699150754,
+   "DEF": 2.920394147371526,
+   "MID": 2.7637339124351956,
+   "FWD": 2.9695322406493987,
+   "ALL": 2.925717064510463
   },
   "C_eplwc_form": {
-   "GK": 2.4496327682638928,
-   "DEF": 2.8891542074346037,
-   "MID": 2.6398990298608602,
-   "FWD": 2.7571751178302795,
-   "ALL": 2.724316922955283
+   "GK": 2.4043694880564592,
+   "DEF": 2.8495422057272934,
+   "MID": 2.6211931305945364,
+   "FWD": 2.759346893132621,
+   "ALL": 2.6994783051516125
   },
   "D_eplwc_all": {
-   "GK": 2.4446696968639245,
-   "DEF": 2.8769792891676325,
-   "MID": 2.6585438184621677,
-   "FWD": 2.7997750922933062,
-   "ALL": 2.7347361105854078
+   "GK": 2.402984602013426,
+   "DEF": 2.8397609212142303,
+   "MID": 2.635950066748192,
+   "FWD": 2.8029561175164543,
+   "ALL": 2.7099411739338697
+  },
+  "E_eplwc_xg": {
+   "GK": 2.2754138983200853,
+   "DEF": 2.8364816368663197,
+   "MID": 2.5296864359992703,
+   "FWD": 2.738734836762272,
+   "ALL": 2.64534361853765
+  },
+  "F_eplwc_minutes": {
+   "GK": 2.383399955522524,
+   "DEF": 2.8322438372437664,
+   "MID": 2.58781573495397,
+   "FWD": 2.7657357121033797,
+   "ALL": 2.6809270398670138
   }
  }
 }

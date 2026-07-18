@@ -224,6 +224,11 @@ def build_training_table(player_gameweek: pd.DataFrame) -> pd.DataFrame:
 
     df = _attach_team_elo_diff(df)
 
+    # Real-xG form exists only for WC rows (external.wc2026_dataset); EPL
+    # training rows carry NaN so LightGBM learns a missing-value branch.
+    df["team_xg_form_real"] = float("nan")
+    df["team_xga_form_real"] = float("nan")
+
     df["target"] = df["total_points"].astype(int)
     return df.reset_index(drop=True)
 

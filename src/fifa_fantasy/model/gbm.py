@@ -42,7 +42,7 @@ QUANTILES = {"q10": 0.10, "q50": 0.50, "q90": 0.90}
 # apart from current v2 results (three seasons, tuned hyperparameters).
 # Bump this any time the training data or hyperparameters change in a
 # way that changes the squad picks.
-GBM_VERSION = "v3form"
+GBM_VERSION = "v4xg"
 
 FEATURE_COLUMNS = [
     "price_millions",
@@ -58,6 +58,15 @@ FEATURE_COLUMNS = [
     # cheap player (or an out-of-form premium) was mispriced. See
     # training/features.add_lagged_form and docs section 11f.
     "form_lag",
+    # Real team xG for/against trailing form from the mominullptr WC-2026
+    # dataset (external.wc2026_dataset.team_xg_form). Config E in
+    # scripts/wc_forward_validation.py: improved the leak-free WC
+    # walk-forward RMSE at every position, pooled 2.699 -> 2.645 over
+    # holdout rounds 2-7. NaN for EPL training rows (the dataset is
+    # WC-only) and for any environment where the dataset is not fetched;
+    # LightGBM handles the missing values natively.
+    "team_xg_form_real",
+    "team_xga_form_real",
     # start_rate_lag and team_gc_form were tested as GBM features (config D
     # in scripts/wc_forward_validation.py). Both regressed the leak-free WC
     # walk-forward RMSE at every position (pooled 3.281 -> 3.307): the WC

@@ -16,7 +16,27 @@ same holdout, so the comparison is clean:
 
     A  epl_noform    EPL only,  features without form_lag   (the shipped v2)
     B  epl_form      EPL only,  features with form_lag
-    C  eplwc_form    EPL + WC(<k), features with form_lag   (the candidate)
+    C  eplwc_form    EPL + WC(<k), features with form_lag   (the deployed v3)
+    D  eplwc_all     C plus proxy start_rate_lag + team_gc_form (negative:
+                     regressed pooled 3.281 -> 3.307; kept for the record)
+    E  eplwc_xg      C plus REAL team xG for/against form from the
+                     mominullptr WC-2026 dataset (external.wc2026_dataset)
+    F  eplwc_minutes C plus REAL start rate and minutes share from the
+                     same dataset's lineups (tests whether real starts fix
+                     what D's points>0 participation proxy could not)
+
+The E/F columns exist only for WC rows; they are injected as NaN into the
+EPL frame (LightGBM handles missing natively) because the EPL prior is
+worth ~0.23 pooled RMSE (A vs C) and a WC-only config would discard it.
+Player market value was considered and rejected without a config: it is
+nearly collinear with price_millions, the failure mode that already
+killed the team_elo_diff candidate.
+
+Deploy rule (config X vs C, evaluated fresh on the same run): deploy iff
+pooled ALL RMSE(X) <= RMSE(C) - 0.01 and X regresses C at no more than
+one position. Never deploy an untested union of configs. Freeze: no
+deployment after Friday 2026-07-17 EOD (last transfer deadline is the
+next day); margins under 0.02 do not justify a deploy that close.
 
 Output: per-round, per-position RMSE for each configuration, then the
 pooled RMSE across all held-out rounds. Lower is better.
@@ -36,6 +56,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
+from fifa_fantasy.external import wc2026_dataset
 from fifa_fantasy.model.gbm import HEADS, POSITIONS, QUANTILES, TrainConfig, _shared_params
 from fifa_fantasy.training.features import build_training_table
 from fifa_fantasy.training.wc import extract_wc_training_rows
@@ -51,6 +72,11 @@ BASE_FEATURES = [
 ]
 FORM_FEATURES = BASE_FEATURES + ["form_lag"]
 ALL_FEATURES = FORM_FEATURES + ["start_rate_lag", "team_gc_form"]
+XG_FEATURES = FORM_FEATURES + ["team_xg_form_real", "team_xga_form_real"]
+MINUTES_FEATURES = FORM_FEATURES + ["real_start_rate_lag",
+                                    "minutes_share_lag"]
+EXTERNAL_FEATURES = ["team_xg_form_real", "team_xga_form_real",
+                     "real_start_rate_lag", "minutes_share_lag"]
 
 
 def _train_mean_head(train_df: pd.DataFrame, position: str,
@@ -91,6 +117,21 @@ def run(out_path: Path | None = DEFAULT_OUT) -> dict:
     wc = extract_wc_training_rows()       # has form_lag + target + gameweek
     if wc.empty:
         raise SystemExit("no completed WC rounds yet")
+
+    # xG form arrives on the WC rows via extract_wc_training_rows (the
+    # deployed config E path); the lineup features are merged here only.
+    starts = wc2026_dataset.player_start_features()
+    wc = wc.merge(starts, left_on=["player_id", "gameweek"],
+                  right_on=["player_id", "round_id"], how="left",
+                  suffixes=("", "_ps"))
+    cov = {c: float(wc[c].notna().mean()) for c in EXTERNAL_FEATURES}
+    print("external feature coverage on WC rows: "
+          + ", ".join(f"{c}={v:.0%}" for c, v in cov.items()))
+    # NaN-inject into EPL BEFORE the `common` intersection, or these
+    # WC-only columns are silently dropped from every config.
+    for c in EXTERNAL_FEATURES:
+        epl[c] = np.nan
+
     rounds = sorted(int(r) for r in wc["gameweek"].unique())
     holdout_rounds = [k for k in rounds if k >= 2]
     print(f"WC rounds present: {rounds}; validating on {holdout_rounds}")
@@ -100,6 +141,8 @@ def run(out_path: Path | None = DEFAULT_OUT) -> dict:
         "B_epl_form": (FORM_FEATURES, False),
         "C_eplwc_form": (FORM_FEATURES, True),
         "D_eplwc_all": (ALL_FEATURES, True),
+        "E_eplwc_xg": (XG_FEATURES, True),
+        "F_eplwc_minutes": (MINUTES_FEATURES, True),
     }
     # Accumulate squared errors per (config, position) for a pooled RMSE.
     pooled: dict[str, dict[str, list[np.ndarray]]] = {

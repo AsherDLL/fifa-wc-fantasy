@@ -123,4 +123,17 @@ def extract_wc_training_rows(
                 "target": int(pts),
                 "source": "wc",
             })
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    # Real-xG trailing form per (country, round) from the community WC
+    # dataset; leak-free by construction, NaN wherever not fetched.
+    from fifa_fantasy.external.wc2026_dataset import team_xg_form
+    xg = team_xg_form(raw_dir=raw_dir)
+    if xg.empty:
+        df["team_xg_form_real"] = float("nan")
+        df["team_xga_form_real"] = float("nan")
+        return df
+    return df.merge(
+        xg.drop(columns=["squad_id"]).rename(columns={"round_id": "gameweek"}),
+        on=["country", "gameweek"], how="left")

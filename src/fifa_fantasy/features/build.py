@@ -78,6 +78,22 @@ def flatten_fixtures(fixtures: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([home, away], ignore_index=True)
 
 
+def _attach_team_xg_form(grid: pd.DataFrame,
+                         team_xg: pd.DataFrame | None) -> pd.DataFrame:
+    """Attach real-xG trailing form per (squad_id, round_id).
+
+    `team_xg` is external.wc2026_dataset.team_xg_form() output, already
+    leak-free per round. None / empty leaves both columns NaN, which the
+    GBM's native missing-value handling absorbs.
+    """
+    if team_xg is None or team_xg.empty:
+        grid["team_xg_form_real"] = pd.NA
+        grid["team_xga_form_real"] = pd.NA
+        return grid
+    cols = ["squad_id", "round_id", "team_xg_form_real", "team_xga_form_real"]
+    return grid.merge(team_xg[cols], on=["squad_id", "round_id"], how="left")
+
+
 def _attach_rest_days(grid: pd.DataFrame) -> pd.DataFrame:
     """Compute days_since_prev_match and days_to_next_match per (squad, round).
 
@@ -357,6 +373,7 @@ def build_player_round_features(
     squad_strength: pd.DataFrame,
     country_elo: pd.DataFrame | None = None,
     team_news: pd.DataFrame | None = None,
+    team_xg: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Return one row per (player, upcoming round in which their squad plays).
 
@@ -367,6 +384,12 @@ def build_player_round_features(
     `external.international_elo.load()` after country-name normalization.
     When supplied, the grid gets `country_elo`, `opp_country_elo`,
     `country_elo_diff`, and the last-10 form columns. None / empty is fine.
+
+    `team_xg` is the optional output of
+    `external.wc2026_dataset.team_xg_form()`: leak-free real-xG trailing
+    form per (squad_id, round_id). When supplied, the grid gets
+    `team_xg_form_real` and `team_xga_form_real` (config E of the GBM);
+    None / empty leaves them NaN.
     """
     fix_long = flatten_fixtures(fixtures)
 
@@ -391,6 +414,7 @@ def build_player_round_features(
     grid = _attach_form_lag(grid)
     grid = _attach_start_rate_lag(grid)
     grid = _attach_team_gc_form(grid, fixtures)
+    grid = _attach_team_xg_form(grid, team_xg)
     grid = _attach_rest_days(grid)
     if "_rp_padded" in grid.columns:
         grid = grid.drop(columns=["_rp_padded"])

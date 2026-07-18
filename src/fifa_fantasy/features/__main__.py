@@ -28,6 +28,7 @@ from fifa_fantasy.external.team_news.store import (
     DEFAULT_DIR as TEAM_NEWS_DIR,
     load_latest as load_latest_team_news,
 )
+from fifa_fantasy.external.wc2026_dataset import team_xg_form
 
 from .build import build_player_round_features
 from .squad import squad_strength
@@ -70,10 +71,12 @@ def main() -> None:
 
     strength = squad_strength(players, squads, rankings=rankings)
     team_news = load_latest_team_news(args.team_news_dir)
+    team_xg = team_xg_form(raw_dir=args.raw_dir)
     features = build_player_round_features(
         players, fixtures, strength,
         country_elo=country_elo,
         team_news=team_news if not team_news.empty else None,
+        team_xg=team_xg if not team_xg.empty else None,
     )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
