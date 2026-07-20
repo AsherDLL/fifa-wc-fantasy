@@ -37,9 +37,13 @@ content. The rule values below are restated in code-aligned form in
   minute during the matchday, your Vice-Captain will score double
   points instead." The vice-captain doubling applies only if no manual
   changes were made during the live round.
-- During a live round the captain may be changed to a player whose
-  match has not started, once the previous captain's match is
-  complete; the old captain's double is then forfeited.
+- Captaincy locking, operator-verified in the live app (2026-07-18/19,
+  round 8): once a player has played or is playing, the armband CANNOT
+  be moved off them. The captaincy is effectively committed at the
+  captain's own kickoff. (The in-game help wording had suggested a
+  switch was possible "once the previous captain's match is complete";
+  the app does not allow it. The live captain-switch tooling built on
+  the help wording is therefore pre-round-playbook only.)
 
 ## Substitutions
 

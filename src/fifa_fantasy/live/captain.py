@@ -11,6 +11,12 @@ Two modes share the same EV math:
 Rule (from docs/Fantasy.md): a captain can only be switched to a player
 whose match has not started, and only when the current captain's match is
 not in progress. Switching forfeits the doubling on the current captain.
+
+CAVEAT, operator-verified in round 8 (2026-07-18/19): the live app does
+NOT actually allow moving the armband off a player who has played or is
+playing, despite the help-page wording above. The live "stick or switch"
+mode is therefore unusable in practice; only the pre-round playbook
+(choosing the initial captain with kickoff order in mind) retains value.
 """
 
 from __future__ import annotations
