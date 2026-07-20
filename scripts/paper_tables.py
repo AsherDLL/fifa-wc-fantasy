@@ -67,6 +67,8 @@ HISTORICAL_MACROS: list[tuple[str, str]] = [
     ("TruncationShareQf", "49\\%"),
     ("MarketEloCorr", "0.89"),
     ("GlobalRankSF", "1{,}153{,}720"),
+    ("GlobalRankFinal", "905{,}675"),
+    ("FinalRoundNet", "95"),
     ("PartLowMean", "1.67"), ("PartLowBlank", "36\\%"), ("PartLowN", "613"),
     ("PartMidMean", "2.50"), ("PartMidBlank", "19\\%"),
     ("PartHighMean", "3.07"), ("PartHighBlank", "13\\%"),

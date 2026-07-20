@@ -81,6 +81,11 @@ ROUND_PLAN = [
     # SF complete (realised scores at index 6). Same check: the 07-13
     # snapshot's max round_points length is 6 and it covers all 4 SF squads.
     (7, "features_2026-07-13.parquet", "players_2026-07-17.parquet", Stage.SF),
+    # FINAL round (bronze + final, both score). The 07-18 snapshot was
+    # built pre-round (max round_points length 7, both round-8 fixtures
+    # scheduled); realised scores at index 7 from the post-final pull.
+    # Note: raw API round points exclude booster bonuses.
+    (8, "features_2026-07-18.parquet", "players_2026-07-19.parquet", Stage.FINAL),
 ]
 
 BACKENDS = ("heuristic", "heuristic_v2", "poisson", "gbm", "monte_carlo", "ensemble")

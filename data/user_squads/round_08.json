@@ -1,0 +1,29 @@
+{
+  "round_id": 8,
+  "stage": "FINAL",
+  "squad_player_ids": [1099, 910, 1086, 1088, 1089, 1320, 1085, 474, 56, 517, 501, 1082, 38, 500, 468],
+  "starter_ids":     [1099, 1086, 1088, 1089, 1085, 1320, 1082, 56, 501, 38, 500],
+  "captain_id": 500,
+  "vice_captain_id": 38,
+  "formation": "5-3-2",
+  "transfer_cost_points": 0,
+  "realised_total_pts": 95,
+  "notes": "Round 8 covered both the third-place match (France 4-6 England) and the final (Spain 1-0 Argentina). Static commitment: the app locks any player who has played or is playing, so no mid-round captaincy or XI changes were possible; the operator committed a 5-3-2 before the bronze kickoff, benching Kane (rotation read: correct, Kane never played) and starting Medina over a fourth midfielder. Qualification Booster active: +2 to each of the six Spain starters after the 1-0 final win (+12 total). Captain Mbappe returned 17 raw (bronze hat-trick + appearance) doubled to 34 despite France losing. Olise (10, started and scored in the bronze) sat on the bench per the model-guided XI, the round's one clear miss. Recorded in-app net total 95 reconciles exactly with API round points plus booster. Season closed on 513 net points; final global rank 905,675 (from 1,153,720 after the semifinals).",
+  "player_names": {
+    "1099": "Unai Simon (ESP GK)",
+    "910": "Orlando Gill (PAR GK BENCH, eliminated)",
+    "1086": "Aymeric Laporte (ESP DEF)",
+    "1088": "Marc Cucurella (ESP DEF)",
+    "1089": "Pau Cubarsi (ESP DEF)",
+    "1085": "Pedro Porro (ESP DEF)",
+    "1320": "Facundo Medina (ARG DEF)",
+    "1082": "Alex Baena (ESP MID)",
+    "56": "Alexis Mac Allister (ARG MID)",
+    "501": "Ousmane Dembele (FRA MID)",
+    "517": "Michael Olise (FRA MID BENCH)",
+    "474": "Anthony Gordon (ENG MID BENCH)",
+    "38": "Lionel Messi (ARG FWD VICE)",
+    "500": "Kylian Mbappe (FRA FWD CAPTAIN)",
+    "468": "Harry Kane (ENG FWD BENCH)"
+  }
+}
