@@ -154,8 +154,9 @@ and the captain, whose doubled score was 2. The two Spain defenders
 digits, and the Shield converted Argentina's single goal conceded
 into one extra point for Mac~Allister, reconciling the recorded 37
 with the 36 an id-based rescore produces. The backend replays fared
-little better (ensemble 37, GBM 59), a reminder that a two-match
-round is close to a coin flip. After the semi-finals the entry stood
+little better (ensemble 37, GBM 59); with only two fixtures, a
+semi-final round's realized total carries high variance under any
+selection policy. After the semi-finals the entry stood
 at \GlobalRankSF{} in the global game, on 418 points net across the
 seven completed rounds.
 \paragraph{Final round.}
@@ -174,20 +175,21 @@ wording (the rules transcription and the live tooling have been
 corrected accordingly); the operator therefore committed a static
 5--3--2 before the bronze kickoff, benching Kane on a rotation read
 and starting a fifth defender. Both calls at the operator's
-discretion proved right: Kane never played, and the model's one
-clear miss was leaving Olise (10 points, started and scored) on the
-bench of the model-guided eleven. The matches themselves split the
-forecaster's scorecard: the final went to the modal outcome (Spain
-1--0, forecast 54\%), while the bronze produced the tournament's
-wildest scoreline, England 6--4 over the 59\%-favoured France -- a
-miss, though Mbapp\'e's hat-trick within the loss returned 17 raw
-points, doubled to 34 as captain, the entry's largest single return
-of the tournament. The round realised \FinalRoundNet{} points net,
-the entry's best of all eight: the six Spain starters banked the
-clean sheet plus the booster's twelve, and the season closed at
-\TotalUserActualNet{} net points and global rank \GlobalRankFinal{},
-up from \GlobalRankSF{} after the semi-finals -- roughly a
-quarter-million places gained on the final round alone.
+discretion were correct: Kane never played, and the model's one
+clear error was the omission of Olise (10 points, started and
+scored) from the model-guided eleven. The forecaster's record on
+the two matches was one correct call and one miss: the final
+matched the modal forecast outcome (Spain 1--0, forecast 54\%),
+while the bronze ended England 6--4 over
+the 59\%-favoured France, the highest-scoring match of the
+tournament and a forecast miss, though Mbapp\'e's hat-trick within
+the loss returned 17 raw points, doubled to 34 as captain, the
+entry's largest single return of the tournament. The round realised \FinalRoundNet{} points net,
+the entry's highest of the eight rounds: the six Spain starters
+returned the clean sheet plus the booster's twelve points, and the
+season closed at \TotalUserActualNet{} net points and global rank
+\GlobalRankFinal{}, an improvement of approximately 250{,}000
+places from \GlobalRankSF{} after the semi-finals.
 
 \subsection{Cross-model findings}
 \label{sec:live-findings}

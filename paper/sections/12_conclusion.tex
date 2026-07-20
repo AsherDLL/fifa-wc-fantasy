@@ -38,22 +38,21 @@ lessons is specific to this World Cup; they are lessons about small
 samples, about anchoring on sentiment, and about the discipline of
 validating every change on data the model has never seen.
 
-The final round is a fitting closing exhibit for the collaboration
-this paper documents, because credit divides cleanly. The model
-supplied the structure: the transfer plan into the eventual
-champion's defensive block, the booster selection, and the captain
-whose doubled hat-trick was the entry's largest single return. The
-operator supplied the corrections the model could not see: the
-insight that only one goalkeeper can score per round (adopted into
-the optimizer's objective the same day), the rotation read that
-benched a forward who never played, and the discovery that the app
-locks the captaincy at kickoff, which forced a static commitment
-the tooling had modelled as flexible. The model's one clear miss --
-a ten-point scorer left on the bench of the model-guided eleven --
-belongs in the ledger next to the overrides it got right, as does
-the season-long pattern that the entry's best rounds were the ones
-where model and operator agreed. The complete system, the frozen
-data snapshots behind every table, and the round-by-round decision
-log with realized outcomes are released as open source, so that the
-next attempt at this problem can start where this one finished
-rather than where it began.
+The final round illustrates the division of labour that the
+tournament record as a whole supports. The model contributed the
+structural decisions: the transfer plan into the eventual champion's
+defensive block, the booster selection, and the captain choice that
+produced the largest single return of the entry's tournament. The
+operator contributed corrections outside the model's observation
+set: the single-scoring-goalkeeper constraint, subsequently
+incorporated into the optimizer objective; the rotation assessment
+that excluded a forward who did not play; and the identification of
+the application's captaincy-locking behaviour, which invalidated an
+assumption in the live tooling. The model's principal error in the
+round, the omission of a ten-point scorer from the recommended
+eleven, is recorded alongside these outcomes, as is the season-level
+observation that the entry's highest-scoring rounds coincided with
+agreement between the model recommendation and operator judgement.
+The complete system, the frozen data snapshots underlying every
+table, and the round-by-round decision log with realized outcomes
+are publicly released to support replication and extension.

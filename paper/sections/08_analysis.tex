@@ -342,7 +342,7 @@ additionally hard-capped at \ForecastMarketCap{}.
 
 Table~\ref{tab:forecaster-skill} and
 Figure~\ref{fig:forecast-skill} show the result, which is the
-sharpest finding of the audit. On 78 held-out matches the Elo
+principal finding of the audit. On 78 held-out matches the Elo
 component dominates the 90-minute outcome (RPS \ForecastEloRps{}
 against \ForecastDcRps{} for Dixon--Coles, \ForecastXgRps{} for the
 xG model, and \ForecastUniformRps{} for the uniform baseline): a
@@ -357,9 +357,10 @@ reject no component at conventional levels, so the differences are
 skill, not calibration artifacts. The practical conclusion mirrors
 the Benter-combiner negative result of
 Section~\ref{sec:negative-results} from the opposite direction:
-market prices earned a minority voice in our final-round planning,
-not a veto, and the earlier half-and-half anchoring overweighted
-them by roughly a factor of two.
+market prices received a minority weight in our final-round
+planning rather than an anchoring role, and the earlier
+half-and-half blend had overweighted them by roughly a factor of
+two.
 
 \begin{figure}[t]
   \centering
