@@ -4,14 +4,14 @@
 % Final numbers land after the 2026-07-19 final; the two remaining
 % placeholders are the only edits this section still needs.
 
-We set out to answer a practical question: how much of a fantasy
-football tournament can be handled by models that are built, validated,
-and revised while the tournament is running? The system that emerged --
-three complementary point-prediction backends routed per position by
-held-out error, a mixed-integer squad and transfer optimizer that now
+This paper examined how much of a fantasy football tournament can be
+handled by models that are built, validated, and revised while the
+tournament is running. The deployed system comprised three
+complementary point-prediction backends routed per position by
+held-out error, a mixed-integer squad and transfer optimizer that
 prices captaincy ceiling, availability, and the backup-goalkeeper
-asymmetry, and a live decision layer audited round by round against its
-own recommendations -- answered most of it. Across the seven rounds
+asymmetry, and a live decision layer audited round by round against
+its own recommendations. Across the seven rounds
 completed before the final, every backend beat a constraint-valid
 random baseline by a wide margin (\TotalGbm{} points for the strongest
 backend and \TotalEnsemble{} for the production ensemble against
@@ -40,15 +40,15 @@ validating every change on data the model has never seen.
 
 The final round illustrates the division of labour that the
 tournament record as a whole supports. The model contributed the
-structural decisions: the transfer plan into the eventual champion's
-defensive block, the booster selection, and the captain choice that
-produced the largest single return of the entry's tournament. The
-operator contributed corrections outside the model's observation
-set: the single-scoring-goalkeeper constraint, subsequently
-incorporated into the optimizer objective; the rotation assessment
-that excluded a forward who did not play; and the identification of
-the application's captaincy-locking behaviour, which invalidated an
-assumption in the live tooling. The model's principal error in the
+transfer plan into the eventual champion's defensive block, the
+booster selection, and the captain choice that produced the largest
+single return of the entry's tournament. The operator contributed
+three corrections that lay outside the model's observation set. The
+single-scoring-goalkeeper constraint was subsequently incorporated
+into the optimizer objective; the rotation assessment excluded a
+forward who did not play; and the identification of the
+application's captaincy-locking behaviour invalidated an assumption
+in the live tooling. The model's principal error in the
 round, the omission of a ten-point scorer from the recommended
 eleven, is recorded alongside these outcomes, as is the season-level
 observation that the entry's highest-scoring rounds coincided with

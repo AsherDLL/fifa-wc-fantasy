@@ -45,9 +45,9 @@ World Cup 2026 fantasy game, combining three expected-points backends
 gradient-boosted tree model trained on club data), a per-position
 ensemble, a mixed-integer squad optimizer, and a live decision layer,
 all developed and validated during the tournament itself. Validation
-is leak-free throughout: every model change faced a walk-forward gate
-on realized tournament rounds before deployment, and we report the
-failures alongside the successes. Across the seven completed rounds
+is leak-free throughout, in that every model change faced a
+walk-forward gate on realized tournament rounds before deployment,
+and we report the failures alongside the successes. Across the seven completed rounds
 the backends replayed on frozen pre-round data scored between
 \TotalPoisson{} and \TotalGbm{} points against a random-squad
 baseline mean of \TotalRandomBaselineMean{}, and a skill audit of
