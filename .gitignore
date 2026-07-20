@@ -81,6 +81,25 @@ results/report/
 # whitepaper's empirical Benter combiner training data).
 !data/external/prediction_markets/
 
+# Knockout replay snapshots: inputs of the rounds 5-8 backtest
+# (scripts/model_backtest.py ROUND_PLAN; whitepaper live-results tables).
+!data/processed/features_2026-07-03.parquet
+!data/processed/features_2026-07-08.parquet
+!data/processed/features_2026-07-13.parquet
+!data/processed/features_2026-07-18.parquet
+!data/raw/players_2026-07-04.parquet
+!data/raw/squads_2026-07-04.parquet
+!data/raw/fixtures_2026-07-04.parquet
+!data/raw/players_2026-07-08.parquet
+!data/raw/squads_2026-07-08.parquet
+!data/raw/fixtures_2026-07-08.parquet
+!data/raw/players_2026-07-17.parquet
+!data/raw/squads_2026-07-17.parquet
+!data/raw/fixtures_2026-07-17.parquet
+!data/raw/players_2026-07-19.parquet
+!data/raw/squads_2026-07-19.parquet
+!data/raw/fixtures_2026-07-19.parquet
+
 # Semifinal decision-point snapshot: inputs of the registered pick comparison
 # (data/evaluation/sf_pick_comparison.json), re-runnable via
 # scripts/sf_joint_analysis.py --compare (whitepaper section 05d).
