@@ -17,9 +17,10 @@ random baseline by a wide margin (\TotalGbm{} points for the strongest
 backend and \TotalEnsemble{} for the production ensemble against
 \TotalRandomBaselineMean{} for chance), and the human-plus-model entry
 scored \TotalUserActualNet{} net points while paying real transfer
-costs the replays do not. \POSTFINAL{One sentence completing the record
-with the final round: closing cumulative totals and the entry's final
-global rank.}
+costs the replays do not. The record closed with the entry's best
+round of the tournament, \FinalRoundNet{} points on the locked
+final-round plan, lifting it to global rank \GlobalRankFinal{}
+among the game's worldwide entries.
 
 The negative results are, we believe, the most transferable part of
 the record. A six-component upgrade lost to the baseline it meant to
@@ -37,8 +38,22 @@ lessons is specific to this World Cup; they are lessons about small
 samples, about anchoring on sentiment, and about the discipline of
 validating every change on data the model has never seen.
 
-\POSTFINAL{Closing paragraph after the final: the realized outcome of
-the locked final-round plan, an honest assessment of the human
-overrides against the model recommendations across the tournament, and
-the open-source release of the complete system, data, and decision
-record.}
+The final round is a fitting closing exhibit for the collaboration
+this paper documents, because credit divides cleanly. The model
+supplied the structure: the transfer plan into the eventual
+champion's defensive block, the booster selection, and the captain
+whose doubled hat-trick was the entry's largest single return. The
+operator supplied the corrections the model could not see: the
+insight that only one goalkeeper can score per round (adopted into
+the optimizer's objective the same day), the rotation read that
+benched a forward who never played, and the discovery that the app
+locks the captaincy at kickoff, which forced a static commitment
+the tooling had modelled as flexible. The model's one clear miss --
+a ten-point scorer left on the bench of the model-guided eleven --
+belongs in the ledger next to the overrides it got right, as does
+the season-long pattern that the entry's best rounds were the ones
+where model and operator agreed. The complete system, the frozen
+data snapshots behind every table, and the round-by-round decision
+log with realized outcomes are released as open source, so that the
+next attempt at this problem can start where this one finished
+rather than where it began.

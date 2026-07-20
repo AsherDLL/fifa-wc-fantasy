@@ -18,7 +18,6 @@
 
 % Post-final placeholder: visible in the PDF, greppable, release-gated
 % by `make final-check`.
-\newcommand{\POSTFINAL}[1]{\textcolor{red}{\textbf{[POST-FINAL: #1]}}}
 % Provenance line at the end of every data-driven caption.
 \newcommand{\figsource}[1]{\\{\footnotesize Source: \texttt{#1}}}
 
@@ -54,10 +53,14 @@ the backends replayed on frozen pre-round data scored between
 baseline mean of \TotalRandomBaselineMean{}, and a skill audit of
 match-level forecasting found prediction-market prices losing to a
 simple Elo rating out of sample, earning the market a capped minority
-weight rather than the anchoring role it is usually given.
-\POSTFINAL{final results sentence: closing cumulative totals, the
-entry's final global rank, and the realized outcome of the locked
-final-round plan}
+weight rather than the anchoring role it is usually given. The live
+entry closed on \TotalUserActualNet{} net points and global rank
+\GlobalRankFinal{}, saving its best round for last: the locked
+final-round plan, six-strong in the eventual champion's defence with
+the qualification booster active, returned \FinalRoundNet{} points
+and gained roughly a quarter-million global ranks in a single round.
+The complete system, data snapshots, and decision log are released
+as open source.
 \end{abstract}
 
 \input{sections/01_introduction}

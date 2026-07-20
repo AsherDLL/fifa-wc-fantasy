@@ -158,10 +158,36 @@ little better (ensemble 37, GBM 59), a reminder that a two-match
 round is close to a coin flip. After the semi-finals the entry stood
 at \GlobalRankSF{} in the global game, on 418 points net across the
 seven completed rounds.
-\POSTFINAL{Final-round decision narrative (locked plan: six
-transfers to a Spain block, Mbapp\'e captain with the in-round
-switch protocol, Qualification Booster) and its realised outcome,
-plus the closing global rank.}
+\paragraph{Final round.}
+Round 8 covered both closing matches (the third-place match and the
+final), and the deadline was the bronze kickoff, so the round was
+planned as a whole. The locked plan moved five transfers into the
+eventual champion's block -- Sim\'on, Porro, Cubars\'i, and Baena
+joined Laporte and Cucurella for six Spain starters -- with the
+Qualification Booster active and Mbapp\'e captaining the bronze
+match. One further slot went to a second England midfielder as
+bronze-game cover, a buy the model rated below its Spain
+alternatives and that returned nothing. A planned mid-round armband switch to Messi had to be
+abandoned when live play established that the app locks the
+captaincy at the captain's own kickoff, contrary to the help-page
+wording (the rules transcription and the live tooling have been
+corrected accordingly); the operator therefore committed a static
+5--3--2 before the bronze kickoff, benching Kane on a rotation read
+and starting a fifth defender. Both calls at the operator's
+discretion proved right: Kane never played, and the model's one
+clear miss was leaving Olise (10 points, started and scored) on the
+bench of the model-guided eleven. The matches themselves split the
+forecaster's scorecard: the final went to the modal outcome (Spain
+1--0, forecast 54\%), while the bronze produced the tournament's
+wildest scoreline, England 6--4 over the 59\%-favoured France -- a
+miss, though Mbapp\'e's hat-trick within the loss returned 17 raw
+points, doubled to 34 as captain, the entry's largest single return
+of the tournament. The round realised \FinalRoundNet{} points net,
+the entry's best of all eight: the six Spain starters banked the
+clean sheet plus the booster's twelve, and the season closed at
+\TotalUserActualNet{} net points and global rank \GlobalRankFinal{},
+up from \GlobalRankSF{} after the semi-finals -- roughly a
+quarter-million places gained on the final round alone.
 
 \subsection{Cross-model findings}
 \label{sec:live-findings}
@@ -202,8 +228,20 @@ domain judgement (the Olise captaincy, the Pacho pick, the rotation
 flags), while the rounds that went poorly weighted one signal over
 the other. Table~\ref{tab:season-summary} tracks this round by
 round against the official ensemble recommendation.
-\POSTFINAL{final cumulative leaderboard and headline comparison
-after the Final}
+
+The closing leaderboard over all eight rounds reads: GBM
+\TotalGbm{}, ensemble \TotalEnsemble{}, heuristic~v2
+\TotalHeuristicVTwo{}, the actual entry \TotalUserActualNet{} net,
+Monte Carlo \TotalMonteCarlo{}, heuristic \TotalHeuristic{}, Poisson
+\TotalPoisson{}, random baseline \TotalRandomBaselineMean{}. The
+headline comparison is unchanged from mid-tournament but now
+complete: the strongest learned backend beats the deployed hybrid
+entry under unlimited free transfers, the hybrid entry beats half
+the backend field while paying real transfer costs, and everything
+beats chance by a factor of three or more. The entry's strongest
+rounds (Matchday~2's 84 and the final's \FinalRoundNet{}) were
+precisely the rounds where model recommendations and domain
+judgement pointed the same way.
 
 \begin{table}[t]
   \centering

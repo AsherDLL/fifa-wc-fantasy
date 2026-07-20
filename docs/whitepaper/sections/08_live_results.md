@@ -134,10 +134,20 @@ Shield converted Argentina's single concession into +1 on Mac Allister
 also 37; GBM 59. After the SF the entry stood at global rank 1,153,720
 with 418 net points over seven rounds.
 
-**Final.** Locked plan (data/evaluation/final_pick_decision.json): six
-transfers to a Spain block, captain Mbappe with the in-round switch
-protocol to Messi, Qualification Booster. Realised result: [PENDING -
-after the 2026-07-19 final].
+**Final (95 net, best round of the tournament).** Round 8 covered both
+the bronze (France 4-6 England) and the final (Spain 1-0 Argentina).
+The operator moved five transfers into the champion's block (Simon,
+Porro, Cubarsi, Baena joined Laporte and Cucurella: six Spain starters)
+with the Qualification Booster active and Mbappe captain. The planned
+in-round armband switch proved IMPOSSIBLE: the app locks the captaincy
+at the captain's own kickoff, contrary to the help-page wording (rules
+transcription and live tooling corrected). Static 5-3-2 committed
+pre-bronze; Kane benched on a rotation read (correct: 0 minutes). Spain
+starters banked 7 each plus the booster's +2 (54 combined incl. Baena's
+5); Mbappe's bronze hat-trick returned 17 raw, 34 doubled; the model's
+one miss was Olise (10, started and scored) on the bench. Season closed
+at 513 net, global rank 905,675 (from 1,153,720 after the SF), roughly
+a quarter-million places gained on the final round alone.
 
 ## 8.6 Season summary table (to compile at the end)
 
