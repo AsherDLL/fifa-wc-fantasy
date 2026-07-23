@@ -1,7 +1,7 @@
 # FIFA Fantasy World Cup 2026
 
 [![CI](https://github.com/AsherDLL/fifa-wc-fantasy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AsherDLL/fifa-wc-fantasy/actions/workflows/ci.yml?query=branch%3Amain) [![License: GPL-3.0](https://img.shields.io/github/license/AsherDLL/fifa-wc-fantasy)](./LICENSE) [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](./pyproject.toml) [![Cite this repo](https://img.shields.io/badge/cite-CITATION.cff-2ea44f)](./CITATION.cff)
-[![Backends](https://img.shields.io/badge/backends-heuristic%20%7C%20poisson%20%7C%20gbm%20%7C%20ensemble-orange)](./docs/approaches.md) [![Last commit](https://img.shields.io/github/last-commit/AsherDLL/fifa-wc-fantasy)](https://github.com/AsherDLL/fifa-wc-fantasy/commits/main) [![Whitepaper](https://img.shields.io/badge/whitepaper-in%20draft-lightgrey)](./docs/whitepaper/README.md)
+[![Backends](https://img.shields.io/badge/backends-heuristic%20%7C%20poisson%20%7C%20gbm%20%7C%20ensemble-orange)](./docs/approaches.md) [![Last commit](https://img.shields.io/github/last-commit/AsherDLL/fifa-wc-fantasy)](https://github.com/AsherDLL/fifa-wc-fantasy/commits/main) [![Whitepaper](https://img.shields.io/badge/whitepaper-in%20draft-lightgrey)](./docs/whitepaper/README.md) [![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-yellow)](https://huggingface.co/datasets/AsherDLL/fifa-wc-2026-fantasy)
 
 A prediction, optimization, and decision-support system for the official
 FIFA World Cup 2026 Fantasy game. Predicts per-player fantasy points
@@ -458,7 +458,11 @@ Diego Guajardo, co-author of the whitepaper.
 
 GPL-3.0-only; see [LICENSE](./LICENSE). Bundled data files keep the
 terms of their upstream sources, catalogued in
-[`docs/data-provenance.md`](./docs/data-provenance.md). To cite this
+[`docs/data-provenance.md`](./docs/data-provenance.md). The data
+collected and produced by the system (API snapshots, market snapshots,
+features, predictions, evaluation artifacts) is also published as a
+standalone CC-BY-4.0 dataset at
+[huggingface.co/datasets/AsherDLL/fifa-wc-2026-fantasy](https://huggingface.co/datasets/AsherDLL/fifa-wc-2026-fantasy). To cite this
 project use [`CITATION.cff`](./CITATION.cff) (GitHub renders it as a
 "Cite this repository" button). FIFA World Cup and FIFA Fantasy are
 trademarks of FIFA; this is an independent research project with no

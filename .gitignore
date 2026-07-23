@@ -68,6 +68,7 @@ results/report/
 
 # Local assistant/session config
 .claude/
+.agents/
 
 # OS
 .DS_Store
